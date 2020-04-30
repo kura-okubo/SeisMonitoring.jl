@@ -15,7 +15,7 @@ SeisMonitoring.jl is a Julia package for monitoring structural properties based 
    :caption: Contents:
    :numbered:
 
-   /pages/introduction
+   /source/pages/introduction
 
 ..
 .. Indices and tables
