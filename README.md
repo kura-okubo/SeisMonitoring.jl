@@ -7,4 +7,4 @@
 ----
 SeisMonitoring.jl is a Julia package for monitoring structural properties based on ambient noise seismology.
 
-Documentation and install instruction can be found [Here].(https://seismonitoringjl.readthedocs.io/en/latest/?badge=latest)
+Documentation and install instruction can be found [Here](https://seismonitoringjl.readthedocs.io/en/latest/?badge=latest).
