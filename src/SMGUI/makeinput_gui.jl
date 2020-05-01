@@ -1,6 +1,6 @@
 using Gtk
 include("inputdict_io.jl")
-include("default_param.jl")
+include("Default_param.jl")
 include("param_general.jl")
 
 """
