@@ -9,14 +9,19 @@ julia:
 - 1.4.0
 - 1.4.1
 
-
 after_success:
   - julia -e 'using Pkg; Pkg.add("Coverage"); using Coverage; Codecov.submit(process_folder())'
 
 before_install:
 - ls
 
+addons:
+  apt:
+    packages:
+      - xvfb
+      - xauth
+
 script:
-- if [[ -a .git/shallow ]]; then git fetch --unshallow; fi
-- if [[ `uname` = "Linux" ]]; then TESTCMD="xvfb-run julia"; else TESTCMD="julia"; fi
-- travis_wait 30 $TESTCMD -e 'using Pkg; Pkg.build(); Pkg.test(coverage=true)'
+  - if [[ -a .git/shallow ]]; then git fetch --unshallow; fi
+  - if [[ `uname` = "Linux" ]]; then TESTCMD="xvfb-run julia"; else TESTCMD="julia"; fi
+  - travis_wait 30 $TESTCMD -e 'using Pkg; Pkg.build(); Pkg.test(coverage=true)'

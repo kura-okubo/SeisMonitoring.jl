@@ -2,6 +2,8 @@
 Introduction
 ************
 
+Overview
+============
 To achieve high-performance seismic data processing, SeisMonitoring.jl uses:
 
 - `SeisIO.jl <https://seisio.readthedocs.io/en/latest/?badge=latest>`_
