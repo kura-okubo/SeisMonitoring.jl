@@ -3,6 +3,16 @@ uuid = "d0d3aec2-4138-4376-b1ce-a7d204193698"
 authors = ["Kurama Okubo"]
 version = "0.1.0"
 
+[deps]
+Dates = "ade2ca70-3891-5945-98fb-dc099432e06a"
+Distributed = "8ba89e20-285c-5b6f-9357-94700520ee1b"
+FileIO = "5789e2e9-d7fb-5bc7-8068-2c6fae9b9549"
+Gtk = "4c0ca9eb-093a-5379-98c5-f87ac0bbbf44"
+JLD2 = "033835bb-8acc-5ee8-8aae-3f567f8a3819"
+Printf = "de0858da-6303-5e67-8744-51eddeeeb8d7"
+SeisIO = "b372bb87-02dd-52bb-bcf6-c30dd83fd342"
+SeisNoise = "8cc7c3c0-6b5d-11e9-39fe-c9cd0236e08b"
+
 [compat]
 julia = "0.1"
 
