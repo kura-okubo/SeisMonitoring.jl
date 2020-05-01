@@ -11,7 +11,7 @@ SeisMonitoring.jl is a Julia package for monitoring structural properties based 
 
 
 .. toctree::
-   :maxdepth: 1
+   :maxdepth: 2
    :caption: Contents:
    :numbered:
 
