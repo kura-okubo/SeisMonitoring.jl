@@ -1,9 +1,6 @@
 include("utils.jl")
 include("downloadfunc.jl")
 
-using .Utils
-using .DownloadFunc
-
 using SeisIO, Dates, Printf, JLD2, FileIO, Distributed
 
 """
@@ -15,42 +12,34 @@ using SeisIO, Dates, Printf, JLD2, FileIO, Distributed
 """
 function seisdownload(InputDict::Dict)
 
-    Utils.initlogo()
+	downloadtype 			= InputDict["downloadtype"]
+	project_output_dir		= abspath(InputDict["project_output_dir"])
+	InputDict["fodir"] 		= joinpath(project_output_dir, "seismicdata")
+	tmpdir 					= joinpath(project_output_dir, "seismicdata", "seisdownload_tmp")
+	InputDict["tmpdir_dl"] 	= tmpdir
+	mkdir(tmpdir)
 
-	printparams(InputDict)
-
-	DownloadType    = InputDict["DownloadType"]
-
-	fodir = ""
-	sp = splitpath(InputDict["fopath"])
-	for i = 1:length(sp)-1
-		fodir = joinpath(fodir, sp[i])
-	end
-	tmppath = joinpath(fodir, "./seisdownload_tmp")
-	InputDict["tmppath"] = tmppath
-	mkpath(tmppath)
-
-    if DownloadType == "Noise" || DownloadType == "noise"
+    if downloadtype == "Noise" || downloadtype == "noise"
 
 		#stationlist
-		stationlist     = InputDict["stationinfo"]["stationlist"]
-		starttime       = InputDict["starttime"]
-		endtime         = InputDict["endtime"]
-		DL_time_unit    = InputDict["DL_time_unit"]
-		DownloadType    = InputDict["DownloadType"]
-		fopath          = InputDict["fopath"]
+		# stationlist     = InputDict["stationinfo"]["stationlist"]
+		starttime       	= InputDict["starttime"]
+		endtime         	= InputDict["endtime"]
+		download_time_unit  = InputDict["download_time_unit"]
 
-		if mod((endtime - starttime).value,  DL_time_unit) != 0 || (endtime - starttime).value < DL_time_unit
-			error("Total download time cannot be devided by Download Time unit; this may cause unexpected result. Abort.")
+		# Check if total download time can be devided by download time unit.
+		if mod((endtime - starttime).value,  download_time_unit) != 0 || (endtime - starttime).value < download_time_unit
+			@error("Total download time cannot be devided by Download Time unit; this may cause unexpected result.")
+			return 1
 		end
 
 		# calculate start time list (starttimelist) with each Donwload_time_unit
-		starttimelist = Utils.get_starttimelist(starttime, endtime, DL_time_unit)
+		starttimelist = get_starttimelist(starttime, endtime, download_time_unit)
 		# generate DLtimestamplist and ststationlist
-		DLtimestamplist = Utils.get_timestamplist(starttimelist)
+		# DLtimestamplist = Utils.get_timestamplist(starttimelist)
 
 		InputDict["starttimelist"] = starttimelist
-		InputDict["DLtimestamplist"] = DLtimestamplist
+		# InputDict["DLtimestamplist"] = DLtimestamplist
 
 		#----Restrict number of processors------#
 		#NEVER CHANGE THIS THRESHOLD OTHERWISE IT OVERLOADS THE DATA SERVER
@@ -58,11 +47,13 @@ function seisdownload(InputDict::Dict)
 		if np > 100 throw(DomainError(np, "np must be smaller than 100.")) end
 		#---------------------------------------#
 
-        # Test download to evaluate use of memory and estimate download time.
-		InputDict_test = deepcopy(InputDict) # to avoid overwriting InputDict; unknown bug while deepcopying in testdownload function
-		testdownload(InputDict_test, length(starttimelist))
+        # # Test download to evaluate use of memory and estimate download time.
+		# InputDict_test = deepcopy(InputDict) # to avoid overwriting InputDict; unknown bug while deepcopying in testdownload function
+		# testdownload(InputDict_test, length(starttimelist))
 
 		# Start downloading data
+		println("-------START Downloading--------")
+
 		t_download = @elapsed pmap(x -> seisdownload_NOISE(x, InputDict), 1:length(starttimelist))
 
 		# convert intermediate file to prescibed file format (JLD2, ASDF, ...)
@@ -73,96 +64,18 @@ function seisdownload(InputDict::Dict)
 		println(@sprintf("Total convert time:%8.4f[s]", t_convert))
 
 		if !InputDict["Istmpfilepreserved"]
-			rm(tmppath, recursive=true, force=true)
+			rm(tmpdir, recursive=true, force=true)
 		end
 
-    elseif  DownloadType == "Earthquake" || DownloadType == "earthquake"
+    elseif  downloadtype == "Earthquake" || downloadtype == "earthquake"
 
-		method		    = InputDict["method"]
-		event		    = InputDict["event"]
-		reg			    = InputDict["reg"]
-		fopath          = InputDict["fopath"]
-
-		#save info into jld2
-		jldopen(fopath, "w") do file
-			file["info/method"]  = method;
-			file["info/event"]   = event;
-			file["info/reg"]     = reg
-			file["info/fopath"]  = fopath
-		end
-
-		#Test download to evaluate use of memory and estimate download time.
-		max_num_of_processes_per_parallelcycle = testdownload(InputDict, length(event), MAX_MEM_PER_CPU)
-
-		if max_num_of_processes_per_parallelcycle < 1
-			error("Memory allocation is not enought (currently $MAX_MEM_PER_CPU [GB]). Please inclease MAX_MEM_PER_CPU or decrease number of stations")
-		end
-
-		if max_num_of_processes_per_parallelcycle >= length(event)
-
-			S = pmap(x -> seisdownload_EARTHQUAKE(x, InputDict), 1:length(event))
-
-			# save data to jld2
-			file = jldopen(fopath, "r+")
-			unavalilablefile = jldopen(join([fopath[1:end-5], "_unavailablestations.jld2"]), "w+")
-
-			for ii = 1:size(S)[1] #loop at each starttime
-				varname = joinpath("event",InputDict["event"][ii]["origin"]["time"][1:end-4])
-				file[varname] = S[ii]
-			end
-
-			JLD2.close(file)
-			JLD2.close(unavalilablefile)
-
-		else
-
-			#parallelization by time
-			pitr = 1
-
-			while pitr <= length(event)
-
-				startid1 = pitr
-				startid2 = pitr + max_num_of_processes_per_parallelcycle - 1
-
-				if startid1 == length(event)
-					#use one
-					S = pmap(x -> seisdownload_EARTHQUAKE(x, InputDict), startid1:startid1)
-
-				elseif startid2 <= length(event)
-					#use all processors
-					S = pmap(x -> seisdownload_EARTHQUAKE(x, InputDict), startid1:startid2)
-
-				else
-					#use part of processors
-					startid2 = startid1 + mod(length(event), max_num_of_processes_per_parallelcycle) - 1
-					S = pmap(x -> seisdownload_EARTHQUAKE(x, InputDict), startid1:startid2)
-				end
-
-				# save data to jld2
-				file = jldopen(fopath, "r+")
-				unavalilablefile = jldopen(join([fopath[1:end-5], "_unavailablestations.jld2"]), "w+")
-
-
-				for ii = 1:size(S)[1] #loop at each starttime
-					varname = joinpath("event",InputDict["event"][startid1+ii-1]["origin"]["time"][1:end-4])
-					file[varname] = S[ii]
-				end
-
-				JLD2.close(file)
-				JLD2.close(unavalilablefile)
-
-				pitr += max_num_of_processes_per_parallelcycle
-
-				#println("pitr: $pitr")
-			end
-		end
-
+		@warn("temporarily deprecated and will be implemented using SeisIO.Quake module.")
 
     else
-        println("Download type is not known (chose Noise or Earthquake).")
+		#@println("Download type is not known (chose Noise or Earthquake).")
+		@error("Download type is not known (only available `Noise` for the moment).")
     end
 
-    println("Downloading and Saving data is successfully done.\njob ended at "*string(now()))
     return 0
 
 end

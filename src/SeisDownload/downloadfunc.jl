@@ -1,8 +1,4 @@
-module DownloadFunc
-
-using SeisIO, Dates
-
-export seisdownload_NOISE, seisdownload_EARTHQUAKE
+using SeisIO, Dates, Printf, JLD2, DataFrames
 
 """
     seisdownload_NOISE(startid, InputDict::Dict)
@@ -15,13 +11,16 @@ Download seismic data, removing instrumental response and saving into JLD2 file.
 """
 function seisdownload_NOISE(startid, InputDict::Dict; testdownload::Bool=false)
 
-    #stationlist
-    stationlist     = InputDict["stationinfo"]["stationlist"]
-    method      	= InputDict["stationinfo"]["stationmethod"]
-    src             = InputDict["stationinfo"]["stationsrc"]
-    starttime       = InputDict["starttime"]
-    endtime         = InputDict["endtime"]
-    DL_time_unit    = InputDict["DL_time_unit"]
+	StationDataFrame = jldopen(InputDict["request_station_file"]) # (e.g. requeststation.jld2 contains Dataframe)
+
+    download_time_unit = InputDict["download_time_unit"]
+
+	fodir 				 = InputDict["fodir"]
+	tmpdir 				 = InputDict["tmpdir"]
+	requeststation_file	 = 	InputDict["requeststation_file"]
+
+	stationxml_dir = joinpath(fodir, "stationxml")
+	mkdir(stationxml_dir)
 
 	#SeisIO getdata option
 	if !haskey(InputDict, "get_data_opt")
@@ -37,54 +36,50 @@ function seisdownload_NOISE(startid, InputDict::Dict; testdownload::Bool=false)
 	end
 
     #make stlist at all processors
-
     starttimelist = InputDict["starttimelist"]
 
     #show progress
     if starttimelist[startid][end-8:end] == "T00:00:00" && !testdownload
         println("start downloading $(starttimelist[startid])")
-	elseif testdownload
-		print(".")
-    end
+	end
 
-	dlerror = []
+	# import request_networkchanks (see )
+	if !ispath(requeststation_file)
+		error("request station file: $(requeststation_file) is not found.")
+	end
 
-    for i = 1:length(stationlist)
+	request_src_chanks = jldopen(requeststation_file, "r")
+
+    for src in keys(request_src_chanks)
         #---download data---#
-        requeststr = stationlist[i]
 
-		#println(starttimelist[startid])
+		requeststr = get_requeststr(request_src_chanks[src])
+
+		#NOTE: method is currently fixed "FDSN", which downloads station xml and waveforms.
+		method = FDSN
 
 		# including download margin
 		starttime = string(DateTime(starttimelist[startid]) - Second(InputDict["download_margin"]))
 		dltime = DL_time_unit + 2 * InputDict["download_margin"]
 
-		#println(starttime)
-		#println(dltime)
+		stationxml_path = joinpath(stationxml_dir*"$requeststr.$starttime.xml")
 
 		if InputDict["IsLocationBox"]
-
-	        ex = :(get_data($(method[i]), $(requeststr), s=$(starttime), t=$(dltime), reg=$(InputDict["reg"]),
-			 v=$(0), src=$(src[i]), xf=$("$requeststr.$startid.xml"), unscale=$(InputDict["get_data_opt"][1]),
+	        ex = :(get_data(method, $(requeststr), s=$(starttime), t=$(dltime), reg=$(InputDict["reg"]),
+			 v=$(0), src=$(src), xf=stationxml_path, unscale=$(InputDict["get_data_opt"][1]),
 			  demean=$(InputDict["get_data_opt"][2]), detrend=$(InputDict["get_data_opt"][3]),taper=$(InputDict["get_data_opt"][4]),
 			  ungap=$(InputDict["get_data_opt"][5]), rr=$(InputDict["IsResponseRemove"])))
 
 	        t_dl = @elapsed Stemp = check_and_get_data(ex, requeststr)
 		else
-
-			ex = :(get_data($(method[i]), $(requeststr), s=$(starttime), t=$(dltime),
-			 v=$(0), src=$(src[i]), xf=$("$requeststr.$startid.xml"),unscale=$(InputDict["get_data_opt"][1]),
+			ex = :(get_data(method, $(requeststr), s=$(starttime), t=$(dltime),
+			 v=$(0), src=$(src), xf=stationxml_path,unscale=$(InputDict["get_data_opt"][1]),
 			  demean=$(InputDict["get_data_opt"][2]), detrend=$(InputDict["get_data_opt"][3]),taper=$(InputDict["get_data_opt"][4]),
 			  ungap=$(InputDict["get_data_opt"][5]), rr=$(InputDict["IsResponseRemove"])))
 
 			t_dl = @elapsed Stemp = check_and_get_data(ex, requeststr)
 		end
 
-		# Check maximum memory allocation
-		if sizeof(Stemp)/1024/1024/1024 > InputDict["MAX_MEM_PER_CPU"]
-			@warn "maximam allocation of memory per cpu exceeds predescribed MAX_MEM_PER_CPU.
-			This may cause transient memory leak, so please track the memory usage." AllocatedMemory_GB=sizeof(Stemp)/1024/1024/1024
-		end
 
 		Isdataflag = false
 		# manipulate download_margin
@@ -115,101 +110,32 @@ function seisdownload_NOISE(startid, InputDict::Dict; testdownload::Bool=false)
 						'.')
 
 			# save as intermediate binary file
-			t_write = @elapsed wseis(InputDict["tmppath"]*"/"*fname_out, Stemp)
+			t_write = @elapsed wseis(InputDict["tmpdir"]*"/"*fname_out, Stemp)
 		end
 
-
-		if InputDict["IsXMLfileRemoved"] && ispath("$requeststr.$startid.xml")
-			rm("$requeststr.$startid.xml")
+		if InputDict["IsXMLfileRemoved"] && ispath(stationxml_path)
+			rm(stationxml_path)
 		end
 
-		push!(dlerror, !Isdataflag)
-
-		#print("[dltime, wtime, fraction of writing]: ")
-		#println([t_dl, t_write, t_write/(t_dl+t_write)])
     end
 
-    return dlerror
+    return 0
+
 end
 
-
-
 """
-    seisdownload_EARTHQUAKE(startid, InputDict::Dict)
+	get_requeststr(df::DataFrame)
 
-Download seismic data, removing instrumental response and saving into JLD2 file.
-
-# Arguments
-- `startid`         : start time id in starttimelist
-- `InputDict::Dict` : dictionary which contains request information
+return request str following web_chanspec of SeisIO.get_data.
 """
-function seisdownload_EARTHQUAKE(startid, InputDict::Dict)
-
-	method		    = InputDict["method"]
-	event		    = InputDict["event"]
-	reg			    = InputDict["reg"]
-    pre_filt        = InputDict["pre_filt"]
-
-    #show progress
-    if mod(startid, round(0.1*length(event))+1) == 0
-        println("start downloading event number: $startid")
-    end
-    S = SeisData()
-
-    #---download data---#
-	for j = 1:length(event[startid]["pickphase"])
-		net = event[startid]["pickphase"][j]["net"]
-		sta = event[startid]["pickphase"][j]["sta"]
-		loc = event[startid]["pickphase"][j]["loc"]
-		cha = event[startid]["pickphase"][j]["cha"]
-		src = event[startid]["pickphase"][j]["src"]
-
-		starttime = string(event[startid]["pickphase"][j]["starttime"])
-		endtime = string(event[startid]["pickphase"][j]["endtime"])
-
-		# make multiple request str
-
-    	requeststr = join([net,sta,loc,cha], ".")
-
-		if InputDict["IsLocationBox"]
-			# request with lat-lon box
-    		#argv = [method, requeststr, starttime, endtime, InputDict["reg"], 0, src, false, "$requeststr.$startid.xml"]
-		    ex = :(get_data($(method), $(requeststr), s=$(starttime), t=$(endtime), reg=$(InputDict["reg"]), v=$(0), src=$(src), xf=$("$requeststr.$startid.xml")))
-		    Stemp = check_and_get_data(ex, requeststr)
-		else
-			# request with lat-lon box
-    		#argv = [method, requeststr, starttime, endtime, 0, src, false, "$requeststr.$startid.xml"]
-			ex = :(get_data($(method), $(requeststr), s=$(starttime), t=$(endtime), v=$(0), src=$(src), xf=$("$requeststr.$startid.xml")))
-		    Stemp = check_and_get_data(ex, requeststr)
-		end
-
-	    if Stemp.misc[1]["dlerror"] == 0 && InputDict["IsResponseRemove"]
-	        #Remove_response_obspy.remove_response_obspy!(Stemp, "$requeststr.$startid.xml", pre_filt=pre_filt, zeropadlen = float(30*60), output="VEL")
-			if InputDict["IsXMLfileRemoved"]
-				rm("$requeststr.$startid.xml")
-			else
-				mkpath("./stationxml")
-				mv("$requeststr.$startid.xml", "./stationxml/$requeststr.$startid.xml", force=true)
-			end
-		else
-			if InputDict["IsXMLfileRemoved"]
-				rm("$requeststr.$startid.xml")
-			else
-				mkpath("./stationxml")
-				mv("$requeststr.$startid.xml", "./stationxml/$requeststr.$startid.xml", force=true)
-			end
-	    end
-
-		#fill gap with zero
-		SeisIO.ungap!(Stemp, m=true)
-		replace!(Stemp.x, NaN=>0)
-
-		append!(S, Stemp)
+function get_requeststr(df::DataFrame)
+	reqstr = String[]
+	for i = 1:size(df)[1]
+		rst = join([df.network[i], df.station[i], df.location[i], df.channel[i]], ".")
+		push!(reqstr, rst)
 	end
-
-    return S
+	return reqstr
 end
-
 
 """
     check_and_get_data(ex::Expr, requeststr::String)
@@ -224,44 +150,42 @@ Download seismic data, removing instrumental response and saving into JLD2 file.
 - `requeststr::String`     : request channel (e.g. "BP.LCCB..BP1")
 """
 function check_and_get_data(ex::Expr, requeststr::String)
-	try
-		#comment out below if you want to print contents of get_data()
-		#println(ex)
-		S = eval(ex);
 
-		for j = 1:S.n
-			if !isempty(S.x[j])
-				#download succeeded
-				S.misc[j]["dlerror"] = 0
-			else
-				S.misc[j]["dlerror"] = 1
-			end
+	# we try the same download request upto 3 times because it sometimes fails
+	# due to network error.
+	S = SeisData()
+	download_itr = 1
+	while download_itr < 3
+		S = try
+			#remove comment out below if you want to print contents of get_data()
+			#println(ex)
+			eval(ex);
+		catch
 		end
 
-		return S
-
-	catch y
-		#println(y)
-		S = SeisData(1)
-		S.misc[1]["dlerror"] = 1
-		S.id[1] = requeststr
-		note!(S, 1, "station is not available for this request.")
-		return S
+		if !isnothing(S) && !isempty(isempty(S))
+			break;
+		else
+			download_itr += 1
+			println("retry downloading $(download_itr).")
+		end
 	end
+
+	for j = 1:S.n
+		!isnothing(S[j]) ? S.misc[j]["dlerror"] = 0 : S.misc[j]["dlerror"] = 1
+	end
+
+	return S
 end
 
 
 """
     manipulate_tmatrix!(S::SeisData, InputDict::Dict{String,Any})
 
-    manipulate time matrix to remove download margin
-
+manipulate time matrix to remove download margin
 """
-
 function manipulate_tmatrix!(S::SeisData, starttime::String, InputDict::Dict{String,Any})
 
-    #print("before")
-    #println(S)
     for i = 1:S.n
 
 		if S.misc[i]["dlerror"] == 1
@@ -270,8 +194,7 @@ function manipulate_tmatrix!(S::SeisData, starttime::String, InputDict::Dict{Str
 
         download_margin = InputDict["download_margin"]
         DL_time_unit    = InputDict["DL_time_unit"]
-        #requeststr = "NC.PLO..EHZ" #NC.PCC..EHZ
-        requeststr = S.id[i] #NC.PCC..EHZ
+        requeststr = S.id[i]
 
 		# NOTE: 2020/2/8
 		# We decided to use data ungap to avoid data inconsitency
@@ -335,7 +258,4 @@ function manipulate_tmatrix!(S::SeisData, starttime::String, InputDict::Dict{Str
     end
     #print("after")
     #println(S)
-end
-
-
 end

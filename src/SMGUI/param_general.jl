@@ -1,4 +1,4 @@
-export call_param_general!
+using Gtk
 function call_param_general!(g::GtkGridLeaf, rowcount::Int)
         ParamList = [
                 "DownloadType",

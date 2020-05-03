@@ -67,17 +67,13 @@ function init_project(
         mkdir(proj_output_abspath)
     end
 
-    # copy default project into input path
-    module_path=splitdir(pathof(SeisMonitoring))[1]
-
     # NOTE: julia `cp` command cannot be used because of permissino issue.
     # make default parameter file
-    include(joinpath(module_path, "Defaultproject/default_param.jl"))
-    include(joinpath(module_path, "SMGUI/inputdict_io.jl"))
     write_inputdict(joinpath(proj_input_abspath, "default_param.jl"),InputDict)
 
     # make default request station file
     #include(joinpath(module_path, "SeisDownload/default_station.jl"))
+    make_defaultstation(joinpath(proj_input_abspath, "default_requeststations.jl"))
     #write_requeststation(proj_input_abspath, "request_stations.jld2", StationDataFrame)
 
     # make directories in OUTPUT

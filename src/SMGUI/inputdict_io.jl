@@ -1,7 +1,5 @@
 using Dates
 
-export write_inputdict
-
 function write_inputdict(f::String, InputDict::Dict)
     fo = open(f, "w")
     write(fo, "#Save at "*string(now())[1:19]*" by "*gethostname()*"\n")

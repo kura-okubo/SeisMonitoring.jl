@@ -1,0 +1,6 @@
+#Network | Station | Latitude | Longitude | Elevation | Sitename | StartTime | EndTime
+
+#DATACENTER=NCEDC,http://www.ncedc.org
+BP|CCRB|35.95718|-120.55158|595.0|Cholame Creek, Parkfield, CA, USA|2001-05-01T00:00:00|3000-01-01T00:00:00
+BP|EADB|35.89522|-120.42262|469.0|Eade Ranch, Parkfield, CA, USA|2000-11-25T00:00:00|3000-01-01T00:00:00
+BP|FROB|35.91095|-120.48688|515.0|Froelich Ranch, Parkfield, CA, USA|2000-11-10T00:00:00|3000-01-01T00:00:00

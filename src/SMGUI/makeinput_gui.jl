@@ -1,7 +1,4 @@
 using Gtk
-include("inputdict_io.jl")
-include("../Defaultproject/default_param.jl")
-include("param_general.jl")
 
 """
 makeinput_gui()
@@ -52,7 +49,7 @@ function makeinput_gui(windowtitle::String="default_param.jl")
   set_gtk_property!(g, :column_spacing, 15)  # introduce a 15-pixel gap between columns
   push!(win, g)
 
-  showall(win)
+  Gtk.showall(win)
 
   # signal connection
   signal_connect(open_, "activate") do widget
