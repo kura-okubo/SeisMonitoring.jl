@@ -1,6 +1,6 @@
 using Gtk
 include("inputdict_io.jl")
-include("Default_param.jl")
+include("../Defaultproject/default_param.jl")
 include("param_general.jl")
 
 """
@@ -8,9 +8,9 @@ makeinput_gui()
 
 Open Gtk gui to make input file for SeisMonitoring.jl
 """
-function makeinput_gui(windowtitle::String="Default_param.jl")
+function makeinput_gui(windowtitle::String="default_param.jl")
 
-  win = GtkWindow(windowtitle, 200, 40)
+  win = GtkWindow(windowtitle, 160, 40)
 
   #===Menu bar===#
   file = GtkMenuItem("_File")
