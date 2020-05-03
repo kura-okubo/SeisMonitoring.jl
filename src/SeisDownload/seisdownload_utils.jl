@@ -38,7 +38,7 @@ convert_tmpfile(InputDict::Dict)
 convert temporal file in "./seisdownload_tmp" to prescribed format.
 It has salvage mode, which allows to compile the temporal files in the case of failing during the download.
 """
-function convert_tmpfile(InputDict::Dict; salvage::Bool=false)
+function convert_tmpfile(InputDict::OrderedDict; salvage::Bool=false)
 
     println("-------START CONVERTING--------")
     paths   = SeisIO.ls(InputDict["tmppath"])

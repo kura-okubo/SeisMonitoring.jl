@@ -1,7 +1,5 @@
-using SeisIO, Dates, Printf, JLD2, DataFrames
-
 """
-    seisdownload_NOISE(startid, InputDict::Dict)
+    map_seisdownload_NOISE(startid, InputDict::Dict)
 
 Download seismic data, removing instrumental response and saving into JLD2 file.
 
@@ -9,7 +7,7 @@ Download seismic data, removing instrumental response and saving into JLD2 file.
 - `startid`         : start time id in starttimelist
 - `InputDict::Dict` : dictionary which contains request information
 """
-function seisdownload_NOISE(startid, InputDict::Dict; testdownload::Bool=false)
+function map_seisdownload_NOISE(startid, InputDict::OrderedDict; testdownload::Bool=false)
 
 	StationDataFrame = jldopen(InputDict["request_station_file"]) # (e.g. requeststation.jld2 contains Dataframe)
 
@@ -60,7 +58,7 @@ function seisdownload_NOISE(startid, InputDict::Dict; testdownload::Bool=false)
 
 		# including download margin
 		starttime = string(DateTime(starttimelist[startid]) - Second(InputDict["download_margin"]))
-		dltime = DL_time_unit + 2 * InputDict["download_margin"]
+		dltime = download_time_unit + 2 * InputDict["download_margin"]
 
 		stationxml_path = joinpath(stationxml_dir*"$requeststr.$starttime.xml")
 
@@ -113,7 +111,7 @@ function seisdownload_NOISE(startid, InputDict::Dict; testdownload::Bool=false)
 			t_write = @elapsed wseis(InputDict["tmpdir"]*"/"*fname_out, Stemp)
 		end
 
-		if InputDict["IsXMLfileRemoved"] && ispath(stationxml_path)
+		if !InputDict["IsXMLfilepreserved"] && ispath(stationxml_path)
 			rm(stationxml_path)
 		end
 
@@ -184,7 +182,7 @@ end
 
 manipulate time matrix to remove download margin
 """
-function manipulate_tmatrix!(S::SeisData, starttime::String, InputDict::Dict{String,Any})
+function manipulate_tmatrix!(S::SeisData, starttime::String, InputDict::OrderedDict)
 
     for i = 1:S.n
 
@@ -193,7 +191,7 @@ function manipulate_tmatrix!(S::SeisData, starttime::String, InputDict::Dict{Str
 		end
 
         download_margin = InputDict["download_margin"]
-        DL_time_unit    = InputDict["DL_time_unit"]
+        download_time_unit    = InputDict["download_time_unit"]
         requeststr = S.id[i]
 
 		# NOTE: 2020/2/8
@@ -206,7 +204,7 @@ function manipulate_tmatrix!(S::SeisData, starttime::String, InputDict::Dict{Str
 		end
 
         tvec = collect(0:S.t[i][end,1]-1) ./ S.fs[i]
-        tlen = trunc(Int, DL_time_unit * S.fs[i])
+        tlen = trunc(Int, download_time_unit * S.fs[i])
 
         si = findfirst(x -> tvec[x] >= download_margin, 1:length(tvec))
 

@@ -1,3 +1,5 @@
+include("../Defaultproject/set_default_station.jl")
+
 """
 
     init_project(project_path::String="project")
@@ -67,13 +69,19 @@ function init_project(
         mkdir(proj_output_abspath)
     end
 
+
     # NOTE: julia `cp` command cannot be used because of permissino issue.
+
+    set_values_inputdict!(InputDict, "project_name", project_name)
+    set_values_inputdict!(InputDict, "project_inputdir", proj_input_abspath)
+    set_values_inputdict!(InputDict, "project_outputdir", proj_output_abspath)
+
     # make default parameter file
     write_inputdict(joinpath(proj_input_abspath, "default_param.jl"),InputDict)
 
     # make default request station file
     #include(joinpath(module_path, "SeisDownload/default_station.jl"))
-    make_defaultstation(joinpath(proj_input_abspath, "default_requeststations.jl"))
+    set_default_station(joinpath(proj_input_abspath, "default_requeststations.jld2"))
     #write_requeststation(proj_input_abspath, "request_stations.jld2", StationDataFrame)
 
     # make directories in OUTPUT

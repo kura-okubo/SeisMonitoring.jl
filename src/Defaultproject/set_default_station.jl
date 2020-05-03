@@ -1,7 +1,7 @@
 using DataFrames, JLD2, CSV
 
 """
-    make_defaultstation(fopath::String)
+    set_default_station(fopath::String)
 
 make request stations in Julia DataFrames format.
 
@@ -23,7 +23,7 @@ Then, fo.jld2 contains each src chunk such as:
 
 See available src chunk name in SeisIO.seis_www
 """
-function make_defaultstation(fopath::String)
+function set_default_station(fopath::String)
 
     NCEDC_srcchunk = DataFrame(network=String[],
                                station=String[],

@@ -1,5 +1,6 @@
 using Distributed
-using Dates
+
+include("printlogos.jl")
 
 """
     run_job(inputfile::String="";
