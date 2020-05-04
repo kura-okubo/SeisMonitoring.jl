@@ -9,15 +9,16 @@ Download seismic data, removing instrumental response and saving into JLD2 file.
 """
 function map_seisdownload_NOISE(startid, InputDict::OrderedDict; testdownload::Bool=false)
 
-	StationDataFrame = jldopen(InputDict["request_station_file"]) # (e.g. requeststation.jld2 contains Dataframe)
+	StationDataFrame = jldopen(InputDict["requeststation_file"]) # (e.g. requeststation.jld2 contains Dataframe)
 
     download_time_unit = InputDict["download_time_unit"]
 
 	fodir 				 = InputDict["fodir"]
-	tmpdir 				 = InputDict["tmpdir"]
+	tmpdir 				 = InputDict["tmpdir_dl"]
 	requeststation_file	 = 	InputDict["requeststation_file"]
 
 	stationxml_dir = joinpath(fodir, "stationxml")
+	if ispath(stationxml_dir); rm(stationxml_dir, recursive=true); end
 	mkdir(stationxml_dir)
 
 	#SeisIO getdata option
@@ -54,30 +55,34 @@ function map_seisdownload_NOISE(startid, InputDict::OrderedDict; testdownload::B
 		requeststr = get_requeststr(request_src_chanks[src])
 
 		#NOTE: method is currently fixed "FDSN", which downloads station xml and waveforms.
-		method = FDSN
+		method = "FDSN"
 
 		# including download margin
 		starttime = string(DateTime(starttimelist[startid]) - Second(InputDict["download_margin"]))
 		dltime = download_time_unit + 2 * InputDict["download_margin"]
 
-		stationxml_path = joinpath(stationxml_dir*"$requeststr.$starttime.xml")
+		stationxml_path = joinpath(stationxml_dir, "$src.$starttime.xml")
 
 		if InputDict["IsLocationBox"]
-	        ex = :(get_data(method, $(requeststr), s=$(starttime), t=$(dltime), reg=$(InputDict["reg"]),
-			 v=$(0), src=$(src), xf=stationxml_path, unscale=$(InputDict["get_data_opt"][1]),
+	        ex = :(get_data($(method), $(requeststr), s=$(starttime), t=$(dltime), reg=$(InputDict["reg"]),
+			 v=$(0), src=$(src), xf=$(stationxml_path), unscale=$(InputDict["get_data_opt"][1]),
 			  demean=$(InputDict["get_data_opt"][2]), detrend=$(InputDict["get_data_opt"][3]),taper=$(InputDict["get_data_opt"][4]),
 			  ungap=$(InputDict["get_data_opt"][5]), rr=$(InputDict["IsResponseRemove"])))
 
 	        t_dl = @elapsed Stemp = check_and_get_data(ex, requeststr)
 		else
-			ex = :(get_data(method, $(requeststr), s=$(starttime), t=$(dltime),
-			 v=$(0), src=$(src), xf=stationxml_path,unscale=$(InputDict["get_data_opt"][1]),
+			ex = :(get_data($(method), $(requeststr), s=$(starttime), t=$(dltime),
+			 v=$(0), src=$(src), xf=$(stationxml_path),unscale=$(InputDict["get_data_opt"][1]),
 			  demean=$(InputDict["get_data_opt"][2]), detrend=$(InputDict["get_data_opt"][3]),taper=$(InputDict["get_data_opt"][4]),
 			  ungap=$(InputDict["get_data_opt"][5]), rr=$(InputDict["IsResponseRemove"])))
 
 			t_dl = @elapsed Stemp = check_and_get_data(ex, requeststr)
 		end
 
+		if Stemp == 1
+			# error this entire request
+			return 1
+		end
 
 		Isdataflag = false
 		# manipulate download_margin
@@ -102,13 +107,13 @@ function map_seisdownload_NOISE(startid, InputDict::OrderedDict; testdownload::B
 			j = md2j(y, m, d)
 			fname_out = join([String(y),
 						string(j),
-						replace(split(starttimelist[startid], 'T')[2], ':' => '.'),requeststr,
+						replace(split(starttimelist[startid], 'T')[2], ':' => '.'),
 						"FDSNWS",
-						src[i],"dat"],
+						src,"dat"],
 						'.')
 
 			# save as intermediate binary file
-			t_write = @elapsed wseis(InputDict["tmpdir"]*"/"*fname_out, Stemp)
+			t_write = @elapsed wseis(InputDict["tmpdir_dl"]*"/"*fname_out, Stemp)
 		end
 
 		if !InputDict["IsXMLfilepreserved"] && ispath(stationxml_path)
@@ -147,30 +152,36 @@ Download seismic data, removing instrumental response and saving into JLD2 file.
 - `S::SeisData`     : downloaded SeisData
 - `requeststr::String`     : request channel (e.g. "BP.LCCB..BP1")
 """
-function check_and_get_data(ex::Expr, requeststr::String)
+function check_and_get_data(ex::Expr, requeststr::Array{String,1})
 
 	# we try the same download request upto 3 times because it sometimes fails
 	# due to network error.
-	S = SeisData()
 	download_itr = 1
-	while download_itr < 3
+
+	S = SeisData()
+
+	while download_itr <= 3
 		S = try
 			#remove comment out below if you want to print contents of get_data()
-			#println(ex)
+			# println(ex)
 			eval(ex);
 		catch
 		end
 
-		if !isnothing(S) && !isempty(isempty(S))
+		if !isnothing(S) && !isempty(S)
 			break;
 		else
 			download_itr += 1
-			println("retry downloading $(download_itr).")
+			#println("retry downloading $(download_itr).")
 		end
 	end
 
+	if isnothing(S) || isempty(S)
+		return 1
+	end
+
 	for j = 1:S.n
-		!isnothing(S[j]) ? S.misc[j]["dlerror"] = 0 : S.misc[j]["dlerror"] = 1
+		!isnothing(S[j]) && !isempty(S[j]) ? S.misc[j]["dlerror"] = 0 : S.misc[j]["dlerror"] = 1
 	end
 
 	return S

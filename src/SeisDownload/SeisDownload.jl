@@ -8,14 +8,18 @@ include("downloadfunc.jl")
 # Arguments
 - `InputDict`    : dictionary which contains request information
 """
-function seisdownload(InputDict::OrderedDict)
+function seisdownload(InputDict_origin::OrderedDict)
 
-	project_output_dir		= abspath(InputDict["project_output_dir"])
-	InputDict["fodir"] 		= joinpath(project_output_dir, "seismicdata")
-	tmpdir 					= joinpath(project_output_dir, "seismicdata", "seisdownload_tmp")
+	# parse input dictionary
+	InputDict = parse_inputdict(InputDict_origin)
+
+	project_outputdir		= abspath(InputDict["project_outputdir"])
+	InputDict["fodir"] 		= joinpath(project_outputdir, "seismicdata")
+	tmpdir 					= joinpath(project_outputdir, "seismicdata", "seisdownload_tmp")
 	InputDict["tmpdir_dl"] 	= tmpdir
-	mkdir(tmpdir)
 
+	if ispath(tmpdir); rm(tmpdir, recursive=true); end
+	mkdir(tmpdir)
 
 	#stationlist
 	# stationlist     = InputDict["stationinfo"]["stationlist"]
@@ -29,7 +33,7 @@ function seisdownload(InputDict::OrderedDict)
 		return 1
 	end
 
-	# calculate start time list (starttimelist) with each Donwload_time_unit
+	# calculate start time list (starttimelist) with each Download_time_unit
 	starttimelist = get_starttimelist(starttime, endtime, download_time_unit)
 	# generate DLtimestamplist and ststationlist
 	# DLtimestamplist = Utils.get_timestamplist(starttimelist)

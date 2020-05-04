@@ -27,7 +27,6 @@ running job in the project folder.
 """
 function run_job(inputfile::String="";
         run_seisdownload::Bool=true,
-        run_requeststation::String="",
         run_seisremoveeq::Bool=true,
         run_seisxcorrelation::Bool=true,
         run_seisstack::Bool=true,
@@ -54,22 +53,41 @@ function run_job(inputfile::String="";
     )
 
     println("***************************************")
-    println("seisdownload       = $(seisdownload)")
-    println("seisremoveeq       = $(seisdownload)")
-    println("seisxcorrelation   = $(seisdownload)")
-    println("seisstack          = $(seisdownload)")
-    println("seismeasurement    = $(seisdownload)")
+    println("seisdownload       = $(run_seisdownload)")
+    println("seisremoveeq       = $(run_seisremoveeq)")
+    println("seisxcorrelation   = $(run_seisxcorrelation)")
+    println("seisstack          = $(run_seisstack)")
+    println("seismeasurement    = $(run_seismeasurement)")
     println("***************************************\n")
 
-    # println("Preparing parallel processing.")
-    # addprocs(Inputdict["NP"])
-    # println("number of procs: $(nprocs())\n")
+    include(inputfile)
+
+    println("Preparing parallel processing.")
+    #=== NOTE: Julia `nprocs` is not the number of processors to be used.
+    Julia nprocs is the number of processes to be parallelized using available
+    processors in the system.
+    However, for the sake of simplicity, we indicate np as number of processors
+    following traditional use and addprocs according to the np.
+    So you can assign the large number of NP; it is just parallelized by the number
+    of available cores in your system.
+    ===#
+    procs_tobeadded = parse(Int, InputDict["NP"][1]) - nprocs()
+    if procs_tobeadded >= 1; addprocs(procs_tobeadded);end
+    println("NP               : $(nprocs())")
+    println("Number of workers: $(nprocs()-1)\n")
+    eval(macroexpand(SeisMonitoring, quote @everywhere using SeisMonitoring end))
 
     stall = time()
 
     if run_seisdownload
 
         st_dl=time()
+        printstyled(
+            "\nStart running SeisDownload\n\n",
+            bold = true,
+            color = :cyan,
+        )
+
         seisdownload(InputDict)
         et_dl=time()
         println("SeisDownload successfully done in $(et_dl-st_dl) seconds.\n")
@@ -119,10 +137,10 @@ function run_job(inputfile::String="";
     println("All requested processes have been successfully done.");
     println("Computational_time[sec]:")
     print("SeisDownload, "); run_seisdownload ? println("$(et_dl-st_dl)") : println("0.0")
-    print("SeisRemoveEQ, "); run_seisdownload ? println("$(et_req-st_req)") : println("0.0")
-    print("SeisXcorrelation, "); run_seisdownload ? println("$(et_xc-st_xc)") : println("0.0")
-    print("SeisStack, "); run_seisdownload ? println("$(et_ss-st_ss)") : println("0.0")
-    print("SeisMeasurement, "); run_seisdownload ? println("$(et_sm-st_sm)") : println("0.0")
+    print("SeisRemoveEQ, "); run_seisremoveeq ? println("$(et_req-st_req)") : println("0.0")
+    print("SeisXcorrelation, "); run_seisxcorrelation ? println("$(et_xc-st_xc)") : println("0.0")
+    print("SeisStack, "); run_seisstack ? println("$(et_ss-st_ss)") : println("0.0")
+    print("SeisMeasurement, "); run_seismeasurement ? println("$(et_sm-st_sm)") : println("0.0")
     println("Total Computational time is $(tall) seconds.");
     println("*********************************************\n")
 

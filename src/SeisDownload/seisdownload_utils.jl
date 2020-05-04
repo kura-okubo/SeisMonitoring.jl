@@ -41,7 +41,7 @@ It has salvage mode, which allows to compile the temporal files in the case of f
 function convert_tmpfile(InputDict::OrderedDict; salvage::Bool=false)
 
     println("-------START CONVERTING--------")
-    paths   = SeisIO.ls(InputDict["tmppath"])
+    paths   = SeisIO.ls(InputDict["tmpdir_dl"])
     fodir   = InputDict["fodir"]
     fmt     = InputDict["outputformat"]
 
@@ -60,8 +60,8 @@ function convert_tmpfile(InputDict::OrderedDict; salvage::Bool=false)
 
     @simd for path in paths
         #println(path)
-        try
-            S = rseis(path)[1]
+        S = try
+            rseis(path)[1]
         catch y
             #println(y)
         end
@@ -88,8 +88,8 @@ function convert_tmpfile(InputDict::OrderedDict; salvage::Bool=false)
 				# split network, station, location and channel
 				net, sta, loc, cha = split(S[ii].id, ".")
 
-				groupname = "Waveforms/join([net, sta], ".")"
-				varname	  = join([net, sta, loc, cha], ".")*"__"*s_str*"__"*e_str*__lowercase(cha)
+				groupname = joinpath("Waveforms", join([net, sta], "."))
+				varname	  = join([net, sta, loc, cha], ".")*"__"*s_str*"__"*e_str*"__"*lowercase(cha)
 
                 # select output format
 

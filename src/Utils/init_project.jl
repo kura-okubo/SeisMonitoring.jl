@@ -75,6 +75,7 @@ function init_project(
     set_values_inputdict!(InputDict, "project_name", project_name)
     set_values_inputdict!(InputDict, "project_inputdir", proj_input_abspath)
     set_values_inputdict!(InputDict, "project_outputdir", proj_output_abspath)
+    set_values_inputdict!(InputDict, "requeststation_file", joinpath(proj_input_abspath, "default_requeststations.jld2"))
 
     # make default parameter file
     write_inputdict(joinpath(proj_input_abspath, "default_param.jl"),InputDict)

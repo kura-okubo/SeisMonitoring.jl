@@ -39,11 +39,11 @@ end
 
 function call_param_seisdownload!(g::GtkGridLeaf, rowcount::Int)
         ParamList = [
-                "donwload_time_unit",
-                "donwload_margin",
-                "project_outputdir",
+                "download_time_unit",
+                "download_margin",
                 "requeststation_file",
                 "savesamplefreq",
+                "IsResponseRemove",
                 "IsLocationBox",
                 "reg",
                 "Istmpfilepreserved",

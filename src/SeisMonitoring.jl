@@ -22,6 +22,7 @@ include("Utils/run_job.jl")
 
 # shared lib
 include("Utils/inputdict_io.jl") #Utils, SMGUI
+include("Utils/parse_inputdict.jl") #Utils, SMGUI
 include("Defaultproject/set_default_inputdict.jl") # set global default InputDict
 
 end # module
