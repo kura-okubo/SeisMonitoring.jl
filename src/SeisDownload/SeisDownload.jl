@@ -14,12 +14,20 @@ function seisdownload(InputDict_origin::OrderedDict)
 	InputDict = parse_inputdict(InputDict_origin)
 
 	project_outputdir		= abspath(InputDict["project_outputdir"])
-	InputDict["fodir"] 		= joinpath(project_outputdir, "seismicdata")
+	fodir					= joinpath(project_outputdir, "seismicdata")
 	tmpdir 					= joinpath(project_outputdir, "seismicdata", "seisdownload_tmp")
+	InputDict["fodir"] 		= fodir
 	InputDict["tmpdir_dl"] 	= tmpdir
+
+	stationxml_dir = joinpath(fodir, "stationxml")
+	InputDict["stationxml_dir"] = stationxml_dir
+
 
 	if ispath(tmpdir); rm(tmpdir, recursive=true); end
 	mkdir(tmpdir)
+
+	if ispath(stationxml_dir); rm(stationxml_dir, recursive=true); end
+	mkdir(stationxml_dir)
 
 	#stationlist
 	# stationlist     = InputDict["stationinfo"]["stationlist"]

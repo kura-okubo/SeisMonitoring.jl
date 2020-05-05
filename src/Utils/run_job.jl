@@ -72,7 +72,11 @@ function run_job(inputfile::String="";
     of available cores in your system.
     ===#
     procs_tobeadded = parse(Int, InputDict["NP"][1]) - nprocs()
-    if procs_tobeadded >= 1; addprocs(procs_tobeadded);end
+    if procs_tobeadded < 0
+        rmprocs(abs(procs_tobeadded))
+    elseif procs_tobeadded >= 1
+        addprocs(procs_tobeadded)
+    end
     println("NP               : $(nprocs())")
     println("Number of workers: $(nprocs()-1)\n")
     eval(macroexpand(SeisMonitoring, quote @everywhere using SeisMonitoring end))
@@ -97,6 +101,11 @@ function run_job(inputfile::String="";
     if run_seisremoveeq
 
         st_req=time()
+        printstyled(
+            "\nStart running SeisRemoveEQ\n\n",
+            bold = true,
+            color = :cyan,
+        )
         seisremoveeq(InputDict)
         et_req=time()
         println("SeisRemoveEQ successfully done in $(et_req-st_req) seconds.\n")

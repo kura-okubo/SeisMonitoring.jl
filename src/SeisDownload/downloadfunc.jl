@@ -15,11 +15,8 @@ function map_seisdownload_NOISE(startid, InputDict::OrderedDict; testdownload::B
 
 	fodir 				 = InputDict["fodir"]
 	tmpdir 				 = InputDict["tmpdir_dl"]
+	stationxml_dir		 = InputDict["stationxml_dir"]
 	requeststation_file	 = 	InputDict["requeststation_file"]
-
-	stationxml_dir = joinpath(fodir, "stationxml")
-	if ispath(stationxml_dir); rm(stationxml_dir, recursive=true); end
-	mkdir(stationxml_dir)
 
 	#SeisIO getdata option
 	if !haskey(InputDict, "get_data_opt")

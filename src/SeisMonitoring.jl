@@ -6,6 +6,7 @@ using Dates, Printf, JLD2, Distributed, DataFrames, DataStructures
 
 export
     seisdownload,
+    seisremoveeq,
     makeinput_gui,
     init_project,
     run_job
@@ -16,6 +17,7 @@ export
 
 
 include("SeisDownload/seisdownload.jl")
+# include("SeisRemoveEQ/seisremoveeq.jl")
 include("SMGUI/makeinput_gui.jl")
 include("Utils/init_project.jl")
 include("Utils/run_job.jl")
