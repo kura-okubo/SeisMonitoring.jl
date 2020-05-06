@@ -1,9 +1,3 @@
-__precompile__()
-module Get_kurtosis
-
-export get_kurtosis
-
-using Statistics, SeisIO
 
 """
     get_kurtosis(data::SeisChannel,kurtsis_tw_sparse::Float64; timewinlength::Float64=60)
@@ -16,14 +10,15 @@ using Statistics, SeisIO
     - `timewinlength::Float64`  : time window to calculate kurtosis
     kurtosis evaluation following Baillard et al.(2013)
 """
-function get_kurtosis(data::SeisChannel, timewinlength::Float64=180.0, kurtosis_tw_sparse::Float64=60.0)
+function get_kurtosis!(data::SeisChannel, InputDict::OrderedDict)
+
+    timewinlength = InputDIct["kurtsis_timewinlength"]
+    kurtosis_tw_sparse = InputDIct["kurtosis_tw_sparse"]
 
     #convert window lengths from seconds to samples
     TimeWin = trunc(Int, timewinlength * data.fs)
     SparseWin = trunc(Int, kurtosis_tw_sparse * data.fs)
     data.misc["kurtosis"] = fast_kurtosis_series(data.x, TimeWin, SparseWin)
-
-    return data
 
 end
 
@@ -45,8 +40,8 @@ function fast_kurtosis_series(v::Array, TN::Int64, SparseWin::Int64)
     n = length(v)
     kurt_grid = 1:n
 
-    if n < TN error("Kurtosis time window is larger than data length. Decrease time window.") end
-    if SparseWin > TN error("Sparse window is larger than Kurtosis time window. Decrease Kurtosis Sparse Window.") end
+    if n < TN; error("Kurtosis time window is larger than data length. Decrease time window.") end
+    if SparseWin > TN; error("Sparse window is larger than Kurtosis time window. Decrease Kurtosis Sparse Window.") end
 
     #1. compute kurtosis with sparse grid
     kurt_sparse_grid = collect(TN:SparseWin:n)
@@ -70,65 +65,12 @@ function fast_kurtosis_series(v::Array, TN::Int64, SparseWin::Int64)
         kurt[k] = (cm4 / (cm2 * cm2)) - 3.0
     end
 
-    #2. interpolate kurtosis
-    #t1 = @elapsed spl = Spline1D(kurt_sparse_grid, kurt_sparse; k=1, bc="nearest") #cubic spline
-    #t2 = @elapsed kurt = evaluate(spl, kurt_grid)
-
-    #println([t0, t1, t2])
-
-    # !DEPRECATED!: 1. compute mean value at each time window by numerical sequence
-    # 2. use mapreduce to sum values
-
-    # # first term
-    # Trace = @views v[1:TN]
-    # z2 = zeros(TN)
-    # m0 = mean(Trace)
-    #
-    # cm2 = Statistics.varm(Trace, m0, corrected=false)
-    # cm4 = fourthmoment(Trace, m0, corrected=false)
-    #
-    # # fill first part with kurtosis at TN
-    # kurt[1:TN] .= (cm4 / (cm2 * cm2)) - 3.0
-    #
-    # @simd for k = TN:n-1
-    #
-    #     diff1 = @inbounds @views (v[k-TN+1] - v[k+1])/TN
-    #     m1 = m0 - diff1
-    #     Trace = @views v[k-TN+2:k+1]
-    #     cm2 = Statistics.varm(Trace, m1, corrected=false)
-    #     cm4 = fourthmoment(Trace, m1, corrected=false) #sum(xi - m)^4 / N
-    #     kurt[k+1] = (cm4 / (cm2 * cm2)) - 3.0
-    #     m0 = m1
-    # end
-
-    # first term
-    # Trace = @views v[1:TN]
-    # z2 = zeros(TN)
-    # m0 = mean(Trace)
-    #
-    # cm2 = Statistics.varm(Trace, m0, corrected=false)
-    # cm4 = fourthmoment(Trace, m0, corrected=false)
-    #
-    # # fill first part with kurtosis at TN
-    # kurt[1:TN] .= (cm4 / (cm2 * cm2)) - 3.0
-    #
-    # @simd for k = TN:n-1
-    #
-    #     diff1 = @inbounds @views (v[k-TN+1] - v[k+1])/TN
-    #     m1 = m0 - diff1
-    #     Trace = @views v[k-TN+2:k+1]
-    #     cm2 = Statistics.varm(Trace, m1, corrected=false)
-    #     cm4 = fourthmoment(Trace, m1, corrected=false) #sum(xi - m)^4 / N
-    #     kurt[k+1] = (cm4 / (cm2 * cm2)) - 3.0
-    #     m0 = m1
-    # end
-
     return kurt
 
 end
 
 
-#---following functions are modified from Statistics.jl---#
+#---following functions are modified from Statistics.jl (https://github.com/JuliaLang/Statistics.jl)---#
 
 centralizedabs4fun(m) = x -> abs2.(abs2.(x - m))
 centralize_sumabs4(A::AbstractArray, m) =
@@ -210,5 +152,64 @@ function _fourthmoment(A::AbstractArray{T}, m, corrected::Bool, ::Colon) where T
     n == 0 && return oftype((abs2(zero(T)) + abs2(zero(T)))/2, NaN)
     return centralize_sumabs4(A, m) / (n - Int(corrected))
 end
+
+end
+
+#----------------------------------------------------------------------------#
+
+"""
+    detect_eq_kurtosis!(data::SeisChannel,tw::Float64=60.0, threshold::Float64=3.0, overlap::Float64=30)
+
+find earthquake by kurtosis threshold
+
+# Input:
+    - `data::SeisChannel`    : SeisData from SeisIO
+    - `tw::Float64`  : time window to evaluate if earthquake is contained.
+    - `threshold::Float64` : kurtosis threshold: if kurtosis > threshold, the time window contains earthquake
+    - `overlap::Float64`           : overlap of time window to control the margin of earthquake removal. (large overlap assigns large margin before and after earthquake.)
+
+    kurtosis evaluation following Baillard et al.(2013)
+    Algorithm for the loop through current channel by slidingis is contributed by Seth Olinger.
+"""
+function detect_eq_kurtosis!(data::SeisChannel, InputDict::OrderedDict)
+
+    removal_shorttimewindow = InputDict["removal_shorttimewindow"]
+    kurtosis_threshold      = InputDict["kurtosis_threshold"]
+    kurtosis_overlap        = InputDict["kurtosis_overlap"]
+
+    #convert window lengths from seconds to samples
+    twsize = trunc(Int, removal_shorttimewindow * data.fs)
+    overlapsize = trunc(Int, kurtosis_overlap * data.fs)
+
+    #calculate how much to move beginning of window each iteration
+    slide = twsize-overlapsize
+
+    #kurtosis of timeseries
+    ku1 = data.misc["kurtosis"][:]
+    #reset long window counter and triggers for current channel
+    i = 0
+
+    #loop through current channel by sliding
+    while i < length(ku1) - twsize
+
+        #check if last window and change long window length if so
+        if length(ku1) - i < twsize
+            twsize = length(ku1)-i
+        end
+
+        #define chunk of data based on long window length and calculate long-term average
+        twtrace = @views ku1[i+1:i+twsize]
+
+        if any(x -> x > kurtosis_threshold, twtrace)
+            #this time window includes earthquake
+            for tt= i+1:i+twsize
+                data.misc["noisedata"][tt] = false
+            end
+        end
+
+        #advance long window
+        i = i + slide
+
+    end
 
 end

@@ -3,7 +3,7 @@ module SeisMonitoring
 # module to be used over modules
 using SeisIO, SeisNoise
 using Dates, Printf, JLD2, Distributed, DataFrames, DataStructures
-
+using Statistics, DSP
 export
     seisdownload,
     seisremoveeq,
@@ -17,7 +17,7 @@ export
 
 
 include("SeisDownload/seisdownload.jl")
-# include("SeisRemoveEQ/seisremoveeq.jl")
+include("SeisRemoveEQ/seisremoveeq.jl")
 include("SMGUI/makeinput_gui.jl")
 include("Utils/init_project.jl")
 include("Utils/run_job.jl")

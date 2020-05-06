@@ -1,51 +1,47 @@
-__precompile__()
-module Utils
+"""
+    s_whiten!(data::SeisChannel)
 
-export convert_tmpfile, defaultinputdict!, printparams, initlogo
+Apply spectral whitening to seischannel trace
+# Input:
+    - `data::SeisChannel`    : SeisChannel from SeisIO
+    - `freqmin::Real`: Pass band low corner frequency.
+    - `freqmax::Real`: Pass band high corner frequency.
+    - `pad::Int`: Number of tapering points outside whitening band.
+"""
+function s_whiten!(data::SeisChannel, freqmin::Float64, freqmax::Float64;pad::Int=50)
 
-using SeisIO, Printf, Dates, JLD2, FileIO
+    # compute fft of time series
+    FFT = rfft(data.x,1)
+
+    # to use SeisNoise.whiten!() prepare (N, 2) array
+    FFTtemp = Array{Complex{Float32}}(undef, length(FFT), 2)
+    FFTtemp[:, 1] = FFT
+
+    SeisNoise.whiten!(FFTtemp,freqmin,freqmax,data.fs, data.t[end, 1], pad=pad)
+
+    data.x = irfft(FFTtemp[:,1],data.t[end, 1],1)
+    return nothing
+
+end
+s_whiten(data::SeisChannel, freqmin::Float64, freqmax::Float64;pad::Int=50) = (U = deepcopy(data);
+    s_whiten!(U,freqmin,freqmax,pad=pad);
+    return U)
+
+end
 
 
 """
-convert_tmpfile(InputDict::Dict)
+convert_tmpfile(InputDict::OrderedDict)
 
 convert temporal file in "./seisdownload_tmp" to prescribed format.
-It has salvage mode, which allows to compile the temporal files in the case of failing during the download.
 """
-function convert_tmpfile(InputDict::Dict; salvage::Bool=false)
+function convert_tmpfile(InputDict::OrderedDict)
 
-    println("-------START CONVERTING-------")
+	paths_all   = SeisIO.ls(InputDict["tmpdir_rem"])
+	fopath 		= joinpath(InputDict["fodir"], "EQRemovedData.jld2")
+	fo 			= jldopen(fopath, "w")
 
-	# save data to fopath file
-	fopath = InputDict["fopath"]
-
-	t = jldopen(InputDict["finame"])
-
-	file = jldopen(fopath, "w")
-
-	#!!!should be debuged because of Isocomponents!!!#
-	file["info/stationlist"]     = t["info/stationlist"];
-
-	if InputDict["IsStartendtime"]
-		file["info/DLtimestamplist"] = InputDict["DLtimestamplist_selected"];
-		file["info/starttime"]       = InputDict["starttime"];
-		file["info/endtime"]         = InputDict["endtime"];
-	else
-		file["info/DLtimestamplist"] = t["info/DLtimestamplist"];
-		file["info/starttime"]       = t["info/starttime"];
-		file["info/endtime"]         = t["info/endtime"];
-	end
-
-	JLD2.close(t)
-
-	# find all temporal files
-    paths_all = ls(InputDict["tmppath"])
-    fmt = InputDict["outputformat"]
-
-    stationlist     = []
-    DLtimestamplist = []
-    varnamelist     = []
-
+	# this is advanced mode to apply in order to isolate components at same stations
 	if InputDict["IsIsolateComponents"]
 		# isolate components based on priority dictionary
 		paths = isolate_components(paths_all, InputDict)
@@ -53,54 +49,34 @@ function convert_tmpfile(InputDict::Dict; salvage::Bool=false)
 		paths = paths_all
 	end
 
+	varnamelist     = []
+
     for path in paths
 
-        S = try
-				SeisIO.rseis(path)[1]
-			catch y
-				println(y)
-				@warn("cannot read tmpfile in seisremoveeq_tmp_sample. skipping")
-				continue;
+		jldopen(path, "r") do fi
+			S = try fi["SeisChannel"]
+			catch
+				continue
+			end
 		end
 
-        for ii = 1:S.n #loop at each seis channel
+		@show varname = splitdir(path)[2][1:end-4]
+		groupname = join(split(varname, ".")[1:2], ".")
 
-            # make station list
-            staid = S[ii].id
+		# select output format
 
-            # save data (checking whether it's already in the jld2 because it causes an error)
-            #parse info
-            s_str = string(u2d(S[ii].t[1,2]*1e-6))
-
-            # select output format
-            if fmt == "JLD2"
-                yj = parse(Int64, s_str[1:4])
-                mj = parse(Int64, s_str[6:7])
-                dj = parse(Int64, s_str[9:10])
-                tj = string(s_str)[11:19]
-
-                djm2j = md2j(yj, mj, dj)
-                groupname = string(yj)*"."*string(djm2j)*"."*tj #Year_Julianday_Starttime
-                varname = joinpath(groupname, staid)
-
-                if isempty(filter(x -> x==varname, varnamelist))
-                    push!(varnamelist, varname)
-                    file[varname] = S[ii]
-                end
-
-            else
-                error("output format in $fmt is not implemented yet.")
-            end
-        end
+		if isempty(filter(x -> x==varname, varnamelist))
+			push!(varnamelist, varname)
+			fo[joinpath(groupname,varname)] = S[ii]
+		end
 
 		# remove tmpfile
 		rm(path)
-
     end
 
-    JLD2.close(file)
+    JLD2.close(fo)
 
-	rm(InputDict["tmppath"], recursive=true, force=true)
+	rm(InputDict["tmpdir_rem"], recursive=true, force=true)
 
     return nothing
 end

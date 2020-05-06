@@ -2,15 +2,22 @@ include("../Defaultproject/set_default_station.jl")
 
 """
 
-    init_project(project_path::String="project")
+    init_project((
+        ;
+        project_name::String = "project",
+        project_inputdir::String = "./",
+        project_outputdir::String = "./",
+        gui::String = true;
+    )
 
 Initiate project directory where data is output.
 You can output data to local machine, external HDD, scratch, etc.
 
 # Arguments
-- `project_name`        : project name used as directory name [default: "project"]
-- `project_inputdir`    : absolute/relative path to make new input project directory [default: "."]
-- `project_outputdir`   : absolute/relative path to make new output project directory [default: "."]
+- `project_name::String`        : project name used as directory name [default: "project"]
+- `project_inputdir::String`    : absolute/relative path to make new input project directory [default: "."]
+- `project_outputdir::String`   : absolute/relative path to make new output project directory [default: "."]
+- `gui::Bool`                   : true if you want to use gui (you can use this to initiate case studies)
 
 Input and output directories can be separated for the use on local/HDD/cloud/scratch file system.
 
@@ -37,6 +44,7 @@ function init_project(
     project_name::String = "project",
     project_inputdir::String = "./",
     project_outputdir::String = "./",
+    gui::String = true;
 )
 
 
@@ -106,10 +114,13 @@ function init_project(
         color = :green,
     )
 
-    print("Open GUI for making input file? [y/n]: ")
-    l = readline()
-    if any(occursin.(["y", "Y", "yes", "Yes", "YES"], l))
-        cd(proj_input_abspath)
-        makeinput_gui()
+    if gui
+        print("Open GUI for making input file? [y/n]: ")
+        l = readline()
+        if any(occursin.(["y", "Y", "yes", "Yes", "YES"], l))
+            cd(proj_input_abspath)
+            makeinput_gui()
+        end
     end
+
 end

@@ -54,8 +54,6 @@ function convert_tmpfile(InputDict::OrderedDict; salvage::Bool=false)
         @error("outputformat: $(outputformat) is not available (JLD2 or ASDF).")
     end
 
-    stationlist     = []
-    DLtimestamplist = []
     varnamelist     = []
 
     @simd for path in paths

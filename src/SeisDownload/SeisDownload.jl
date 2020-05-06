@@ -75,6 +75,10 @@ function seisdownload(InputDict_origin::OrderedDict)
 		rm(tmpdir, recursive=true, force=true)
 	end
 
+	if !InputDict["IsXMLfilepreserved"]
+		rm(stationxml_dir, recursive=true, force=true)
+	end
+
     return 0
 
 end
