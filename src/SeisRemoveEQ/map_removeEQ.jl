@@ -8,16 +8,16 @@ include("seisremoveeq_remove_eqfilt.jl")
     remove earthquake and save it into jld2 file.
 
 """
-function map_removeEQ(station::String, fi::JLDFile, InputDict::OrderedDict)
+function map_removeEQ(station::String, fi, InputDict::OrderedDict)
 
-    println(("start process %s", station))
+    println("start process on $(station)")
 
     bt_kurtosis = 0.0
     bt_stalta = 0.0
 
     for fikey in keys(fi["Waveforms/$(station)"])
 
-    #read SeisChannel data
+        #read SeisChannel data
         S1_raw = fi["Waveforms/$(station)/$(fikey)"]
         S1 = deepcopy(S1_raw)
         # skip if it does not exist
@@ -43,11 +43,15 @@ function map_removeEQ(station::String, fi::JLDFile, InputDict::OrderedDict)
 
         if InputDict["IsSTALTARemoval"]
             # detect earthquake and tremors by STA/LTA
-            btsta_1 = @elapsed S1 = detect_eq_stalta(S1, InputDict)
+            btsta_1 = @elapsed detect_eq_stalta!(S1, InputDict)
         end
 
-        if InputDict["Iswhiten"]
-            s_whiten!(S1, freqmin_whiten, freqmax_whiten)# apply spectral whitening before remove filtering
+        if InputDict["IsWhitening"]
+            s_whiten!(
+                S1,
+                InputDict["freqmin_whiten"],
+                InputDict["freqmax_whiten"],
+            )# apply spectral whitening before remove filtering
         end
 
         bt_3 = @elapsed remove_eqfilt!(S1, InputDict)
@@ -63,9 +67,11 @@ function map_removeEQ(station::String, fi::JLDFile, InputDict::OrderedDict)
 
         # Append raw trace, kurtosis and stalta time traces to S1
         if InputDict["Append_alltraces"]
-            S1.misc["raw_trace"] = S1_raw
+            S1.misc["raw_trace"] = S1_raw.x
             S1.misc["kurtsis_trace"] = S1.misc["kurtosis"]
             S1.misc["stalta_trace"] = S1.misc["stalta"]
+            delete!(S1.misc, "kurtosis")
+            delete!(S1.misc, "stalta")
         else
             # don't keep those traces to reduce data size
             delete!(S1.misc, "kurtosis")
@@ -73,13 +79,12 @@ function map_removeEQ(station::String, fi::JLDFile, InputDict::OrderedDict)
             delete!(S1.misc, "noisesignal")
         end
 
-        temppath = joinpath(InputDict["tmpdir_rem"], fikey)
+        temppath = joinpath(InputDict["tmpdir_rem"], fikey * ".jld2")
 
-        JLD2.open(temppath, "w") do f
-            f["SeisChannel"] = S1
+        jldopen(temppath, "w") do fo
+            fo["S"] = S1
         end
     end
 
     return (bt_kurtosis, bt_stalta)
-
 end

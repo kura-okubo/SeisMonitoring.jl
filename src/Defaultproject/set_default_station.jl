@@ -34,7 +34,7 @@ function set_default_station(fopath::String)
                                elevation=String[])
 
     location =[""]
-    channel = ["BP1"]
+    channel = ["BP*"]
 
     module_path=splitdir(pathof(SeisMonitoring))[1]
     lines = readlines(joinpath(module_path, "Defaultproject/BP_gmap-stations.txt"))

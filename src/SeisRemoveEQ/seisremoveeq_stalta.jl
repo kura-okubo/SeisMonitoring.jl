@@ -4,28 +4,27 @@
 find earthquake and tremors using STA/LTA
 original code written by Seth Olinger. For our purpose, overlap is applied to short time window
 """
-function detect_eq_stalta(data::SeisChannel, InputDict::OrderedDict, datagap_eps::Float64=1e-8)
+function detect_eq_stalta!(data::SeisChannel, InputDict::OrderedDict, datagap_eps::Float64=1e-8)
 
     #
     # longWinLength::Float64, shortWinLength::Float64, threshold::Float64, overlap::Float64, stalta_absoluteclip::Float64,
     #                         InputDict::Dict, tstamp::String, st1::String; datagap_eps::Float64=1e-8)
 
 
-    longWinLength       = InputDict["stalta_longwindow"]
-    shortWinLength      = InputDict["stalta_shortwindow"]
+    longWinLength       = InputDict["longtime_window"]
+    shortWinLength      = InputDict["shorttime_window"]
     stalta_threshold    = InputDict["stalta_threshold"]
-    stalta_overlap      = InputDict["stalta_overlap"]
+    stalta_overlap      = InputDict["timewindow_overlap"]
     stalta_absoluteclip = InputDict["stalta_absoluteclip"]
 
     #convert window lengths from seconds to samples
     longWin      = trunc(Int,longWinLength * data.fs)
     shortWin     = trunc(Int,shortWinLength * data.fs)
-    overlapWin   = trunc(Int,overlap * data.fs)
+    overlapWin   = trunc(Int,stalta_overlap * data.fs)
     trace        = @view data.x[:]
 
     #buffer for sta/lta value
     staltatrace = zeros(length(trace))
-
     #calculate how much to move beginning of window each iteration
     slide = longWin
 
@@ -76,7 +75,7 @@ function detect_eq_stalta(data::SeisChannel, InputDict::OrderedDict, datagap_eps
             staLta = sta/lta
 
             #record detection time if sta/lta ratio exceeds threshold
-            if staLta > threshold || stamax > stalta_absoluteclip
+            if staLta > stalta_threshold || stamax > stalta_absoluteclip
                 #this time window includes earthquake
                 for tt= i+n:i+n+shortWin
                     data.misc["noisesignal"][tt] = false
@@ -106,6 +105,6 @@ function detect_eq_stalta(data::SeisChannel, InputDict::OrderedDict, datagap_eps
     end
 
     #append stalta trace
-    data["stalta_trace"] = staltatrace
+    data.misc["stalta"] = staltatrace
 
 end

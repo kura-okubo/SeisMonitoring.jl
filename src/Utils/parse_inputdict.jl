@@ -13,6 +13,10 @@ function parse_inputdict(InputDict::OrderedDict)
             # no need to parse
             InputDict_parsed[key] = InputDict[key][1]
 
+        elseif InputDict[key][2] == Array{String, 1}
+            # array of string e.g. "XX, YY, ZZ"
+            InputDict_parsed[key] = lstrip.(split(InputDict[key][1], ","))
+            
         else
             val = parse.(InputDict[key][2], split(InputDict[key][1], ","))
             if length(val) == 1

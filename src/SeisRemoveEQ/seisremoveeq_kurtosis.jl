@@ -12,8 +12,8 @@
 """
 function get_kurtosis!(data::SeisChannel, InputDict::OrderedDict)
 
-    timewinlength = InputDIct["kurtsis_timewinlength"]
-    kurtosis_tw_sparse = InputDIct["kurtosis_tw_sparse"]
+    timewinlength = InputDict["shorttime_window"]
+    kurtosis_tw_sparse = InputDict["timewindow_overlap"]
 
     #convert window lengths from seconds to samples
     TimeWin = trunc(Int, timewinlength * data.fs)
@@ -153,8 +153,6 @@ function _fourthmoment(A::AbstractArray{T}, m, corrected::Bool, ::Colon) where T
     return centralize_sumabs4(A, m) / (n - Int(corrected))
 end
 
-end
-
 #----------------------------------------------------------------------------#
 
 """
@@ -173,12 +171,12 @@ find earthquake by kurtosis threshold
 """
 function detect_eq_kurtosis!(data::SeisChannel, InputDict::OrderedDict)
 
-    removal_shorttimewindow = InputDict["removal_shorttimewindow"]
+    kurtosis_removewindow   = InputDict["shorttime_window"]
     kurtosis_threshold      = InputDict["kurtosis_threshold"]
-    kurtosis_overlap        = InputDict["kurtosis_overlap"]
+    kurtosis_overlap        = InputDict["timewindow_overlap"]
 
     #convert window lengths from seconds to samples
-    twsize = trunc(Int, removal_shorttimewindow * data.fs)
+    twsize = trunc(Int, kurtosis_removewindow * data.fs)
     overlapsize = trunc(Int, kurtosis_overlap * data.fs)
 
     #calculate how much to move beginning of window each iteration
@@ -203,7 +201,7 @@ function detect_eq_kurtosis!(data::SeisChannel, InputDict::OrderedDict)
         if any(x -> x > kurtosis_threshold, twtrace)
             #this time window includes earthquake
             for tt= i+1:i+twsize
-                data.misc["noisedata"][tt] = false
+                data.misc["noisesignal"][tt] = false
             end
         end
 

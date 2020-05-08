@@ -27,15 +27,13 @@ s_whiten(data::SeisChannel, freqmin::Float64, freqmax::Float64;pad::Int=50) = (U
     s_whiten!(U,freqmin,freqmax,pad=pad);
     return U)
 
-end
-
 
 """
 convert_tmpfile(InputDict::OrderedDict)
 
 convert temporal file in "./seisdownload_tmp" to prescribed format.
 """
-function convert_tmpfile(InputDict::OrderedDict)
+function convert_tmpfile_seisremoveeq(InputDict::OrderedDict)
 
 	paths_all   = SeisIO.ls(InputDict["tmpdir_rem"])
 	fopath 		= joinpath(InputDict["fodir"], "EQRemovedData.jld2")
@@ -53,21 +51,18 @@ function convert_tmpfile(InputDict::OrderedDict)
 
     for path in paths
 
-		jldopen(path, "r") do fi
-			S = try fi["SeisChannel"]
-			catch
-				continue
-			end
+		S1 = jldopen(path, "r") do fi
+			fi["S"]
 		end
 
-		@show varname = splitdir(path)[2][1:end-4]
+		varname = splitdir(path)[2][1:end-5]
 		groupname = join(split(varname, ".")[1:2], ".")
 
 		# select output format
 
 		if isempty(filter(x -> x==varname, varnamelist))
 			push!(varnamelist, varname)
-			fo[joinpath(groupname,varname)] = S[ii]
+			fo[joinpath("Waveforms",groupname,varname)] = S1
 		end
 
 		# remove tmpfile

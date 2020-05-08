@@ -44,7 +44,7 @@ function init_project(
     project_name::String = "project",
     project_inputdir::String = "./",
     project_outputdir::String = "./",
-    gui::String = true;
+    gui::Bool = true
 )
 
 

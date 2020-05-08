@@ -78,7 +78,7 @@ function run_job(inputfile::String="";
         addprocs(procs_tobeadded)
     end
     println("NP               : $(nprocs())")
-    println("Number of workers: $(nprocs()-1)\n")
+    if nprocs()-1 >= 1; println("Number of workers: $(nprocs()-1)\n") end
     eval(macroexpand(SeisMonitoring, quote @everywhere using SeisMonitoring end))
 
     stall = time()
@@ -91,7 +91,6 @@ function run_job(inputfile::String="";
             bold = true,
             color = :cyan,
         )
-
         seisdownload(InputDict)
         et_dl=time()
         println("SeisDownload successfully done in $(et_dl-st_dl) seconds.\n")

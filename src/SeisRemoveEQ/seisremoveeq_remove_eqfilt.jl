@@ -9,21 +9,18 @@ remove earthquake by kurtosis and STA/LTA threshold
 """
 function remove_eqfilt!(data::SeisChannel, InputDict::OrderedDict)
 
-    #
-    # data_origin::SeisChannel, plot_kurtosis_α::Float64, max_taper_dur::Float64,
-    # plot_boxheight::Float64, plot_span::Int64, plot_fmt::String, fodir::String, tstamp::String, tvec::Array{Float64,1}, IsSaveFig::Bool)
-
     noisesignal = data.misc["noisesignal"][:]
     nx = length(data.x)
 
+    i = 1
+
     while i <= nx
         if !noisesignal[i]
-            push!(t1, tvec[i])
 
             t1id = i
 
             #find next id
-            tt1 += @elapsed nexttrueid = findfirst(x -> x == true, noisesignal[t1id:end])
+            nexttrueid = findfirst(x -> x == true, noisesignal[t1id:end])
 
             if isnothing(nexttrueid)
                 # all data is removed

@@ -7,7 +7,9 @@ Open Gtk gui to make input file for SeisMonitoring.jl
 """
 function makeinput_gui(windowtitle::String="default_param.jl")
 
-  win = GtkWindow(windowtitle)
+  win = GtkWindow(windowtitle, 1000, 600)
+
+  win_scrolled = GtkScrolledWindow()
 
   #===Menu bar===#
   file = GtkMenuItem("_File")
@@ -42,6 +44,7 @@ function makeinput_gui(windowtitle::String="default_param.jl")
   rowcount = add_row_overcol!(g, rowcount, label_bold("SeisDownload"))
   rowcount = call_param_seisdownload!(g, rowcount)
   rowcount = add_row_overcol!(g, rowcount, label_bold("SeisRemoveEQ"))
+  rowcount = call_param_seisremoveeq!(g, rowcount)
   rowcount = add_row_overcol!(g, rowcount, label_bold("SeisXcorrelation"))
   rowcount = add_row_overcol!(g, rowcount, label_bold("SeisStack"))
   rowcount = add_row_overcol!(g, rowcount, label_bold("SeisMeasurement"))
@@ -52,7 +55,9 @@ function makeinput_gui(windowtitle::String="default_param.jl")
   set_gtk_property!(g, :column_homogeneous, false)
   set_gtk_property!(g, :row_spacing, 10)  # introduce a 15-pixel gap between columns
   set_gtk_property!(g, :column_spacing, 15)  # introduce a 15-pixel gap between columns
-  push!(win, g)
+  # push!(win, g)
+  push!(win_scrolled, g)
+  push!(win, win_scrolled)
 
   Gtk.showall(win)
 

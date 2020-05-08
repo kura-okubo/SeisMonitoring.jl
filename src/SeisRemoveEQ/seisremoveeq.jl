@@ -19,14 +19,14 @@ function seisremoveeq(InputDict_origin::OrderedDict)
     end
     mkdir(tmpdir)
 
-    if RawData_path = "default"
+    if lowercase(InputDict["RawData_path"]) == "default"
         RawData_path = joinpath(InputDict["fodir"], "RawData.jld2")
     else
         RawData_path = InputDict["RawData_path"]
     end
 
     println("***************************************")
-    println("IsKurtosisRemoval  = $(InputDict["IsKurtosisRemoval"])"
+    println("IsKurtosisRemoval  = $(InputDict["IsKurtosisRemoval"])")
     println("IsSTALTARemoval    = $(InputDict["IsSTALTARemoval"])")
     println("IsWhitening        = $(InputDict["IsWhitening"])")
     println("***************************************\n")
@@ -49,15 +49,17 @@ function seisremoveeq(InputDict_origin::OrderedDict)
 
     println("-------START Converting--------")
 
-    t_convert = @elapsed convert_tmpfile(InputDict)
+    t_convert = @elapsed convert_tmpfile_seisremoveeq(InputDict)
 
-    mean_kurtosis_cputime = mean(x->x[1]).(bt_time)
-    mean_stalta_cputime   = mean(x->x[2]).(bt_time)
+    mean_kurtosis_cputime = mean((x->x[1]).(bt_time))
+    mean_stalta_cputime   = mean((x->x[2]).(bt_time))
+
+	rm(tmpdir, recursive=true, force=true)
 
     printstyled("---Summary---\n"; color = :cyan, bold = true)
-    println("time to mean kurtosis cputime  =$(mean_kurtosis_cputime)[s]")
-    println("time to mean stalta cputime    =$(mean_stalta_cputime)[s]")
-    println("time to remove EQ total    =$(t_removeeq)[s]")
-    println("time to convert total      =$(t_convert)[s]")
+    println("time for mean kurtosis cputime  =$(mean_kurtosis_cputime)[s]")
+    println("time for mean stalta cputime    =$(mean_stalta_cputime)[s]")
+    println("time for remove EQ total    =$(t_removeeq)[s]")
+    println("time for convert total      =$(t_convert)[s]")
 
 end

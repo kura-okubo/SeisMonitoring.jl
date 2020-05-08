@@ -55,6 +55,7 @@ function convert_tmpfile(InputDict::OrderedDict; salvage::Bool=false)
     end
 
     varnamelist     = []
+	stationlist		= []
 
     @simd for path in paths
         #println(path)
