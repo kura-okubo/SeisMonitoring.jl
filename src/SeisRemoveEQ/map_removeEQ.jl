@@ -46,13 +46,9 @@ function map_removeEQ(station::String, fi, InputDict::OrderedDict)
             btsta_1 = @elapsed detect_eq_stalta!(S1, InputDict)
         end
 
-        if InputDict["IsWhitening"]
-            s_whiten!(
-                S1,
-                InputDict["freqmin_whiten"],
-                InputDict["freqmax_whiten"],
-            )# apply spectral whitening before remove filtering
-        end
+        # apply spectral whitening before remove filtering
+        InputDict["IsWhitening"] && s_whiten!(S1,InputDict["freqmin_whiten"], InputDict["freqmax_whiten"])
+
 
         bt_3 = @elapsed remove_eqfilt!(S1, InputDict)
 

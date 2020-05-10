@@ -23,8 +23,8 @@ function map_seisdownload_NOISE(startid, InputDict::OrderedDict; testdownload::B
 		InputDict["get_data_opt"] = [true, true, true, true, true]#: [unscale, demean, detrend, taper, ungap]
 	end
 
-	if !haskey(InputDict, "savesamplefreq")
-		InputDict["savesamplefreq"] = false # default margin: 5 minutes
+	if !haskey(InputDict, "sampling_frequency")
+		InputDict["sampling_frequency"] = false # default margin: 5 minutes
 	end
 
 	if !haskey(InputDict, "download_margin")
@@ -89,9 +89,9 @@ function map_seisdownload_NOISE(startid, InputDict::OrderedDict; testdownload::B
 			if Stemp.misc[j]["dlerror"] == 0
 				Isdataflag = true
 				# downsample
-				if InputDict["savesamplefreq"] isa Number
-					if Stemp.fs[j] > InputDict["savesamplefreq"]
-						SeisIO.resample!(Stemp, chans=j, fs=float(InputDict["savesamplefreq"]))
+				if InputDict["sampling_frequency"] isa Number
+					if Stemp.fs[j] > InputDict["sampling_frequency"]
+						SeisIO.resample!(Stemp, chans=j, fs=float(InputDict["sampling_frequency"]))
 					end
 				end
 			end
