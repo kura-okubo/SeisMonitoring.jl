@@ -1,6 +1,6 @@
 include("map_seisxcorrelation.jl")
 include("seisxcorrelation_utils.jl")
-include("append_wtcorr.jl")
+include("compute_frequency_decomposition.jl")
 include("assemble_seisdata.jl")
 
 """

@@ -122,6 +122,35 @@ end
 
 
 """
+    get_stationchanname(StationPairList::)
+get all station channel name used in the station pair list.
+
+# Argument
+- `StationPairList::Array{String, 1}` List of stastion pairs from get_stastionpairs.jl
+
+e.g.    get_stationchanname(StationPairDict[key])
+
+# Return
+
+- `StationChan::Array{String,1}` List of stations used in StationPairList.
+"""
+function get_stationchanname(StationPairList::Array{String,1})
+
+    all_stationchan = []
+    for stationpair in StationPairList
+        sta1, sta2 = split(stationpair, "-")
+        sta1 ∉ all_stationchan && push!(all_stationchan, sta1)
+        sta2 ∉ all_stationchan && push!(all_stationchan, sta2)
+    end
+    return all_stationchan
+end
+
+
+# key = "BP.CCRB-BP.EADB"
+# all_stationchannels = get_stationchanname(StationPairDict[key])
+
+
+"""
 	remove_nancol(A::AbstractArray)
 
 Remove column (i.e. trace) which has NaN.
