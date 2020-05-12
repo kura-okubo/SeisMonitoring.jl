@@ -79,7 +79,7 @@ function assemble_seisdata(
     end
 
     # syncrhonize seischannel so that it contains from starttime to endtime
-    S1_sync = SeisIO.sync(S1, s=starttime, t=endtime, v=2)
+    S1_sync = SeisIO.sync(S1, s=starttime, t=endtime, v=0)
     return S1_sync[1]
 end
 

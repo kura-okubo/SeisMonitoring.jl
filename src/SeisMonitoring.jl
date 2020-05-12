@@ -20,6 +20,7 @@ export
 include("SeisDownload/seisdownload.jl")
 include("SeisRemoveEQ/seisremoveeq.jl")
 include("SeisXcorrelation/seisxcorrelation.jl")
+include("SeisStack/seisstack.jl")
 include("SMGUI/makeinput_gui.jl")
 include("Utils/init_project.jl")
 include("Utils/run_job.jl")
@@ -27,6 +28,8 @@ include("Utils/run_job.jl")
 # shared lib
 include("Utils/inputdict_io.jl") #Utils, SMGUI
 include("Utils/parse_inputdict.jl") #Utils, SMGUI
+include("Utils/remove_nanandzerocol.jl") # used at seisstack and seismeasurement
+include("Utils/slice_codawindow.jl") # used at seisstack and seismeasurement
 include("Defaultproject/set_default_inputdict.jl") # set global default InputDict
 
 end # module

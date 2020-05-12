@@ -13,9 +13,11 @@ InputDict=OrderedDict(
 
         "sampling_frequency"    => ("20", Float64, "[Hz] Processing sampling frequency. Downsampling is applied when downloaded original data is higher sampling frequency."),
 
-        "freqency_band"         => ("0.01, 0.1, 0.1, 0.2", Float64, "Frequency bands to be analyzed.")
+        "freqency_band"         => ("0.01, 0.1, 0.2, 0.5, 1.0, 2.0", Float64, "Frequency bands to be analyzed."),
 
         "NP"                    => ("1", Int, "Number of processors you want to use for parallelization."),
+        "MAX_MEM_USE"           => ("3.0", Float64, "Advanced: [GB] Maximum memory use per core in the environment."),
+
         #===SeisDownload===#
         "download_time_unit"    => ("86400", Int, "[s] Unit time of data request. (e.g. request data for each 10minutes."),
         "download_margin"       => ("300", Int, "[s] Download margin to be clipped to avoid edge effect."),
@@ -54,5 +56,29 @@ InputDict=OrderedDict(
         "pairs_option"          => ("11, 22, 33", Array{String, 1}, "\"all\" or list of component pairs. e.g. XX, YY, ZZ"),
         "data_contents_fraction"=> ("0.8", Float64, "Advanced: discard cross-correlation if data fraction within cc_time_unit is less that this value."),
         "IsOnebit"              => ("false", Bool, "Apply One-bit normalization."),
+        "smoothing_half_win"    => ("5", Int64, "Advanced: number of points for boxcar smoothing on coherence and deconvolution."),
+        "waterlevel"            => ("1e-6", Float64, "Advanced: waterlevel on coherence and deconvolution."),
+        "cc_bpfilt_method"      => ("ButterWorth", String, "Frequency decomposition method. \"Butterworth\" or \"Wavelet\"."),
+        "cc_taper_α0"           => ("0.1", Float64, "Advanced: Lowest tapering fraction for frequency adaptive tapering."),
+        "cc_taper_αmax"         => ("0.25", Float64, "Advanced: Highest tapering fraction for frequency adaptive tapering."),
+
+        #===SeisStack===#
+        "stack_RawData_dir"     => ("default", String, "\"default\" or absolute/relative path to cc directory. \"default\" links to project OUTPUT/cc."),
+        "stack_method"          => ("linear", String, "stacking method: linear, selective, robust, pws, robustpws are available"),
+        "compute_reference"     => ("true", Bool, "true if compute reference stack for longterm stack."),
+        "compute_shorttimestack"=> ("true", Bool, "true if compute shorttime stack for continuous monitoring."),
+        "stack_pairs_option"    => ("11, 22, 33", Array{String, 1}, "\"all\" or list of component pairs. e.g. XX, YY, ZZ"),
+        "averagestack_factor"   => ("1", Int, "Integer factor of cc_time_unit for stacking duration. e.g. cc_time_unit = 1day and averagestack_factor=30 provides 30days moving window average."),
+        "averagestack_step"     => ("1", Int, "Step of averagestack window."),
+        "min_cc_fraction"       => ("0.5", Float64, "Advanced: discard cross-correlation if data fraction within stacking period is less that this value."),
+        "reference_starttime"   => ("2004-04-01T00:00:00", DateTime, "reference start time"),
+        "reference_endtime"     => ("2004-04-02T00:00:00", DateTime, "reference end time"),
+        "dist_threshold"        => ("0.0", Float64, "Threshold of distance used for selective stacking."),
+        "distance_type"         => ("CorrDist", String, "Advanced: Distance type used in selectiv stacking. See https://github.com/JuliaStats/Distances.jl for available types."),
+        "IsSliceCoda"           => ("true", Bool, "Slicing coda window before stacking"),
+        "coda_Qinv"             => ("0.1", Float64, "Approximation of inverse coda_Q, Qc^{-1}, just used for coda slicing."),
+        "min_ballistic_twin"    => ("5.0", Float64, "[s] Explicit ballistic time window to remove coherence around zero timelag. This is aimed to remove it mainly for auto-correlation."),
+        "max_coda_length"       => ("60.0", Bool, "[s] Maximum coda window length [s]"),
+        "slice_minthreshold"    => ("0.1", Float64, "Advanced: Threshold for attenuation decay"),
 
 )

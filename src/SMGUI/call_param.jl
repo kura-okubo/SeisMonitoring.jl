@@ -129,7 +129,8 @@ function call_param_seisxcorrelation!(g::GtkGridLeaf, rowcount::Int)
                 "cc_RawData_path",
                 "cc_method",
                 "pairs_option",
-                "IsOnebit"
+                "IsOnebit",
+                "cc_bpfilt_method",
                 ]
 
         for key in ParamList

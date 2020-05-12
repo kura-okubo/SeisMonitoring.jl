@@ -42,6 +42,7 @@ function compute_frequency_decomposition(
          Ctemp = bandpass(C_broadband, freqmin, freqmax, corners = 4)
          # apply frequenc_dependent tapering
          taper_for_freqdecomposition!(Ctemp, freqency_band, α0, αmax)
+         Ctemp.misc["freq_decomposition_method"] = cc_bpfilt_method
          push!(C_all, Ctemp)
       end
 
@@ -79,6 +80,7 @@ function compute_frequency_decomposition(
          Ctemp.corr = tr_freq_reconstructed[:, :, ifb]
          # apply frequenc_dependent tapering
          taper_for_freqdecomposition!(Ctemp, freqency_band, α0, αmax)
+         Ctemp.misc["freq_decomposition_method"] = cc_bpfilt_method
          push!(C_all, Ctemp)
       end
 

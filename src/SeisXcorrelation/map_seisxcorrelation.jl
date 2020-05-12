@@ -17,6 +17,8 @@ Compute cross-correlation save data in jld2 file with CorrData format.
 """
 function map_seisxcorrelation(key_station_pair::String, StationPairDict::OrderedDict, InputDict::OrderedDict)
 
+    println("start processing $(key_station_pair)")
+
     # open FileIO of RawData
     fi = jldopen(InputDict["cc_absolute_RawData_path"], "r")
 
@@ -35,16 +37,18 @@ function map_seisxcorrelation(key_station_pair::String, StationPairDict::Ordered
     #==========================#
 
     all_stationchannels = get_stationchanname(StationPairDict[key_station_pair])
-    FFTDict = Dict()
     t_assemble, t_fft, t_xcorr = zeros(3)
 
     for tid in 1:length(starts)
         starttime, endtime = u2d.([starts[tid], ends[tid]])
 
+        FFTDict = Dict()
+
         for stationchannel in all_stationchannels
             #1. assemble seisdata
             t_assemble += @elapsed S1 = assemble_seisdata(stationchannel, fi, starttime, endtime,
                                         data_contents_fraction=InputDict["data_contents_fraction"])
+            isnothing(S1) && continue;
             #2. applying phase shift so that the data is aligned at the sampling frequency
             phase_shift!(S1)
             #3. convert to RawData
@@ -60,22 +64,24 @@ function map_seisxcorrelation(key_station_pair::String, StationPairDict::Ordered
             #7. spectral normalization
             InputDict["cc_method"] == "coherence" && coherence!(FFT1, InputDict["smoothing_half_win"], InputDict["waterlevel"])
             #8. add to FFTDict
-            !isemptly(FFT1) && FFTDict["stationchannel"] = FFT1
+            !isempty(FFT1) && (FFTDict[stationchannel] = FFT1)
         end
+
+        # println(FFTDict)
 
         for channel_pair in StationPairDict[key_station_pair]
             sta1, sta2 = split(channel_pair, "-")
             # perform cross-correlation within the cc_time_unit window
             # load FFTData from dictionary
             if haskey(FFTDict, sta1)
-                FFT1 = FFTDIct[sta1]
+                FFT1 = FFTDict[sta1]
             else
                 println("$(sta1) at $(starttime) is missing the data. skipping cc.")
                 continue
             end
 
             if haskey(FFTDict, sta2)
-                FFT2 = FFTDIct[sta2]
+                FFT2 = FFTDict[sta2]
             else
                 println("$(sta2) at $(starttime) is missing the data. skipping cc.")
                 continue
@@ -97,12 +103,15 @@ function map_seisxcorrelation(key_station_pair::String, StationPairDict::Ordered
 
             #10. Save corr-data
             for (ic, CD) in enumerate(C_all)
-                groupname = joinpath(channel_pair, #BP.LCCB..BP1-BP.MMNB..BP1
-                                    join([string(starttime), string(endtime)], "--"), #2004-01-01T00:00:00--2004-01-02T00:00:00
-                                    join([string(freqband[ic][1]), string(freqband[ic][2])], "-") #0.1-0.2
-                                    )
-                println(groupname)
-                !haskey(fo, groupname) && fo[groupname] = CD
+
+                g1 = join([string(starttime), string(endtime)], "--")  #2004-01-01T00:00:00--2004-01-02T00:00:00
+                g2 = join([string(freqband[ic][1]), string(freqband[ic][2])], "-") #0.1-0.2
+                groupname = joinpath(channel_pair, g1, g2)
+                # println(groupname)
+                # create JLD2.Group
+                !haskey(fo, channel_pair) && JLD2.Group(fo, channel_pair)
+                !haskey(fo[channel_pair], g1) && JLD2.Group(fo[channel_pair], g1)
+                !haskey(fo, groupname) && (fo[groupname] = CD)
             end
         end
     end

@@ -18,13 +18,6 @@ function seisxcorrelation(InputDict_origin::OrderedDict)
 
     project_outputdir = abspath(InputDict["project_outputdir"])
     InputDict["fodir"] = joinpath(project_outputdir, "cc")
-    tmpdir = joinpath(project_outputdir, "cc", "cc_tmp")
-    InputDict["tmpdir_cc"] = tmpdir
-
-    if ispath(tmpdir)
-        rm(tmpdir, recursive = true)
-    end
-    mkdir(tmpdir)
 
     if lowercase(InputDict["cc_RawData_path"]) == "default"
         InputDict["cc_absolute_RawData_path"] = joinpath(project_outputdir, "seismicdata", "EQRemovedData.jld2")
@@ -50,13 +43,19 @@ function seisxcorrelation(InputDict_origin::OrderedDict)
     println("-------START Cross-correlation--------")
 
     # Parallelize with stationpairs
-    t_removeeq = @elapsed pmap(x->map_seisxcorrelation(x, StationPairDict, InputDict), keys(StationPairDict))
+    t_removeeq = @elapsed bt_time = pmap(x->map_seisxcorrelation(x, StationPairDict, InputDict),
+                                                    collect(keys(StationPairDict)))
 
     println("seisxcorrelation has been successfully done.")
-    rm(tmpdir, recursive=true, force=true)
+
+    mean_assemble_cputime   = mean((x->x[1]).(bt_time))
+    mean_fft_cputime        = mean((x->x[2]).(bt_time))
+    mean_xcorr_cputime      = mean((x->x[3]).(bt_time))
 
     printstyled("---Summary---\n"; color = :cyan, bold = true)
-    println("time for cross-correlation  =$(t_removeeq)[s]\n")
-
+    println("Total time for cross-correlation   =$(t_removeeq)[s]")
+    println("time for mean assemble cputime     =$(mean_assemble_cputime)[s]")
+    println("time for mean fft cputime          =$(mean_fft_cputime)[s]")
+    println("time for mean cross-correlation cputime = $(mean_xcorr_cputime)[s]")
 
 end
