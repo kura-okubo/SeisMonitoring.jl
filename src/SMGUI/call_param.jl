@@ -11,7 +11,8 @@ function call_param_general!(g::GtkGridLeaf, rowcount::Int)
                 "endtime",
                 "sampling_frequency",
                 "freqency_band",
-                "NP"
+                "NP",
+                "MAX_MEM_USE"
                 ]
 
         for key in ParamList
@@ -131,6 +132,51 @@ function call_param_seisxcorrelation!(g::GtkGridLeaf, rowcount::Int)
                 "pairs_option",
                 "IsOnebit",
                 "cc_bpfilt_method",
+                ]
+
+        for key in ParamList
+                g[1,rowcount]= GtkLabel(key, selectable=true)    # Cartesian coordinates, g[x,y]
+                g[2,rowcount]=try
+                         GtkEntry(name=key, text=InputDict[key][1])   # Cartesian coordinates, g[x,y]
+                catch
+                        @warn("Your InputDict is missing the parameter $(key).")
+                        rowcount += 1
+                        continue
+                end
+
+                g[3,rowcount]= GtkLabel(string(InputDict[key][2]), selectable=true)    # Cartesian coordinates, g[x,y]
+                g[4,rowcount]= GtkLabel(string(InputDict[key][3]), selectable=true)    # Cartesian coordinates, g[x,y]
+
+                signal_connect(g[2,rowcount], "changed") do widget
+                        # println(get_gtk_property(widget, :name, String))
+                        replaced_key = get_gtk_property(widget, :name, String)
+                        new_val = get_gtk_property(widget, :text, String)
+                        set_values_inputdict!(InputDict, replaced_key, new_val)
+                        # InputDict[get_gtk_property(widget, :name, String)] = get_gtk_property(widget, :text, String)
+                end
+                rowcount += 1
+        end
+        return rowcount
+end
+
+function call_param_seisstack!(g::GtkGridLeaf, rowcount::Int)
+        ParamList = [
+                "stack_RawData_dir",
+                "stack_method",
+                "compute_reference",
+                "compute_shorttimestack",
+                "stack_pairs_option",
+                "averagestack_factor",
+                "averagestack_step",
+                "min_cc_datafraction",
+                "reference_starttime",
+                "reference_endtime",
+                "dist_threshold",
+                "IsSliceCoda",
+                "background_vel",
+                "coda_Qinv",
+                "min_ballistic_twin",
+                "max_coda_length"
                 ]
 
         for key in ParamList

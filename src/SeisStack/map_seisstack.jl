@@ -1,3 +1,4 @@
+include("assemble_corrdata.jl")
 #including stacking method
 include("selectivestack.jl")
 
@@ -8,10 +9,11 @@ Stack cross-correlation function
 """
 function map_seisstack(fipath, stackmode::String, InputDict::OrderedDict)
 
-    println("start processing $(key_station_pair)")
+    println("start processing $(splitdir(fipath)[2][1:end-5])")
 
     # evaluate if we need to read and append reference
-    IsReadReference = (stackmode=="shorttime" && (lowercase(stack_method) == "selective"))
+    IsReadReference = (stackmode=="shorttime" &&
+                       lowercase(InputDict["stack_method"]) == "selective")
 
     # open FileIO of cross-correlation
     fi = jldopen(fipath, "r")
@@ -21,13 +23,13 @@ function map_seisstack(fipath, stackmode::String, InputDict::OrderedDict)
         foname = "reference_"*splitdir(fipath)[2]
         fopath = joinpath(InputDict["fodir"], "reference", foname)
         # single start-end time for reference
-        @show starts, ends = [InputDict["reference_starttime"], InputDict["reference_endtime"]]
+        @show starts, ends = [[InputDict["reference_starttime"]], [InputDict["reference_endtime"]]]
     elseif stackmode=="shorttime"
         foname = "shorttime_"*splitdir(fipath)[2]
         fopath = joinpath(InputDict["fodir"], "shorttime", foname)
         # multiple shorttime stacking windows
-        @show starts, ends = get_shorttime_window(InputDict["starttime"], InputDict["cc_time_unit"],
-                                        InputDict["endtime"], InputDict["averagestack_factor"], InputDict["averagestack_step"])
+        @show starts, ends = get_shorttime_window(InputDict["starttime"],InputDict["endtime"], InputDict["cc_time_unit"],
+                                                    InputDict["averagestack_factor"], InputDict["averagestack_step"])
     end
 
     ispath(fopath) && rm(fopath)
@@ -43,7 +45,7 @@ function map_seisstack(fipath, stackmode::String, InputDict::OrderedDict)
         # load reference
         refname = "reference_"*splitdir(fipath)[2] #reference_BP.CCRB-BP.EADB.jld2
         fi_refpath =  joinpath(InputDict["fodir"], "reference", refname)
-        if ispath(fi_ref)
+        if ispath(fi_refpath)
             fi_ref = jldopen(fi_refpath, "r")
             @show ReferenceDict = get_reference(fi_ref)
             close(fi_ref)
@@ -62,7 +64,7 @@ function map_seisstack(fipath, stackmode::String, InputDict::OrderedDict)
         comp = sta1[end]*sta2[end]
 
         # skip if component pair is not in the list
-        comp ∉ InputDict["stack_pairs_option"] && continue;
+        (comp ∉ InputDict["stack_pairs_option"] && InputDict["stack_pairs_option"] != "all") && continue;
 
         CorrData_Buffer = Dict()
 
@@ -71,8 +73,10 @@ function map_seisstack(fipath, stackmode::String, InputDict::OrderedDict)
             centraltime = u2d((d2u(starttime) + d2u(endtime)) /2) #central time between starttime and endtime
 
             # assemble corrdata
-            t_assemblecc += @elapsed C_all, CorrData_Buffer = assemble_corrdata(fi,stachanpair,starttime,endtime,InputDict(["freqency_band"]),
-                                    CorrData_Buffer=CorrData_Buffer, MAX_MEM_USE=InputDict["MAX_MEM_USE"])
+            t_assemblecc += @elapsed C_all, CorrData_Buffer = assemble_corrdata(fi,stachanpair,starttime,endtime,InputDict["freqency_band"],
+                                    CorrData_Buffer=CorrData_Buffer,
+                                    min_cc_datafraction = InputDict["min_cc_datafraction"],
+                                    MAX_MEM_USE=InputDict["MAX_MEM_USE"])
 
             # stack with respect to frequency band
             for freqkey in collect(keys(C_all))
@@ -82,9 +86,8 @@ function map_seisstack(fipath, stackmode::String, InputDict::OrderedDict)
                 isempty(C.corr) && continue  # this does not have cc trace within the time window.
 
                 # slice coda window if true
-                if InputDict[IsSliceCoda]
-                    fm = mean(parse.(Float64, split(freqkey, "-"))) # central frequency of this frequency band
-                    slice_codawindow!(C, fm,
+                if InputDict["IsSliceCoda"]
+                    slice_codawindow!(C,
                                         InputDict["background_vel"],
                                         InputDict["coda_Qinv"],
                                         InputDict["min_ballistic_twin"],
@@ -96,7 +99,7 @@ function map_seisstack(fipath, stackmode::String, InputDict::OrderedDict)
                 # append reference curve if needed
                 IsReadReference && append_reference!(C, stachanpair, freqkey, ReferenceDict, InputDict)
 
-                t_stack += @elapsed sm_stack!(C, InputDict) # stack with predefined stack method
+                t_stack += @elapsed sm_stack!(C, stackmode, InputDict) # stack with predefined stack method
 
                 remove_nanandzerocol!(C)  # remove column which has NaN or all zero
                 isempty(C.corr) && continue  # this does not have cc trace within the time window.
@@ -124,7 +127,7 @@ function map_seisstack(fipath, stackmode::String, InputDict::OrderedDict)
     return (t_assemblecc, t_stack)
 end
 
-function sm_stack!(C::CorrData, InputDict::OrderedDict)
+function sm_stack!(C::CorrData, stackmode::String, InputDict::OrderedDict)
 
     stack_method = InputDict["stack_method"]
 

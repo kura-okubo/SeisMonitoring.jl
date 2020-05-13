@@ -2,7 +2,7 @@ module SeisMonitoring
 
 # module to be used over modules
 using SeisIO, SeisNoise, SeisDvv
-using Dates, Printf, JLD2, Distributed, DataFrames, DataStructures
+using Dates, Printf, JLD2, Distributed, DataFrames, DataStructures, Distances
 using Statistics, DSP, StatsBase
 export
     seisdownload,
@@ -11,8 +11,6 @@ export
     makeinput_gui,
     init_project,
     run_job
-
-
 
 
 

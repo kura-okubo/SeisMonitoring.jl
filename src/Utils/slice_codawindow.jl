@@ -142,17 +142,15 @@ function slice_codawindow!(
 	if round(Int, fs * dist / background_vel) < 1
 		# this is the case for auto-correlation
 		#3. Ballistic time window approximated by background velocity is entire time lag in this case.
+		ba_window_neg = centerid
+		ba_window_pos = centerid
 		#4. Maximum coda window
-		max_coda_window_neg =  round(Int, centerid - max_coda_length * fs)
-		max_coda_window_pos =  round(Int, centerid + max_coda_length * fs)
+		max_coda_window_neg = round(Int, centerid - max_coda_length * fs)
+		max_coda_window_pos = round(Int, centerid + max_coda_length * fs)
 
-		if max_coda_window_neg < 1
-		  max_coda_window_neg = 1
-		end
-
-		if max_coda_window_pos > Ntimelag
-		  max_coda_window_pos = Ntimelag
-		end
+		# align coda window border if it is outside of tvec
+		max_coda_window_neg < 1 	   && (max_coda_window_neg = 1)
+		max_coda_window_pos > Ntimelag && (max_coda_window_pos = Ntimelag)
 
 		approx_coda_window = collect(max_coda_window_neg:max_coda_window_pos)
 
@@ -166,21 +164,11 @@ function slice_codawindow!(
 	   max_coda_window_neg =  round(Int, centerid - max_coda_length * fs) #[m] / [m/s]
 	   max_coda_window_pos =  round(Int, centerid + max_coda_length * fs) #[m] / [m/s]
 
-	   if ba_window_neg < 1
-	      ba_window_neg = 1
-	   end
-
-	   if ba_window_pos > Ntimelag
-	      ba_window_pos = Ntimelag
-	   end
-
-	   if max_coda_window_neg < 1
-	      max_coda_window_neg = 1
-	   end
-
-	   if max_coda_window_pos > Ntimelag
-	      max_coda_window_pos = Ntimelag
-	   end
+	   # align coda window border if it is outside of tvec
+	   ba_window_neg < 1 		&& (ba_window_neg = 1)
+	   ba_window_pos > Ntimelag && (ba_window_pos = Ntimelag)
+	   max_coda_window_neg < 1 	&& (max_coda_window_neg = 1)
+	   max_coda_window_pos > Ntimelag && (max_coda_window_pos = Ntimelag)
 
 	   coda_window_neg = collect(max_coda_window_neg:ba_window_neg)
 	   coda_window_pos = collect(ba_window_pos:max_coda_window_pos)
@@ -203,8 +191,9 @@ function slice_codawindow!(
 	if zeropad
 		coda_neg_id = minimum(coda_window):min(ba_window_neg,minbal_window_neg)
 		coda_pos_id = max(ba_window_pos,minbal_window_pos):maximum(coda_window)
-		tneg = tukey(length(coda_neg_id), 0.05)
-		tpos = tukey(length(coda_pos_id), 0.05)
+		# apply tukey window within the coda window
+		tneg = DSP.tukey(length(coda_neg_id), 0.1)
+		tpos = DSP.tukey(length(coda_pos_id), 0.1)
 		for i = 1:size(A, 2)
 			A[filter(x -> !(x in coda_window), 1:Ntimelag), i] .= 0.0
 			A[coda_neg_id,i] .*= tneg
@@ -243,7 +232,6 @@ end
 @doc (@doc slice_codawindow!)
 function slice_codawindow!(
 	C::CorrData,
-	fm::Real, # mean frequency of time series [fs]
 	background_vel::Real, # background velocity [m/s]
 	coda_Qinv::Real, # coda Q inverse; set 0 if not using attenuation threshold
 	min_ballistic_twin::Real, # explicit ballistic time window (see doc)
@@ -251,8 +239,9 @@ function slice_codawindow!(
 	attenuation_minthreshold::Real=0.1,
 	zeropad::Bool=false
 	)
+	# C.dist is in km, thus multiplied by 1e3
 	coda_window, timelag, fillbox = slice_codawindow!(
-	C.corr,C.maxlag,fm,C.fs,C.dist,background_vel,coda_Qinv,
+	C.corr,C.maxlag,(C.freqmax+C.freqmin)/2.0, C.fs,C.dist*1e3,background_vel,coda_Qinv,
 	min_ballistic_twin,max_coda_length,
 	attenuation_minthreshold=attenuation_minthreshold, zeropad=zeropad);
 	return (coda_window, timelag, fillbox)

@@ -16,7 +16,7 @@ InputDict=OrderedDict(
         "freqency_band"         => ("0.01, 0.1, 0.2, 0.5, 1.0, 2.0", Float64, "Frequency bands to be analyzed."),
 
         "NP"                    => ("1", Int, "Number of processors you want to use for parallelization."),
-        "MAX_MEM_USE"           => ("3.0", Float64, "Advanced: [GB] Maximum memory use per core in the environment."),
+        "MAX_MEM_USE"           => ("3.0", Float64, "[GB] Maximum memory use per core in the environment."),
 
         #===SeisDownload===#
         "download_time_unit"    => ("86400", Int, "[s] Unit time of data request. (e.g. request data for each 10minutes."),
@@ -70,15 +70,16 @@ InputDict=OrderedDict(
         "stack_pairs_option"    => ("11, 22, 33", Array{String, 1}, "\"all\" or list of component pairs. e.g. XX, YY, ZZ"),
         "averagestack_factor"   => ("1", Int, "Integer factor of cc_time_unit for stacking duration. e.g. cc_time_unit = 1day and averagestack_factor=30 provides 30days moving window average."),
         "averagestack_step"     => ("1", Int, "Step of averagestack window."),
-        "min_cc_fraction"       => ("0.5", Float64, "Advanced: discard cross-correlation if data fraction within stacking period is less that this value."),
+        "min_cc_datafraction"   => ("0.5", Float64, "Advanced: discard cross-correlation if data fraction within stacking period is less that this value."),
         "reference_starttime"   => ("2004-04-01T00:00:00", DateTime, "reference start time"),
         "reference_endtime"     => ("2004-04-02T00:00:00", DateTime, "reference end time"),
         "dist_threshold"        => ("0.0", Float64, "Threshold of distance used for selective stacking."),
         "distance_type"         => ("CorrDist", String, "Advanced: Distance type used in selectiv stacking. See https://github.com/JuliaStats/Distances.jl for available types."),
         "IsSliceCoda"           => ("true", Bool, "Slicing coda window before stacking"),
-        "coda_Qinv"             => ("0.1", Float64, "Approximation of inverse coda_Q, Qc^{-1}, just used for coda slicing."),
+        "background_vel"        => ("2000.0", Float64, "[m/s] Approximation of background wave velocity, just used for coda slicing."),
+        "coda_Qinv"             => ("0.01", Float64, "Approximation of inverse coda_Q, Qc^{-1}, just used for coda slicing."),
         "min_ballistic_twin"    => ("5.0", Float64, "[s] Explicit ballistic time window to remove coherence around zero timelag. This is aimed to remove it mainly for auto-correlation."),
-        "max_coda_length"       => ("60.0", Bool, "[s] Maximum coda window length [s]"),
-        "slice_minthreshold"    => ("0.1", Float64, "Advanced: Threshold for attenuation decay"),
+        "max_coda_length"       => ("60.0", Float64, "[s] Maximum coda window length."),
+        "slice_minthreshold"    => ("0.1", Float64, "Advanced: Threshold for attenuation decay."),
 
 )

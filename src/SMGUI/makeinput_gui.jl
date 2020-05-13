@@ -48,6 +48,7 @@ function makeinput_gui(windowtitle::String="default_param.jl")
   rowcount = add_row_overcol!(g, rowcount, label_bold("SeisXcorrelation"))
   rowcount = call_param_seisxcorrelation!(g, rowcount)
   rowcount = add_row_overcol!(g, rowcount, label_bold("SeisStack"))
+  rowcount = call_param_seisstack!(g, rowcount)
   rowcount = add_row_overcol!(g, rowcount, label_bold("SeisMeasurement"))
   rowcount = add_row_overcol!(g, rowcount, GtkLabel("https://github.com/kura-okubo/SeisMonitoring.jl"))
 

@@ -23,7 +23,7 @@ function assemble_corrdata(
     starttime::DateTime,
     endtime::DateTime,
     frequency_band::Array{Float64,1};
-    min_data_contents_fraction::Float64 = 0.5,
+    min_cc_datafraction::Float64 = 0.5,
     CorrData_Buffer::Dict=Dict(),
     MAX_MEM_USE::AbstractFloat=4.0 #[GB]
 )
@@ -66,7 +66,7 @@ function assemble_corrdata(
 
         @show ccfrac = get_cc_contents_fraction(C1,starttime,endtime)
 
-        if  ccfrac < min_data_contents_fraction
+        if  ccfrac < min_cc_datafraction
             println("debug: data containts $(ccfrac) is less than cc_contents_fraction.")
             C1 = CorrData()
         end

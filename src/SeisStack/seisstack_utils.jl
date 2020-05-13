@@ -29,10 +29,10 @@ function get_reference(fi)
             # reference jld2 file has multiple reference.
             error("reference $(stachanpair) has multiple reference traces. Please check reference jld2 file.")
         end
-        for freqkey in keys(fi[joinpath(stachanpair, reftimekey)])
+        for freqkey in keys(fi[joinpath(stachanpair, reftimekey[1])])
             # remove information of reference time window
             refdictpath = joinpath(stachanpair, freqkey) #BP.CCRB..BP1-BP.EADB..BP1/0.1-0.2
-            ReferenceDict[refdictpath] = fi[joinpath(stachanpair, reftimekey, freqkey)]
+            ReferenceDict[refdictpath] = fi[joinpath(stachanpair, reftimekey[1], freqkey)]
         end
     end
     return ReferenceDict
@@ -46,17 +46,19 @@ Append reference trace in C.misc["reference"] from ReferenceDict
 """
 function append_reference!(C::CorrData, stachanpair::String, freqkey::String, ReferenceDict::Dict, InputDict::OrderedDict)
     refdictpath = joinpath(stachanpair, freqkey) #BP.CCRB..BP1-BP.EADB..BP1/0.1-0.2
-    if haskey(ReferenceDict, refdictpath)
-		Ctemp = ReferenceDict(refdictpath)
-		if InputDict["IsSliceCoda"]
-			fm = mean(parse.(Float64, split(freqkey, "-"))) # central frequency of this frequency band
+	println(keys(ReferenceDict))
+	println(refdictpath)
 
-			slice_codawindow!(Ctemp, fm,
+    if haskey(ReferenceDict, refdictpath)
+		Ctemp = ReferenceDict[refdictpath]
+		if InputDict["IsSliceCoda"]
+
+			slice_codawindow!(Ctemp,
 								InputDict["background_vel"],
 								InputDict["coda_Qinv"],
 								InputDict["min_ballistic_twin"],
-							 	InputDict["max_coda_length"],
-								attenuation_minthreshold=InputDict["attenuation_minthreshold"],
+								InputDict["max_coda_length"],
+								attenuation_minthreshold=InputDict["slice_minthreshold"],
 								zeropad=true)
 		end
 		C.misc["reference"] = Ctemp.corr[:,1]
