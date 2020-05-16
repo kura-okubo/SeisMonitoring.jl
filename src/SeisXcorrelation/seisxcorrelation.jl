@@ -26,10 +26,11 @@ function seisxcorrelation(InputDict_origin::OrderedDict)
     end
 
     println("***************************************")
-    println("Cross-correlation starttime= $(InputDict["starttime"])")
-    println("Cross-correlation endtime = $(InputDict["endtime"])")
-    println("Cross-correlation method = $(InputDict["cc_method"])")
-    println("Station pairs option = $(InputDict["pairs_option"])")
+println("Cross-correlation starttime         = $(InputDict["starttime"])")
+    println("Cross-correlation endtime       = $(InputDict["endtime"])")
+    println("Cross-correlation normalization = $(InputDict["cc_normalization"])")
+    println("Cross-correlation type          = $(InputDict["corr_type"])")
+    println("Station pairs option            = $(InputDict["pairs_option"])")
     println("***************************************\n")
 
     # get cc time windows
@@ -38,7 +39,7 @@ function seisxcorrelation(InputDict_origin::OrderedDict)
     # scan station info
     StationDict = scan_stations(InputDict["cc_absolute_RawData_path"])
     # get station pairs
-    StationPairDict = get_stationpairs(StationDict, InputDict["cc_method"], InputDict["pairs_option"])
+    StationPairDict = get_stationpairs(StationDict, InputDict["cc_normalization"], InputDict["pairs_option"])
 
     println("-------START Cross-correlation--------")
 

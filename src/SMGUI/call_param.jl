@@ -128,7 +128,8 @@ function call_param_seisxcorrelation!(g::GtkGridLeaf, rowcount::Int)
                 "cc_step",
                 "maxlag",
                 "cc_RawData_path",
-                "cc_method",
+                "cc_normalization",
+                "corr_type",
                 "pairs_option",
                 "IsOnebit",
                 "cc_bpfilt_method",
@@ -168,15 +169,17 @@ function call_param_seisstack!(g::GtkGridLeaf, rowcount::Int)
                 "stack_pairs_option",
                 "averagestack_factor",
                 "averagestack_step",
-                "min_cc_datafraction",
                 "reference_starttime",
                 "reference_endtime",
                 "dist_threshold",
-                "IsSliceCoda",
+                "IsZeropadBeforeStack",
                 "background_vel",
                 "coda_Qinv",
                 "min_ballistic_twin",
-                "max_coda_length"
+                "max_coda_length",
+                # parameters for measurement
+                "measurement_method",
+                "stretch_distmethod"
                 ]
 
         for key in ParamList

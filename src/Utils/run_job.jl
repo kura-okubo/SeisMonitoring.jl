@@ -9,7 +9,6 @@ include("printlogos.jl")
     seisremoveeq::Bool=true,
     seisxcorrelation::Bool=true,
     seisstack::Bool=true,
-    seismeasurement::Bool=true
     )
 
 running job in the project folder.
@@ -23,7 +22,6 @@ running job in the project folder.
 - 'seisremoveeq::Bool'      : run seisremoveeq if true [default:true]
 - 'seisxcorrelation::Bool'  : run seisxcorrelation if true [default:true]
 - 'seisstack::Bool'         : run seisstack if true [default:true]
-- 'seismeasurement::Bool'   : run seismeasurement if true [default:true]
 """
 function run_job(inputfile::String="";
         run_seisdownload::Bool=true,
@@ -129,15 +127,6 @@ function run_job(inputfile::String="";
 
     end
 
-    if run_seismeasurement
-
-        st_sm=time()
-        seismeasurement(InputDict)
-        et_sm=time()
-        println("SeisMeasurement successfully done in $(et_sm-st_sm) seconds.\n")
-
-    end
-
     etall = time()
 
     tall=round(etall-stall,  digits=4)
@@ -148,7 +137,6 @@ function run_job(inputfile::String="";
     print("SeisRemoveEQ, "); run_seisremoveeq ? println("$(et_req-st_req)") : println("0.0")
     print("SeisXcorrelation, "); run_seisxcorrelation ? println("$(et_xc-st_xc)") : println("0.0")
     print("SeisStack, "); run_seisstack ? println("$(et_ss-st_ss)") : println("0.0")
-    print("SeisMeasurement, "); run_seismeasurement ? println("$(et_sm-st_sm)") : println("0.0")
     println("Total Computational time is $(tall) seconds.");
     println("*********************************************\n")
 

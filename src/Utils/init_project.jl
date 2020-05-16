@@ -97,9 +97,10 @@ function init_project(
     mkdir(proj_output_abspath*"/seismicdata")
     mkdir(proj_output_abspath*"/cc")
     mkdir(proj_output_abspath*"/stack")
-    mkdir(proj_output_abspath*"/dvv")
-    mkdir(proj_output_abspath*"/dQ")
     mkdir(proj_output_abspath*"/plots")
+    mkdir(proj_output_abspath*"/plots/seismicdata")
+    mkdir(proj_output_abspath*"/plots/cc")
+    mkdir(proj_output_abspath*"/plots/stack")
 
     println("\nProject OUTPUT $proj_output_abspath contains:")
     for (root, dirs, files) in walkdir(proj_output_abspath)

@@ -54,15 +54,18 @@ function map_seisxcorrelation(key_station_pair::String, StationPairDict::Ordered
             #3. convert to RawData
             R1 = RawData(S1, InputDict["cc_len"], InputDict["cc_step"])
             #4. detrend, taper and band pass before computing fft and cross-correlation
-            clean_up!(R1, InputDict["freqency_band"][1], InputDict["freqency_band"][end])
+            # clean_up!(R1, InputDict["freqency_band"][1], InputDict["freqency_band"][end]) # NOTE: Not applying bandpass!() here for the validation of wavelet filter
+            detrend!(R1.x)
+            taper!(R1.x,R1.fs)
+
             #5. apply one-bit normalization if true
             InputDict["IsOnebit"] && onebit!(R1)
             #NOTE: Future work; We can make an option here to move RawData to GPU:
-            #if ["GPU"]; R1 :> GPU; end
+            #e.g. if ["GPU"]; R1 :> GPU; end
             #6. compute fft
             t_fft += @elapsed FFT1 = compute_fft(R1)
             #7. spectral normalization
-            InputDict["cc_method"] == "coherence" && coherence!(FFT1, InputDict["smoothing_half_win"], InputDict["waterlevel"])
+            InputDict["cc_normalization"] == "coherence" && coherence!(FFT1, InputDict["smoothing_half_win"], InputDict["waterlevel"])
             #8. add to FFTDict
             !isempty(FFT1) && (FFTDict[stationchannel] = FFT1)
         end
@@ -88,10 +91,11 @@ function map_seisxcorrelation(key_station_pair::String, StationPairDict::Ordered
             end
 
             # when deconvolution method id used, first station is used as source; e.g. "BP.CCRB..BP1-BP.CCRB..BP1" then BP.CCRB..BP1 is used.
-            InputDict["cc_method"] == "deconvolution" && deconvolution!(FFT1, InputDict["smoothing_half_win"], InputDict["waterlevel"])
+            InputDict["cc_normalization"] == "deconvolution" && deconvolution!(FFT1, InputDict["smoothing_half_win"], InputDict["waterlevel"])
 
             #8. Compute cross-correlation
-            t_xcorr += @elapsed C = compute_cc(FFT1, FFT2, InputDict["maxlag"], corr_type=InputDict["cc_method"])
+            #t_xcorr += @elapsed C = compute_cc(FFT1, FFT2, InputDict["maxlag"], corr_type=InputDict["cc_method"])
+            t_xcorr += @elapsed C = correlate(FFT1, FFT2, InputDict["maxlag"], corr_type=InputDict["corr_type"]) # updated version in SeisNoise.jl
 
             # continue if xcorr is empty
             isempty(C.corr) && continue

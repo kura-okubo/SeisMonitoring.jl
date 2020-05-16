@@ -51,16 +51,15 @@ function append_reference!(C::CorrData, stachanpair::String, freqkey::String, Re
 
     if haskey(ReferenceDict, refdictpath)
 		Ctemp = ReferenceDict[refdictpath]
-		if InputDict["IsSliceCoda"]
 
-			slice_codawindow!(Ctemp,
-								InputDict["background_vel"],
-								InputDict["coda_Qinv"],
-								InputDict["min_ballistic_twin"],
-								InputDict["max_coda_length"],
-								attenuation_minthreshold=InputDict["slice_minthreshold"],
-								zeropad=true)
-		end
+		slice_codawindow!(Ctemp,
+							InputDict["background_vel"],
+							InputDict["coda_Qinv"],
+							InputDict["min_ballistic_twin"],
+							InputDict["max_coda_length"],
+							attenuation_minthreshold=InputDict["slice_minthreshold"],
+							zeropad=InputDict["IsZeropadBeforeStack"])
+
 		C.misc["reference"] = Ctemp.corr[:,1]
 	end
 

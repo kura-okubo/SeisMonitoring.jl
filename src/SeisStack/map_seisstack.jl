@@ -1,4 +1,5 @@
 include("assemble_corrdata.jl")
+include("seismeasurement.jl")
 #including stacking method
 include("selectivestack.jl")
 
@@ -12,8 +13,7 @@ function map_seisstack(fipath, stackmode::String, InputDict::OrderedDict)
     println("start processing $(splitdir(fipath)[2][1:end-5])")
 
     # evaluate if we need to read and append reference
-    IsReadReference = (stackmode=="shorttime" &&
-                       lowercase(InputDict["stack_method"]) == "selective")
+    IsReadReference = (stackmode=="shorttime")
 
     # open FileIO of cross-correlation
     fi = jldopen(fipath, "r")
@@ -55,8 +55,7 @@ function map_seisstack(fipath, stackmode::String, InputDict::OrderedDict)
         end
     end
 
-    t_assemblecc = 0
-    t_stack = 0
+    t_assemblecc = 0; t_stack = 0; t_seismeasurement = 0;
 
     for stachanpair = collect(keys(fi))
         # stachanpair: BP.CCRB..BP1-BP.EADB..BP1
@@ -85,16 +84,18 @@ function map_seisstack(fipath, stackmode::String, InputDict::OrderedDict)
                 remove_nanandzerocol!(C)  # remove column which has NaN or all zero
                 isempty(C.corr) && continue  # this does not have cc trace within the time window.
 
-                # slice coda window if true
-                if InputDict["IsSliceCoda"]
-                    slice_codawindow!(C,
+                # slice coda window and zero padding before stack if true
+                coda_window, timelag, fillbox = slice_codawindow!(C,
                                         InputDict["background_vel"],
                                         InputDict["coda_Qinv"],
                                         InputDict["min_ballistic_twin"],
                                         InputDict["max_coda_length"],
                                         attenuation_minthreshold=InputDict["slice_minthreshold"],
-                                        zeropad=true)
-                end
+                                        zeropad=InputDict["IsZeropadBeforeStack"])
+                # append coda_window, timelag and fillbox for plotting
+                C.misc["coda_window"] = coda_window
+                C.misc["timelag"] = timelag
+                C.misc["fillbox"] = fillbox
 
                 # append reference curve if needed
                 IsReadReference && append_reference!(C, stachanpair, freqkey, ReferenceDict, InputDict)
@@ -108,6 +109,9 @@ function map_seisstack(fipath, stackmode::String, InputDict::OrderedDict)
                 C.misc["stack_starttime"] = starttime
                 C.misc["stack_endtime"] = endtime
                 C.misc["stack_centraltime"] = centraltime
+
+                # compute dv/v and dQinv
+                stackmode=="shorttime" && (t_seismeasurement += @elapsed seismeasurement!(C, InputDict))
 
                 # save data into jld2
                 g1 = join([string(starttime), string(endtime)], "--")  #2004-01-01T00:00:00--2004-01-02T00:00:00
@@ -124,7 +128,7 @@ function map_seisstack(fipath, stackmode::String, InputDict::OrderedDict)
 
     close(fi)
     close(fo)
-    return (t_assemblecc, t_stack)
+    return (t_assemblecc, t_stack, t_seismeasurement)
 end
 
 function sm_stack!(C::CorrData, stackmode::String, InputDict::OrderedDict)

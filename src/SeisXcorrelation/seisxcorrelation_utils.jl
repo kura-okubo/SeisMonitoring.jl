@@ -31,19 +31,19 @@ end
 
 
 """
-    get_stationpairs(StationDict::Dict, cc_method::String="cross-correlation", pairs_option::Array{String, 1}=["all"])
+    get_stationpairs(StationDict::Dict, cc_normalization::String="cross-correlation", pairs_option::Array{String, 1}=["all"])
 
 get stations pairs to compute cross-correlations.
 
 # Argument
 - `StationDict::`: Station dictionary made by `scan_stations()`
-- `cc_method::String`: cross-correlation method ("cross-correlation", "coherence", "deconvolution")
+- `cc_normalization::String`: cross-correlation normalization method ("none", "coherence", "deconvolution")
 - `pairs_option`: combination of components (e.g. ["XX", "YY", "ZZ"] or ["all"])
 
 # Return
 - `StationPairDict::Dict` Station pair dictionary containing all station and channel pairs to be computed.
 """
-function get_stationpairs(StationDict::OrderedDict, cc_method::String="cross-correlation", pairs_option::Array{SubString{String},1}=["all"])
+function get_stationpairs(StationDict::OrderedDict, cc_normalization::String="cross-correlation", pairs_option::Array{SubString{String},1}=["all"])
 
     stations = collect(keys(StationDict))
     Nstation = length(stations)
@@ -52,14 +52,15 @@ function get_stationpairs(StationDict::OrderedDict, cc_method::String="cross-cor
 
     for i = 1:Nstation
 
-        if lowercase(cc_method) == "cross-correlation" || lowercase(cc_method) == "coherence"
+		if lowercase(cc_normalization) == "deconvolution"
+			# compute all station pairs as deconvolution process is asymmetric.
+			jinit = 1
+
+        elseif lowercase(cc_normalization) == "none" || lowercase(cc_normalization) == "coherence"
             # pairwise only upper triangle of pairs
             jinit = i
-        elseif lowercase(cc_method) == "deconvolution"
-            # compute all station pairs as deconvolution process is asymmetric.
-            jinit = 1
         else
-            @error("unknown cc-method: $(cc_method)")
+            @error("unknown cc_normalization method: $(cc_normalization)")
         end
 
         for j = jinit:Nstation
@@ -98,9 +99,9 @@ function get_stationpairs(StationDict::OrderedDict, cc_method::String="cross-cor
     return StationPairDict
 end
 #
-# cc_method = "deconvolution" #"cross-correlation"
+# cc_normalization = "deconvolution" #"cross-correlation"
 # pairs_option = String["all"]
-# get_stationpairs(StationDict, cc_method, pairs_option)
+# get_stationpairs(StationDict, cc_normalization, pairs_option)
 #
 
 function get_cc_time_windows(cc_time_unit::Int64, fs::Float64, starttime::DateTime, endtime::DateTime)
