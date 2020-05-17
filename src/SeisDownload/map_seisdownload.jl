@@ -84,13 +84,17 @@ function map_seisdownload_NOISE(startid, InputDict::OrderedDict; testdownload::B
 
 			Isdataflag = false
 			# manipulate download_margin
-			manipulate_tmatrix!(Stemp, starttime, InputDict)
+			# manipulate_tmatrix!(Stemp, starttime, InputDict)
+			# NOTE: using SeisIO.sync()
+			stsync = DateTime(starttimelist[startid])
+			etsync = u2d(d2u(stsync) + download_time_unit)
+			# println([stsync, etsync])
+			SeisIO.sync!(Stemp, s=stsync, t=etsync, v=0)
 
-			for j = 1:Stemp.n
-				if Stemp.misc[j]["dlerror"] == 0
-					Isdataflag = true
-					# downsample
-					if InputDict["sampling_frequency"] isa Number
+			if InputDict["sampling_frequency"] isa Number
+				for j = 1:Stemp.n
+					if Stemp.misc[j]["dlerror"] == 0 && !isempty(Stemp[j].t)
+						# downsample
 						if Stemp.fs[j] > InputDict["sampling_frequency"]
 							SeisIO.resample!(Stemp, chans=j, fs=float(InputDict["sampling_frequency"]))
 						end
@@ -98,21 +102,18 @@ function map_seisdownload_NOISE(startid, InputDict::OrderedDict; testdownload::B
 				end
 			end
 
-			# if some of SeisChannels in Stemp have a data, save temp file
-			if Isdataflag
-				ymd = split(starttimelist[startid], r"[A-Z]")
-				(y, m, d) = split(ymd[1], "-")
-				j = md2j(y, m, d)
-				fname_out = join([String(y),
-							string(j),
-							replace(split(starttimelist[startid], 'T')[2], ':' => '.'),
-							"FDSNWS",
-							src,"dat"],
-							'.')
-
-				# save as intermediate binary file
-				t_write = @elapsed wseis(InputDict["tmpdir_dl"]*"/"*fname_out, Stemp)
-			end
+			# Save temp file
+			requeststr_all = join(requeststr, "--")
+			fname_out = join([requeststr_all, string(stsync), string(etsync), src], "__")*".dat"
+			# fname_out = join([String(y),
+			# 			string(j),
+			# 			replace(split(starttimelist[startid], 'T')[2], ':' => '.'),
+			# 			requeststr,
+			# 			"FDSNWS",
+			# 			src,"dat"],
+			# 			'.')
+			# save as intermediate binary file
+			t_write = @elapsed wseis(joinpath(InputDict["tmpdir_dl"], fname_out), Stemp)
 
 			if !InputDict["IsXMLfilepreserved"] && ispath(stationxml_path)
 				rm(stationxml_path)
@@ -172,84 +173,84 @@ function check_and_get_data(ex::Expr, requeststr::Array{String,1})
 	return S
 end
 
-
-"""
-    manipulate_tmatrix!(S::SeisData, InputDict::Dict{String,Any})
-
-manipulate time matrix to remove download margin
-"""
-function manipulate_tmatrix!(S::SeisData, starttime::String, InputDict::OrderedDict)
-
-    for i = 1:S.n
-
-		if S.misc[i]["dlerror"] == 1
-			continue;
-		end
-
-        download_margin = InputDict["download_margin"]
-        download_time_unit    = InputDict["download_time_unit"]
-        requeststr = S.id[i]
-
-		# NOTE: 2020/2/8
-		# We decided to use data ungap to avoid data inconsitency
-		# due to data gap and time shift.
-		if size(S.t[i], 1) > 2
-			warning("ungap! is not applied yet to SeisData, which may cause
-			data inconsistency. So applying ungap.")
-			ungap!(S[i])
-		end
-
-        tvec = collect(0:S.t[i][end,1]-1) ./ S.fs[i]
-        tlen = trunc(Int, download_time_unit * S.fs[i])
-
-        si = findfirst(x -> tvec[x] >= download_margin, 1:length(tvec))
-
-		#println([si, download_margin * S.fs[i]])
-		#println([string(u2d(S.t[i][1,2] * 1e-6))[1:19],starttime])
-		# Check if data is within request time window AND start time is equal
-		# at the order of second to what is requested
-		# rounding subsecond error in downloading
-		# NOTE: thie is just used to check the consistency between requested
-		# time and truncated time;
-		# SeisNoise.phase_shift! is applied when seisxcorr is performed.
-
-		tsync = round(Int, S.t[i][1,2] * 1e-6) * 1e6
-
-		if isnothing(si)
-			#downloaded data is only within margin; nodata in the requested time window
-			S.misc[i]["dlerror"] = 1
-            S.x[i] = zeros(0)
-
-        elseif si < download_margin * S.fs[i] || string(u2d(tsync * 1e-6))[1:19] != starttime
-            #println("data missing or starttime not match.")
-            S.misc[i]["dlerror"] = 1
-            S.x[i] = zeros(0)
-        else
-            #println("manipulate")
-			#===
-			Shift time index of si:
-			|--------|----------------------------------------|--------|
-			  margin              requested data (tlen)         margin
-			        [si]                                 [si]+tlen-1
-
-			===#
-            ei = trunc(Int, min(si+tlen-1, S.t[i][end,1]))
-            x_shifted = zeros(tlen)
-            copyto!(x_shifted, S.x[i][si:ei])
-
-			# # manipulate time matrix
-			# t_shifted = deepcopy(hcat(S.t[i][:,1] .- (si-1), S.t[i][:,2]))
-			# # remove gap outside of time window
-			# ri = findall(x -> t_shifted[x, 1] < 1 || t_shifted[x, 1] >  tlen, 1:size(t_shifted, 1))
-			# t_shifted = t_shifted[setdiff(1:end, ri), :]
-			t_init = [1 trunc(Int, S.t[i][1,2] + float(download_margin)*1e6)]
-			t_last = [tlen 0]
-			t_shifted = vcat(t_init, t_last)
-			S.x[i] = x_shifted
-			S.t[i] = t_shifted
-
-        end
-    end
-    #print("after")
-    #println(S)
-end
+#
+# """
+#     manipulate_tmatrix!(S::SeisData, InputDict::Dict{String,Any})
+#
+# manipulate time matrix to remove download margin
+# """
+# function manipulate_tmatrix!(S::SeisData, starttime::String, InputDict::OrderedDict)
+#
+#     for i = 1:S.n
+#
+# 		if S.misc[i]["dlerror"] == 1
+# 			continue;
+# 		end
+#
+#         download_margin = InputDict["download_margin"]
+#         download_time_unit    = InputDict["download_time_unit"]
+#         requeststr = S.id[i]
+#
+# 		# NOTE: 2020/2/8
+# 		# We decided to use data ungap to avoid data inconsitency
+# 		# due to data gap and time shift.
+# 		if size(S.t[i], 1) > 2
+# 			warning("ungap! is not applied yet to SeisData, which may cause
+# 			data inconsistency. So applying ungap.")
+# 			ungap!(S[i])
+# 		end
+#
+#         tvec = collect(0:S.t[i][end,1]-1) ./ S.fs[i]
+#         tlen = trunc(Int, download_time_unit * S.fs[i])
+#
+#         si = findfirst(x -> tvec[x] >= download_margin, 1:length(tvec))
+#
+# 		#println([si, download_margin * S.fs[i]])
+# 		#println([string(u2d(S.t[i][1,2] * 1e-6))[1:19],starttime])
+# 		# Check if data is within request time window AND start time is equal
+# 		# at the order of second to what is requested
+# 		# rounding subsecond error in downloading
+# 		# NOTE: thie is just used to check the consistency between requested
+# 		# time and truncated time;
+# 		# SeisNoise.phase_shift! is applied when seisxcorr is performed.
+#
+# 		tsync = round(Int, S.t[i][1,2] * 1e-6) * 1e6
+#
+# 		if isnothing(si)
+# 			#downloaded data is only within margin; nodata in the requested time window
+# 			S.misc[i]["dlerror"] = 1
+#             S.x[i] = zeros(0)
+#
+#         elseif si < download_margin * S.fs[i] || string(u2d(tsync * 1e-6))[1:19] != starttime
+#             #println("data missing or starttime not match.")
+#             S.misc[i]["dlerror"] = 1
+#             S.x[i] = zeros(0)
+#         else
+#             #println("manipulate")
+# 			#===
+# 			Shift time index of si:
+# 			|--------|----------------------------------------|--------|
+# 			  margin              requested data (tlen)         margin
+# 			        [si]                                 [si]+tlen-1
+#
+# 			===#
+#             ei = trunc(Int, min(si+tlen-1, S.t[i][end,1]))
+#             x_shifted = zeros(tlen)
+#             copyto!(x_shifted, S.x[i][si:ei])
+#
+# 			# # manipulate time matrix
+# 			# t_shifted = deepcopy(hcat(S.t[i][:,1] .- (si-1), S.t[i][:,2]))
+# 			# # remove gap outside of time window
+# 			# ri = findall(x -> t_shifted[x, 1] < 1 || t_shifted[x, 1] >  tlen, 1:size(t_shifted, 1))
+# 			# t_shifted = t_shifted[setdiff(1:end, ri), :]
+# 			t_init = [1 trunc(Int, S.t[i][1,2] + float(download_margin)*1e6)]
+# 			t_last = [tlen 0]
+# 			t_shifted = vcat(t_init, t_last)
+# 			S.x[i] = x_shifted
+# 			S.t[i] = t_shifted
+#
+#         end
+#     end
+#     #print("after")
+#     #println(S)
+# end

@@ -84,7 +84,7 @@ function convert_tmpfile(InputDict::OrderedDict; salvage::Bool=false)
     varnamelist     = []
 	stationlist		= []
 
-    @simd for path in paths
+    for path in paths
         #println(path)
         S = try
             rseis(path)[1]
@@ -102,6 +102,7 @@ function convert_tmpfile(InputDict::OrderedDict; salvage::Bool=false)
 
             # save data (checking whether it's already in the jld2 because it causes an error)
             #parse info
+			isempty(S[ii].t) && continue;
             s_str = string(u2d(S[ii].t[1,2]*1e-6))[1:19]
 
             #NOTE: if time id is not matched with DLtimestamplist, this download is discarded for consistency even if it has some data.
