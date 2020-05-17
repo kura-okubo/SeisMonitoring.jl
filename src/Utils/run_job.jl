@@ -52,7 +52,6 @@ function run_job(inputfile::String="";
     println("seisremoveeq       = $(run_seisremoveeq)")
     println("seisxcorrelation   = $(run_seisxcorrelation)")
     println("seisstack          = $(run_seisstack)")
-    println("seismeasurement    = $(run_seismeasurement)")
     println("***************************************\n")
 
     include(inputfile)
