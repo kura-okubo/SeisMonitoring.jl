@@ -31,8 +31,8 @@ include("Utils/set_parameter.jl") # used at seisstack and seismeasurement
 include("Defaultproject/set_default_inputdict.jl") # set global default InputDict
 
 # plot lib
-include("SMPlots/smplot_rawdata.jl")
-include("SMPlots/smplot_corrdata.jl")
-include("SMPlots/smplot_stackcc.jl")
+include("SMPlot/smplot_rawdata.jl")
+include("SMPlot/smplot_corrdata.jl")
+include("SMPlot/smplot_stackcc.jl")
 
 end # module
