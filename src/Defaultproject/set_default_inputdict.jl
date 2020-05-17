@@ -27,6 +27,7 @@ InputDict=OrderedDict(
         "reg"                   => ("35.7, 36.1, -120.7, -120.2", Float64, "minlat, maxlat, minlon, maxlon"),
         "Istmpfilepreserved"    => ("false", Bool, "True if you want to preserve temporal files (same size as raw data.)"),
         "IsXMLfilepreserved"    => ("false", Bool, "True if you want to preserve station xml files."),
+        "numstationperrequest"  => ("1", Int, "Advanced: number of station per one HTTP request."),
         "outputformat"          => ("JLD2", String, "JLD2 or ASDF: use JLD2 if you perform the following processes with SeisMonitoring.jl"),
 
         #===SeisRemoveEQ===#

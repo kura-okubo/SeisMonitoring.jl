@@ -49,93 +49,81 @@ function map_seisdownload_NOISE(startid, InputDict::OrderedDict; testdownload::B
     for src in keys(request_src_chanks)
         #---download data---#
 
-		requeststr = get_requeststr(request_src_chanks[src])
+		requeststrs = get_requeststr(request_src_chanks[src], InputDict["numstationperrequest"])
 
-		#NOTE: method is currently fixed "FDSN", which downloads station xml and waveforms.
-		method = "FDSN"
+		for requeststr in requeststrs
+			#NOTE: method is currently fixed "FDSN", which downloads station xml and waveforms.
+			method = "FDSN"
 
-		# including download margin
-		starttime = string(DateTime(starttimelist[startid]) - Second(InputDict["download_margin"]))
-		dltime = download_time_unit + 2 * InputDict["download_margin"]
+			# including download margin
+			starttime = string(DateTime(starttimelist[startid]) - Second(InputDict["download_margin"]))
+			dltime = download_time_unit + 2 * InputDict["download_margin"]
 
-		stationxml_path = joinpath(stationxml_dir, "$src.$starttime.xml")
+			stationxml_path = joinpath(stationxml_dir, "$src.$starttime.xml")
 
-		if InputDict["IsLocationBox"]
-	        ex = :(get_data($(method), $(requeststr), s=$(starttime), t=$(dltime), reg=$(InputDict["reg"]),
-			 v=$(0), src=$(src), xf=$(stationxml_path), unscale=$(InputDict["get_data_opt"][1]),
-			  demean=$(InputDict["get_data_opt"][2]), detrend=$(InputDict["get_data_opt"][3]),taper=$(InputDict["get_data_opt"][4]),
-			  ungap=$(InputDict["get_data_opt"][5]), rr=$(InputDict["IsResponseRemove"])))
+			if InputDict["IsLocationBox"]
+		        ex = :(get_data($(method), $(requeststr), s=$(starttime), t=$(dltime), reg=$(InputDict["reg"]),
+				 v=$(0), src=$(src), xf=$(stationxml_path), unscale=$(InputDict["get_data_opt"][1]),
+				  demean=$(InputDict["get_data_opt"][2]), detrend=$(InputDict["get_data_opt"][3]),taper=$(InputDict["get_data_opt"][4]),
+				  ungap=$(InputDict["get_data_opt"][5]), rr=$(InputDict["IsResponseRemove"])))
 
-	        t_dl = @elapsed Stemp = check_and_get_data(ex, requeststr)
-		else
-			ex = :(get_data($(method), $(requeststr), s=$(starttime), t=$(dltime),
-			 v=$(0), src=$(src), xf=$(stationxml_path),unscale=$(InputDict["get_data_opt"][1]),
-			  demean=$(InputDict["get_data_opt"][2]), detrend=$(InputDict["get_data_opt"][3]),taper=$(InputDict["get_data_opt"][4]),
-			  ungap=$(InputDict["get_data_opt"][5]), rr=$(InputDict["IsResponseRemove"])))
+		        t_dl = @elapsed Stemp = check_and_get_data(ex, requeststr)
+			else
+				ex = :(get_data($(method), $(requeststr), s=$(starttime), t=$(dltime),
+				 v=$(0), src=$(src), xf=$(stationxml_path),unscale=$(InputDict["get_data_opt"][1]),
+				  demean=$(InputDict["get_data_opt"][2]), detrend=$(InputDict["get_data_opt"][3]),taper=$(InputDict["get_data_opt"][4]),
+				  ungap=$(InputDict["get_data_opt"][5]), rr=$(InputDict["IsResponseRemove"])))
 
-			t_dl = @elapsed Stemp = check_and_get_data(ex, requeststr)
-		end
+				t_dl = @elapsed Stemp = check_and_get_data(ex, requeststr)
+			end
 
-		if Stemp == 1
-			# error this entire request
-			return 1
-		end
+			if Stemp == 1
+				# error this entire request
+				return 1
+			end
 
-		Isdataflag = false
-		# manipulate download_margin
-		manipulate_tmatrix!(Stemp, starttime, InputDict)
+			Isdataflag = false
+			# manipulate download_margin
+			manipulate_tmatrix!(Stemp, starttime, InputDict)
 
-		for j = 1:Stemp.n
-			if Stemp.misc[j]["dlerror"] == 0
-				Isdataflag = true
-				# downsample
-				if InputDict["sampling_frequency"] isa Number
-					if Stemp.fs[j] > InputDict["sampling_frequency"]
-						SeisIO.resample!(Stemp, chans=j, fs=float(InputDict["sampling_frequency"]))
+			for j = 1:Stemp.n
+				if Stemp.misc[j]["dlerror"] == 0
+					Isdataflag = true
+					# downsample
+					if InputDict["sampling_frequency"] isa Number
+						if Stemp.fs[j] > InputDict["sampling_frequency"]
+							SeisIO.resample!(Stemp, chans=j, fs=float(InputDict["sampling_frequency"]))
+						end
 					end
 				end
 			end
+
+			# if some of SeisChannels in Stemp have a data, save temp file
+			if Isdataflag
+				ymd = split(starttimelist[startid], r"[A-Z]")
+				(y, m, d) = split(ymd[1], "-")
+				j = md2j(y, m, d)
+				fname_out = join([String(y),
+							string(j),
+							replace(split(starttimelist[startid], 'T')[2], ':' => '.'),
+							"FDSNWS",
+							src,"dat"],
+							'.')
+
+				# save as intermediate binary file
+				t_write = @elapsed wseis(InputDict["tmpdir_dl"]*"/"*fname_out, Stemp)
+			end
+
+			if !InputDict["IsXMLfilepreserved"] && ispath(stationxml_path)
+				rm(stationxml_path)
+			end
 		end
-
-		# if some of SeisChannels in Stemp have a data, save temp file
-		if Isdataflag
-			ymd = split(starttimelist[startid], r"[A-Z]")
-			(y, m, d) = split(ymd[1], "-")
-			j = md2j(y, m, d)
-			fname_out = join([String(y),
-						string(j),
-						replace(split(starttimelist[startid], 'T')[2], ':' => '.'),
-						"FDSNWS",
-						src,"dat"],
-						'.')
-
-			# save as intermediate binary file
-			t_write = @elapsed wseis(InputDict["tmpdir_dl"]*"/"*fname_out, Stemp)
-		end
-
-		if !InputDict["IsXMLfilepreserved"] && ispath(stationxml_path)
-			rm(stationxml_path)
-		end
-
     end
 
     return 0
 
 end
 
-"""
-	get_requeststr(df::DataFrame)
-
-return request str following web_chanspec of SeisIO.get_data.
-"""
-function get_requeststr(df::DataFrame)
-	reqstr = String[]
-	for i = 1:size(df)[1]
-		rst = join([df.network[i], df.station[i], df.location[i], df.channel[i]], ".")
-		push!(reqstr, rst)
-	end
-	return reqstr
-end
 
 """
     check_and_get_data(ex::Expr, requeststr::String)
@@ -218,7 +206,7 @@ function manipulate_tmatrix!(S::SeisData, starttime::String, InputDict::OrderedD
 
 		#println([si, download_margin * S.fs[i]])
 		#println([string(u2d(S.t[i][1,2] * 1e-6))[1:19],starttime])
-		# check if data is within request time window AND start time is equal
+		# Check if data is within request time window AND start time is equal
 		# at the order of second to what is requested
 		# rounding subsecond error in downloading
 		# NOTE: thie is just used to check the consistency between requested

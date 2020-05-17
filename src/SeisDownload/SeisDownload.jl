@@ -1,5 +1,5 @@
 include("seisdownload_utils.jl")
-include("downloadfunc.jl")
+include("map_seisdownload.jl")
 
 """
     seisdownload(InputDict::Dict)

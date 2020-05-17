@@ -32,6 +32,33 @@ function get_starttimelist(st::DateTime, et::DateTime, unittime::Real)
     return stlist
 end
 
+
+"""
+	get_requeststr(df::DataFrame, numstationperrequest::Int))
+
+return request str following web_chanspec of SeisIO.get_data.
+
+- 'numstationperrequest::Int': number of stations per one request to avoid too many request statinos at one time.
+"""
+function get_requeststr(df::DataFrame, numstationperrequest::Int)
+
+	reqstrs = Array{Array{String,1},1}(undef, 0) # array of request stations per HTTP request
+	reqstr  = String[]
+	for inds = Iterators.partition(1:size(df)[1], numstationperrequest)
+		for i in inds
+			rst = join([df.network[i], df.station[i], df.location[i], df.channel[i]], ".")
+			push!(reqstr, rst)
+		end
+		push!(reqstrs, reqstr)
+	end
+	#
+	# for i = 1:size(df)[1]
+	# 	rst = join([df.network[i], df.station[i], df.location[i], df.channel[i]], ".")
+	# end
+	return reqstrs
+end
+
+
 """
 convert_tmpfile(InputDict::Dict)
 
