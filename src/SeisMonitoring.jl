@@ -34,6 +34,7 @@ include("Utils/remove_nanandzerocol.jl") # used at seisstack and seismeasurement
 include("Utils/slice_codawindow.jl") # used at seisstack and seismeasurement
 include("Utils/get_parameter.jl") # used at seisstack and seismeasurement
 include("Utils/set_parameter.jl") # used at seisstack and seismeasurement
+include("Utils/make_slurmbatch.jl") # used at seisstack and seismeasurement
 include("Defaultproject/set_default_inputdict.jl") # set global default InputDict
 
 # plot lib
