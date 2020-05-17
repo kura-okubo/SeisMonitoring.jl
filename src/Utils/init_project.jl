@@ -55,39 +55,37 @@ function init_project(
     proj_output_abspath = abspath(project_outputdir, project_name*"_OUTPUT")
 
     if !ispath(project_inputdir)
-        if force
-            rm(project_inputdir, recursive=true)
-        else
-            @error(project_inputdir * " does not exist in your system.")
-            return
-        end
-
+        @error(project_inputdir * " does not exist in your system.")
+        return
     elseif !ispath(project_outputdir)
-        if force
-            rm(project_outputdir, recursive=true)
-        else
-            @error(project_outputdir * " does not exist in your system.")
-            return
-        end
+        @error(project_outputdir * " does not exist in your system.")
+        return
     end
 
     if ispath(proj_input_abspath)
-        @error(
-            "The project input directory already exists. Please make another project, or remove old project.",
-        )
-        return
-    else
-        mkdir(proj_input_abspath)
+        if force
+            rm(proj_input_abspath, recursive=true)
+        else
+            @error(
+                "The project input directory already exists. Please make another project, or remove old project.",
+            )
+            return
+        end
     end
+    mkdir(proj_input_abspath)
 
     if ispath(proj_output_abspath)
-        @error(
-            "The project output directory already exists. Please make another project, or remove old project.",
-        )
-        return
-    else
-        mkdir(proj_output_abspath)
+        if force
+            rm(proj_output_abspath, recursive=true)
+        else
+            @error(
+                "The project output directory already exists. Please make another project, or remove old project.",
+            )
+            return
+        end
     end
+    mkdir(proj_output_abspath)
+
 
 
     # NOTE: julia `cp` command cannot be used because of permissino issue.
