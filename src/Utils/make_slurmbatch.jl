@@ -42,7 +42,7 @@ function make_slurmbatch(inputfile::String="",
         fo = open(batchfile, "w")
         write(fo, "#!/bin/bash\n#----------------------------------------------------\n")
         write(fo, "#SBATCH -p $(partition)\n")
-        write(fo, "#SBATCH -j $(project_name)\n")
+        write(fo, "#SBATCH -J $(project_name)\n")
         write(fo, "#SBATCH -N $(totalnodes)\n")
         write(fo, "#SBATCH -n $(totaltasks)\n")
         write(fo, "#SBATCH -t $(runtime)\n")
