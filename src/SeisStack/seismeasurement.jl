@@ -25,6 +25,9 @@ function seismeasurement!(C::CorrData, InputDict::OrderedDict)
     cur = C.corr[:,1]
 
     measurement_method = InputDict["measurement_method"]
+
+    figdir = InputDict["stretch_debugplot"] ? joinpath(abspath(InputDict["project_outputdir"]), "plots/stack") : ""
+
     if lowercase(measurement_method) == "stretching"
         @warn("measurement_method:$(measurement_method) is under developping. skip seismeasurement.")
 
@@ -40,7 +43,6 @@ function seismeasurement!(C::CorrData, InputDict::OrderedDict)
     elseif lowercase(measurement_method) == "dualstretching"
 
         fc = (C.freqmin+C.freqmax)/2.0
-        figdir = joinpath(abspath(InputDict["project_outputdir"]), "plots/stack")
 
         MeasurementDict = dualstretching(ref, cur, C.misc["timelag"], fc, C.misc["coda_window"],
                                 # parameters for dvv stretching
@@ -57,7 +59,7 @@ function seismeasurement!(C::CorrData, InputDict::OrderedDict)
                                 # parameters for distance and debug figure plot
                                 dist_method=InputDict["stretch_distmethod"],
                                 figdir=figdir,
-                                figname=C.name*"--"*string(C.misc["stack_centraltime"]),
+                                figname=C.name*"--"*string(C.misc["stack_centraltime"])*"--"*join([C.freqmin, C.freqmax], "-"),
                                 fillbox =C.misc["fillbox"])
 
     else

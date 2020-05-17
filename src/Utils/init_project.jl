@@ -8,6 +8,7 @@ include("../Defaultproject/set_default_station.jl")
         project_inputdir::String = "./",
         project_outputdir::String = "./",
         gui::String = true;
+        force::Bool=false
     )
 
 Initiate project directory where data is output.
@@ -18,6 +19,7 @@ You can output data to local machine, external HDD, scratch, etc.
 - `project_inputdir::String`    : absolute/relative path to make new input project directory [default: "."]
 - `project_outputdir::String`   : absolute/relative path to make new output project directory [default: "."]
 - `gui::Bool`                   : true if you want to use gui (you can use this to initiate case studies)
+- `force::Bool=false`           : true if you want to remove existing file and init project.
 
 Input and output directories can be separated for the use on local/HDD/cloud/scratch file system.
 

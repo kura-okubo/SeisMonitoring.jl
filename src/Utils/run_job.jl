@@ -5,7 +5,6 @@ include("printlogos.jl")
 """
     run_job(inputfile::String="";
     seisdownload::Bool=true,
-    requeststation::String="",
     seisremoveeq::Bool=true,
     seisxcorrelation::Bool=true,
     seisstack::Bool=true,
@@ -18,7 +17,6 @@ running job in the project folder.
 
 # Options
 - 'seisdownload::Bool'      : run seisdownload if true [default:true]
-- `requeststation::String` : absolute/relative path to request station file (e.g. "./project/inputfile/requeststation.jld2")
 - 'seisremoveeq::Bool'      : run seisremoveeq if true [default:true]
 - 'seisxcorrelation::Bool'  : run seisxcorrelation if true [default:true]
 - 'seisstack::Bool'         : run seisstack if true [default:true]
@@ -28,7 +26,6 @@ function run_job(inputfile::String="";
         run_seisremoveeq::Bool=true,
         run_seisxcorrelation::Bool=true,
         run_seisstack::Bool=true,
-        run_seismeasurement::Bool=true
         )
 
     if isempty(inputfile)

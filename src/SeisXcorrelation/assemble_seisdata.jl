@@ -51,9 +51,10 @@ function assemble_seisdata(
     end
 
     # read and merge seischannel
-    S1 = SeisData()
+    S1 = SeisData(); removal_fraction_all = Float64[]
     for file in files_target
         Stemp = fileio[joinpath("Waveforms", join([net, sta], "."), file)]
+        haskey(Stemp.misc, "removal_fraction") && push!(removal_fraction_all, Stemp.misc["removal_fraction"])
         taper!(Stemp)
         S1 += Stemp
     end
@@ -66,15 +67,18 @@ function assemble_seisdata(
     # println(S1.t)
     # ungap at missing few sampling point due to rounding samplingcase
     S1 = ungap(S1)
-    # println(S1.t)
-    #reconvert to seischannel
-    # check the data amount per target window; if its fraction is less than data_contents_fraction,
-    # discard it to avoid issue with mean padding.
+    # reconvert to seischannel
+    #NOTE: check the data amount per target window; if its fraction is less than data_contents_fraction,
+    # discard it to avoid an issue with mean padding.
+    #NOTE: If seisremoveeq is applied, the removal fraction is also taken into account.
 
-    datafrac = get_data_contents_fraction(S1[1],starttime,endtime)
+    datafrac_assemble = get_data_contents_fraction(S1[1],starttime,endtime)
+    datafrac_removeeq = (!isempty(removal_fraction_all) ? (1.0 - mean(removal_fraction_all)) : 1.0 )
+    datafraction_total = datafrac_assemble*datafrac_removeeq
+    println(datafraction_total)
 
-    if  datafrac < data_contents_fraction
-        println("debug: data containts $(datafrac) is less than data_contents_fraction.")
+    if  datafraction_total < data_contents_fraction
+        println("debug: data containts $(datafraction_total) is less than data_contents_fraction.")
         return nothing
     end
 
