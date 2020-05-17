@@ -51,9 +51,9 @@ function make_slurmbatch(inputfile::String="",
         write(fo, "#----------------------------------------------------\n\n")
 
         write(fo, "date\n")
-        write(fo, "module purge\n")
+        # write(fo, "module purge\n")
         write(fo, "xvfb-run $(absolute_juliapath) -p $(totaltasks) -e 'using SeisMonitoring;
-        run_job($(inputfile), run_seisdownload=$(run_seisdownload),
+        run_job(\"$(inputfile)\", run_seisdownload=$(run_seisdownload),
         run_seisremoveeq=$(run_seisremoveeq),
         run_seisxcorrelation=$(run_seisxcorrelation),
         run_seisstack=$(run_seisstack))'\n")
