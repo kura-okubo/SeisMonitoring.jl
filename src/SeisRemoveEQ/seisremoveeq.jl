@@ -20,9 +20,7 @@ function seisremoveeq(InputDict_origin::OrderedDict)
     mkdir(tmpdir)
 
     if lowercase(InputDict["RawData_path"]) == "default"
-        RawData_path = joinpath(InputDict["fodir"], "RawData.jld2")
-    else
-        RawData_path = InputDict["RawData_path"]
+        InputDict["RawData_path"] = joinpath(InputDict["fodir"], "RawData.jld2")
     end
 
     println("***************************************")
@@ -31,19 +29,16 @@ function seisremoveeq(InputDict_origin::OrderedDict)
     println("IsWhitening        = $(InputDict["IsWhitening"])")
     println("***************************************\n")
 
-    t = jldopen(RawData_path, "r")
-
-    if !haskey(t, "Waveforms")
-        error("$(RawData_path) does not have Waveforms group. Please check format.")
-    end
+	#DEBUG: fi cannot be passed to pmap function due to parallel read issue. please reload in the pmap function
+    ispath(InputDict["RawData_path"]) ? (fi = jldopen(InputDict["RawData_path"], "r")) : error("$(InputDict["RawData_path"]) is not found.")
+    !haskey(fi, "Waveforms") && error("$(RawData_path) does not have Waveforms group. Please check the waveform data format in JLD2.")
+	stations = keys(fi["Waveforms"])
+ 	JLD2.close(fi)
 
     # parallelize with keys in Rawdata.jld2 i.e. stations
     println("-------START Removing EQ--------")
 
-    t_removeeq = @elapsed bt_time = pmap(
-        x -> map_removeEQ(x, t, InputDict),
-        keys(t["Waveforms"]),
-    )
+    t_removeeq = @elapsed bt_time = pmap(x -> map_removeEQ(x, InputDict),stations)
 
     JLD2.close(t)
 

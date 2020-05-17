@@ -4,13 +4,16 @@ include("seisremoveeq_stalta.jl")
 include("seisremoveeq_remove_eqfilt.jl")
 
 """
-    ParallelEQremoval(dlid, InputDict::Dict)
+    map_removeEQ(station, InputDict::OrderedDict)
     remove earthquake and save it into jld2 file.
 
 """
-function map_removeEQ(station::String, fi, InputDict::OrderedDict)
+function map_removeEQ(station::String, InputDict::OrderedDict)
 
     println("start process on $(station)")
+
+    # open file io at each process
+    fi = jldopen(InputDict["RawData_path"], "r")
 
     bt_kurtosis = 0.0
     bt_stalta = 0.0
@@ -82,5 +85,7 @@ function map_removeEQ(station::String, fi, InputDict::OrderedDict)
         end
     end
 
+    JLD2.close(fi)
+    
     return (bt_kurtosis, bt_stalta)
 end
