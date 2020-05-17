@@ -46,7 +46,8 @@ function init_project(
     project_name::String = "project",
     project_inputdir::String = "./",
     project_outputdir::String = "./",
-    gui::Bool = true
+    gui::Bool = true,
+    force::Bool = false
 )
 
 
@@ -54,11 +55,20 @@ function init_project(
     proj_output_abspath = abspath(project_outputdir, project_name*"_OUTPUT")
 
     if !ispath(project_inputdir)
-        @error(project_inputdir * " does not exist in your system.")
-        return
+        if force
+            rm(project_inputdir, recursive=true)
+        else
+            @error(project_inputdir * " does not exist in your system.")
+            return
+        end
+
     elseif !ispath(project_outputdir)
-        @error(project_outputdir * " does not exist in your system.")
-        return
+        if force
+            rm(project_outputdir, recursive=true)
+        else
+            @error(project_outputdir * " does not exist in your system.")
+            return
+        end
     end
 
     if ispath(proj_input_abspath)
