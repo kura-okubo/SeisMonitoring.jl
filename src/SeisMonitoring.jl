@@ -5,12 +5,18 @@ using SeisIO, SeisNoise, SeisDvv
 using Dates, Printf, JLD2, Distributed, DataFrames, DataStructures, Distances
 using Statistics, DSP, StatsBase
 export
+
     seisdownload,
     seisremoveeq,
     seisxcorrelation,
     makeinput_gui,
+
+    # util commands
     init_project,
-    run_job
+    run_job,
+    make_slurmbatch,
+    get_parameter,
+    set_parameter
 
 
 include("SeisDownload/seisdownload.jl")
