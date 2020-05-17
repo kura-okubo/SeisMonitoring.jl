@@ -166,7 +166,7 @@ function check_and_get_data(ex::Expr, requeststr::Array{String,1})
 	end
 
 	for j = 1:S.n
-		!isnothing(S[j]) && !isempty(S[j]) ? S.misc[j]["dlerror"] = 0 : S.misc[j]["dlerror"] = 1
+		!isnothing(S[j]) && !isempty(S[j]) && !isempty(S[j].t) ? S.misc[j]["dlerror"] = 0 : S.misc[j]["dlerror"] = 1
 	end
 
 	return S
