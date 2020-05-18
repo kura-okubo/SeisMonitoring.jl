@@ -1,4 +1,3 @@
-using SeisIO, SeisNoise, JLD2, Plots, Dates
 using SeisMonitoring: assemble_corrdata
 """
     smplot_corrdata(filename::String, fodir::String, starttime::Union{String, DateTime}, endtime::Union{String, DateTime};
@@ -42,7 +41,7 @@ function smplot_corrdata(filename::String, fodir::String, starttime::Union{Strin
 
             # assemble corrdata on stachankey
             C_all, CorrData_Buffer = assemble_corrdata(fi,stachankey,starttime,endtime,freqency_band,
-                                                MAX_MEM_USE=MAX_MEM_USE)
+                                                MAX_MEM_USE=MAX_MEM_USE, min_cc_datafraction=0.0)
 
             # plot corrdata with respect to frequency band
             println(C_all)
