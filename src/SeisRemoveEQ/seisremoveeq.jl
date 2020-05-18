@@ -40,8 +40,6 @@ function seisremoveeq(InputDict_origin::OrderedDict)
 
     t_removeeq = @elapsed bt_time = pmap(x -> map_removeEQ(x, InputDict),stations)
 
-    JLD2.close(t)
-
     println("-------START Converting--------")
 
     t_convert = @elapsed convert_tmpfile_seisremoveeq(InputDict)
