@@ -64,7 +64,7 @@ function smplot_rawdata(filename::String, fodir::String, station::String,
     end
 
     p = Plots.plot!(link=:x, dpi=dpi)
-    figname = joinpath(fodir, join([station, string(starttime),  string(endtime)], "__"))
+    figname = joinpath(fodir, join([station, string(starttime),  string(endtime)], "__"))*".png"
     Plots.savefig(p, figname)
     close(fi)
 end
