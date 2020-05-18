@@ -32,8 +32,8 @@ function smplot_rawdata(filename::String, fodir::String, station::String,
 
     for netstachan in StationDict[station]
             println("read $(netstachan)")
-            Ch = assemble_seisdata(netstachan, fi, starttime, endtime)
-            isnothing(Ch) || isempty(Ch) && continue
+            Ch = assemble_seisdata(netstachan, fi, starttime, endtime, data_contents_fraction=0.0)
+            (isnothing(Ch) || isempty(Ch)) && continue
             push!(S, Ch)
     end
 
