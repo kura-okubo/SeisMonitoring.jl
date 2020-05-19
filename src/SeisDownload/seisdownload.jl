@@ -17,7 +17,7 @@ function seisdownload(InputDict_origin::OrderedDict)
 	fodir					= joinpath(project_outputdir, "seismicdata")
 	tmpdir 					= joinpath(project_outputdir, "seismicdata", "seisdownload_tmp")
 	InputDict["fodir"] 		= fodir
-	InputDict["tmpdir_dl"] 	= tmpdir
+	InputDict["tmpdir"] 	= tmpdir
 
 	stationxml_dir = joinpath(fodir, "stationxml")
 	InputDict["stationxml_dir"] = stationxml_dir
@@ -60,12 +60,16 @@ function seisdownload(InputDict_origin::OrderedDict)
 	# testdownload(InputDict_test, length(starttimelist))
 
 	# Start downloading data
-	println("-------START Downloading--------")
-
+	println("-------START DOWNLOADING--------")
 	t_download = @elapsed pmap(x -> map_seisdownload_NOISE(x, InputDict), 1:length(starttimelist))
 
 	# convert intermediate file to prescibed file format (JLD2, ASDF, ...)
-	t_convert = @elapsed convert_tmpfile(InputDict)
+
+	println("-------START CONVERTING--------")
+
+	# t_convert = @elapsed convert_tmpfile(InputDict)
+	t_convert = @elapsed convert_tmpfile(InputDict, "seisdownload")
+
 
 	println("---Summary of computational time---")
 	println(@sprintf("Total download time:%8.4f[s]", t_download))

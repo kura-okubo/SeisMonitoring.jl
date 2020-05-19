@@ -67,7 +67,6 @@ It has salvage mode, which allows to compile the temporal files in the case of f
 """
 function convert_tmpfile(InputDict::OrderedDict; salvage::Bool=false)
 
-    println("-------START CONVERTING--------")
     paths   = SeisIO.ls(InputDict["tmpdir_dl"])
     fodir   = InputDict["fodir"]
     fmt     = InputDict["outputformat"]

@@ -16,7 +16,12 @@ export
     run_job,
     make_slurmbatch,
     get_parameter,
-    set_parameter
+    set_parameter,
+
+    # plot command
+    smplot_rawdata,
+    smplot_corrdata,
+    smplot_stackcc
 
 
 include("SeisDownload/seisdownload.jl")
@@ -26,15 +31,16 @@ include("SeisStack/seisstack.jl")
 include("SMGUI/makeinput_gui.jl")
 include("Utils/init_project.jl")
 include("Utils/run_job.jl")
+include("Utils/get_parameter.jl")
+include("Utils/set_parameter.jl")
+include("Utils/make_slurmbatch.jl")
 
 # shared lib
 include("Utils/inputdict_io.jl") #Utils, SMGUI
 include("Utils/parse_inputdict.jl") #Utils, SMGUI
-include("Utils/remove_nanandzerocol.jl") # used at seisstack and seismeasurement
-include("Utils/slice_codawindow.jl") # used at seisstack and seismeasurement
-include("Utils/get_parameter.jl") # used at seisstack and seismeasurement
-include("Utils/set_parameter.jl") # used at seisstack and seismeasurement
-include("Utils/make_slurmbatch.jl") # used at seisstack and seismeasurement
+include("Utils/remove_nanandzerocol.jl") # used at seisstack
+include("Utils/convert_tmpfile.jl") #SeisDownload, SeisRemoveEQ
+include("Utils/slice_codawindow.jl") # used at seisstack
 include("Defaultproject/set_default_inputdict.jl") # set global default InputDict
 
 # plot lib
