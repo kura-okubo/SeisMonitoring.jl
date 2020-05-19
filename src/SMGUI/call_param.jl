@@ -11,7 +11,7 @@ function call_param_general!(g::GtkGridLeaf, rowcount::Int)
                 "endtime",
                 "sampling_frequency",
                 "freqency_band",
-                "NP",
+                # "NP",
                 "MAX_MEM_USE"
                 ]
 

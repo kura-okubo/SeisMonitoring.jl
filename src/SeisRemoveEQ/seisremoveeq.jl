@@ -31,7 +31,7 @@ function seisremoveeq(InputDict_origin::OrderedDict)
 
 	#DEBUG: fi cannot be passed to pmap function due to parallel read issue. please reload in the pmap function
     ispath(InputDict["RawData_path"]) ? (fi = jldopen(InputDict["RawData_path"], "r")) : error("$(InputDict["RawData_path"]) is not found.")
-    !haskey(fi, "Waveforms") && error("$(RawData_path) does not have Waveforms group. Please check the waveform data format in JLD2.")
+    !haskey(fi, "Waveforms") && error("$(InputDict["RawData_path"]) does not have Waveforms group. Please check the waveform data format in JLD2.")
 	stations = keys(fi["Waveforms"])
  	JLD2.close(fi)
 
@@ -43,7 +43,7 @@ function seisremoveeq(InputDict_origin::OrderedDict)
     println("-------START Converting--------")
 
 	# t_convert = @elapsed convert_tmpfile_seisremoveeq(InputDict)
-	t_convert = @elapsed SeisMonitoring.convert_tmpfile(InputDict, "seisremoveeq")
+	t_convert = @elapsed convert_tmpfile(InputDict, "seisremoveeq")
 
     mean_kurtosis_cputime = mean((x->x[1]).(bt_time))
     mean_stalta_cputime   = mean((x->x[2]).(bt_time))

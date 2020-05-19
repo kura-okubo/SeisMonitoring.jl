@@ -15,7 +15,7 @@ InputDict=OrderedDict(
 
         "freqency_band"         => ("0.01, 0.1, 0.2, 0.5, 1.0, 2.0", Float64, "Frequency bands to be analyzed."),
 
-        "NP"                    => ("1", Int, "Number of processors you want to use for parallelization."),
+        # "NP"                    => ("1", Int, "Number of processors you want to use for parallelization."),
         "MAX_MEM_USE"           => ("3.0", Float64, "[GB] Maximum memory use per core in the environment."),
 
         #===SeisDownload===#

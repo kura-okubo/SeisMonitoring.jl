@@ -1,15 +1,28 @@
 # using Distributed
 # addprocs(3)
 #
-using SeisIO, JLD2, DataStructures
-
+# using SeisIO, JLD2, DataStructures
 #===The processes below are parallelized on each workers===#
 #===(reading data and get group name)===#
+
 function do_work(ch_paths, ch_seisdata) # define work function everywhere
 	while true
 	   path = take!(ch_paths)
 	   # put!(ch_seisdata, tuple(splitdir(path)[2], myid()))
-	   S = rseis(path)[1]
+
+	   fileextension=split(basename(path), ".")[end]
+
+	   if fileextension=="dat"
+		   # SeisIO binary file
+		   S = rseis(path)[1]
+	   elseif fileextension=="jld2"
+	   	   S = jldopen(path, "r") do fi
+           			fi["S"]
+       	   end
+	   else
+			@warn("$(basename(path)) is not read because the extension is not .dat nor .jld2. Use .dat for SeisIO file, or jld2 for temporally file.")
+	   end
+
 	   SC_all = [] # will contain all seischannels to be saved.
 
 	   for ii = 1:S.n #loop at each seis channel
@@ -31,11 +44,10 @@ function do_work(ch_paths, ch_seisdata) # define work function everywhere
 	   put!(ch_seisdata, tuple(SC_all, myid()))
 	end
 end
-#==========================================================================#
 
 function convert_tmpfile(InputDict::OrderedDict, mode::String)
 
-	paths_all = SeisIO.ls("./seisdownload_tmp")
+	paths_all = SeisIO.ls(InputDict["tmpdir"])
 
 	# this is advanced mode to apply in order to isolate components at same stations
 	if InputDict["IsIsolateComponents"] && mode=="seisremoveeq"
@@ -49,6 +61,8 @@ function convert_tmpfile(InputDict::OrderedDict, mode::String)
 	ch_paths    = RemoteChannel(()->Channel{String}(length(paths)))
 	ch_seisdata = RemoteChannel(()->Channel{Tuple}(Inf));
 	n = length(paths);
+
+	#==========================================================================#
 
 	function make_jobs(n)
 		for i in 1:n
@@ -65,11 +79,17 @@ function convert_tmpfile(InputDict::OrderedDict, mode::String)
 	# write SeisData into jld2 file at main process
 	fodir   = InputDict["fodir"]
 	fmt     = InputDict["outputformat"]
+	if mode == "seisremoveeq"
+		foname = "EQRemovedData"
+	else
+		foname = "RawData"
+	end
+
 	if uppercase(fmt) == "JLD2"
-		fopath = joinpath(fodir, "RawData.jld2")
+		fopath = joinpath(fodir, "$(foname).jld2")
 		fo = jldopen(fopath, "w")
 	elseif uppercase(fmt) == "ASDF"
-		fopath = joinpath(fodir, "RawData.h5")
+		fopath = joinpath(fodir, "$(foname).h5")
 	else
 		@error("outputformat: $(outputformat) is not available (JLD2 or ASDF).")
 	end
@@ -92,7 +112,7 @@ function convert_tmpfile(InputDict::OrderedDict, mode::String)
 			end
 			push!(SCids, SC.id)
 		end
-		println("$(join(SCids, ":")) are processed on worker $where")
+		println("$(join(SCids[1:5], ":")) ... are processed on worker $where")
 		#======================================================================#
 
 		n = n - 1
