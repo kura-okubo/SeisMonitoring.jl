@@ -65,6 +65,8 @@ function map_removeEQ(station::String, InputDict::OrderedDict)
         numofremoval = sum(x -> x == false, ns_list, dims = 1)
         S1.misc["removal_fraction"] = float(numofremoval[1]) /
                                       float(length(ns_list))
+		# append noise data fraction
+		S1.misc["data_fraction"] = get_noisedatafraction(S1.x, zerosignal_minpts=100, eps_α=1e-6)
 
         # Append raw trace, kurtosis and stalta time traces to S1
         if InputDict["Append_alltraces"]

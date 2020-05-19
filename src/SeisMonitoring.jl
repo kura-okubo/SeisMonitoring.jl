@@ -37,7 +37,9 @@ include("Utils/make_slurmbatch.jl")
 # shared lib
 include("Utils/remove_nanandzerocol.jl") # used at seisstack
 include("Utils/slice_codawindow.jl") # used at seisstack
-include("Utils/convert_tmpfile.jl") 
+include("Utils/convert_tmpfile.jl") # used at seisdownload and seisremoveeq
+include("Utils/get_noisedatafraction.jl") # used at seisdownload, seisremoveeq and seisxcorrelation
+
 include("Defaultproject/set_default_inputdict.jl") # set global default InputDict
 
 # plot lib

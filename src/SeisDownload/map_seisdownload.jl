@@ -83,13 +83,13 @@ function map_seisdownload_NOISE(startid, InputDict::OrderedDict; testdownload::B
 
 			Isdataflag = false
 			# manipulate download_margin
-			# manipulate_tmatrix!(Stemp, starttime, InputDict)
 			# NOTE: using SeisIO.sync()
 			stsync = DateTime(starttimelist[startid])
 			etsync = u2d(d2u(stsync) + download_time_unit)
 			# println([stsync, etsync])
 			SeisIO.sync!(Stemp, s=stsync, t=etsync, v=0)
 
+			#===downsampling===#
 			if InputDict["sampling_frequency"] isa Number
 				for j = 1:Stemp.n
 					if Stemp.misc[j]["dlerror"] == 0 && !isempty(Stemp[j].t)
@@ -100,6 +100,14 @@ function map_seisdownload_NOISE(startid, InputDict::OrderedDict; testdownload::B
 					end
 				end
 			end
+
+			#===append data contents fraction===#
+			for j = 1:Stemp.n
+				if Stemp.misc[j]["dlerror"] == 0 && !isempty(Stemp[j].t)
+					Stemp[j].misc["data_fraction"] = get_noisedatafraction(Stemp[j].x, zerosignal_minpts=100, eps_α=1e-6)
+				end
+			end
+
 
 			# Save temp file
 			requeststr_all = join(requeststr, "--")

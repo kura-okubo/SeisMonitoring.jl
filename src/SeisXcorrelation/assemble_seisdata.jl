@@ -68,22 +68,27 @@ function assemble_seisdata(
     # ungap at missing few sampling point due to rounding samplingcase
     S1 = ungap(S1)
     # reconvert to seischannel
-    #NOTE: check the data amount per target window; if its fraction is less than data_contents_fraction,
-    # discard it to avoid an issue with mean padding.
-    #NOTE: If seisremoveeq is applied, the removal fraction is also taken into account.
 
-    datafrac_assemble = get_data_contents_fraction(S1[1],starttime,endtime)
-    datafrac_removeeq = (!isempty(removal_fraction_all) ? (1.0 - mean(removal_fraction_all)) : 1.0 )
-    datafraction_total = datafrac_assemble*datafrac_removeeq
-    println(datafraction_total)
+    #+++Deprecated the notes below; now using get_noisedatafraction to find noise data contents.+++#
+    # NOTE: check the data amount per target window; if its fraction is less than data_contents_fraction,
+    # discard it to avoid an issue with mean padding.
+    # NOTE: If seisremoveeq is applied, the removal fraction is also taken into account.
+    # datafrac_assemble = get_data_contents_fraction(S1[1],starttime,endtime)
+    # datafrac_removeeq = (!isempty(removal_fraction_all) ? (1.0 - mean(removal_fraction_all)) : 1.0 )
+    # datafraction_total = datafrac_assemble*datafrac_removeeq
+    # println(datafraction_total)
+    #++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++#
+
+    # syncrhonize seischannel so that it contains from starttime to endtime
+    S1_sync = SeisIO.sync(S1, s=starttime, t=endtime, v=0)
+
+    datafraction_total = get_noisedatafraction(S1_sync[1].x, zerosignal_minpts=100, eps_α=1e-6)
 
     if  datafraction_total < data_contents_fraction
         println("debug: data containts $(datafraction_total) is less than data_contents_fraction.")
         return nothing
     end
 
-    # syncrhonize seischannel so that it contains from starttime to endtime
-    S1_sync = SeisIO.sync(S1, s=starttime, t=endtime, v=0)
     return S1_sync[1]
 end
 
@@ -104,12 +109,12 @@ function findall_target(
     return files_target
 end
 
-function get_data_contents_fraction(
-    S1::SeisChannel,
-    starttime::DateTime,
-    endtime::DateTime,
-)
-    su, eu = SeisIO.t_win(S1.t, S1.fs) .* μs
-    target_window_length = (endtime - starttime).value / 1e3 # millisecond -> second
-    return (eu - su) / target_window_length
-end
+# function get_data_contents_fraction(
+#     S1::SeisChannel,
+#     starttime::DateTime,
+#     endtime::DateTime,
+# )
+#     su, eu = SeisIO.t_win(S1.t, S1.fs) .* μs
+#     target_window_length = (endtime - starttime).value / 1e3 # millisecond -> second
+#     return (eu - su) / target_window_length
+# end
