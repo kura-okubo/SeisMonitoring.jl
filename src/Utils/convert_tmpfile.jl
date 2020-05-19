@@ -1,14 +1,41 @@
-"""
-	convert_tmpfile(InputDict::OrderedDict, mode::String)
+# using Distributed
+# addprocs(3)
+#
+using SeisIO, JLD2, DataStructures
 
-convert intermediate tmpfile during Seisdownload and SeisRemoveEQ into JLD2 or ASDF
+#===The processes below are parallelized on each workers===#
+#===(reading data and get group name)===#
+function do_work(ch_paths, ch_seisdata) # define work function everywhere
+	while true
+	   path = take!(ch_paths)
+	   # put!(ch_seisdata, tuple(splitdir(path)[2], myid()))
+	   S = rseis(path)[1]
+	   SC_all = [] # will contain all seischannels to be saved.
 
-# NOTE
-SeisRemoveEQ can read only JLD2 format, while SeisDownload can output either JLD2 or ASDF.
-"""
+	   for ii = 1:S.n #loop at each seis channel
+		   # make station list
+		   staid = S[ii].id
+		   # skip if S.t is empty
+		   (isempty(S[ii]) || isempty(S[ii].t)) && continue;
+		   s_str = string(u2d(S[ii].t[1,2]*1e-6))[1:19]
+		   # compute end time:
+		   et = S[ii].t[1,2]*1e-6 + (S[ii].t[end,1]-1)/S[ii].fs
+		   e_str=string(u2d(et))[1:19]
+		   # split network, station, location and channel
+		   net, sta, loc, cha = split(S[ii].id, ".")
+		   groupname = joinpath("Waveforms", join([net, sta], "."))
+		   varname	  = join([net, sta, loc, cha], ".")*"__"*s_str*"__"*e_str*"__"*lowercase(cha)
+		   push!(SC_all, (S[ii], groupname, varname))
+	   end
+
+	   put!(ch_seisdata, tuple(SC_all, myid()))
+	end
+end
+#==========================================================================#
+
 function convert_tmpfile(InputDict::OrderedDict, mode::String)
 
-	paths_all = SeisIO.ls(InputDict["tmpdir"])
+	paths_all = SeisIO.ls("./seisdownload_tmp")
 
 	# this is advanced mode to apply in order to isolate components at same stations
 	if InputDict["IsIsolateComponents"] && mode=="seisremoveeq"
@@ -18,39 +45,10 @@ function convert_tmpfile(InputDict::OrderedDict, mode::String)
 		paths = paths_all
 	end
 
+
 	ch_paths    = RemoteChannel(()->Channel{String}(length(paths)))
 	ch_seisdata = RemoteChannel(()->Channel{Tuple}(Inf));
 	n = length(paths);
-
-	#===The processes below are parallelized on each workers===#
-	#===(reading data and get group name)===#
-	@everywhere function do_work(ch_paths, ch_seisdata) # define work function everywhere
-		while true
-		   path = take!(ch_paths)
-		   # put!(ch_seisdata, tuple(splitdir(path)[2], myid()))
-		   S = rseis(path)[1]
-		   SC_all = [] # will contain all seischannels to be saved.
-
-		   for ii = 1:S.n #loop at each seis channel
-			   # make station list
-			   staid = S[ii].id
-			   # skip if S.t is empty
-			   (isempty(S[ii]) || isempty(S[ii].t)) && continue;
-			   s_str = string(u2d(S[ii].t[1,2]*1e-6))[1:19]
-			   # compute end time:
-			   et = S[ii].t[1,2]*1e-6 + (S[ii].t[end,1]-1)/S[ii].fs
-			   e_str=string(u2d(et))[1:19]
-			   # split network, station, location and channel
-			   net, sta, loc, cha = split(S[ii].id, ".")
-			   groupname = joinpath("Waveforms", join([net, sta], "."))
-			   varname	  = join([net, sta, loc, cha], ".")*"__"*s_str*"__"*e_str*"__"*lowercase(cha)
-			   push!(SC_all, (S[ii], groupname, varname))
-		   end
-
-		   put!(ch_seisdata, tuple(SC_all, myid()))
-		end
-	end
-	#==========================================================================#
 
 	function make_jobs(n)
 		for i in 1:n
@@ -103,7 +101,7 @@ function convert_tmpfile(InputDict::OrderedDict, mode::String)
 	uppercase(fmt) == "JLD2" && JLD2.close(fo)
 
 	if !InputDict["Istmpfilepreserved"]
-		rm(InputDict["tmpdir"], recursive=true)
+		rm("./seisdownload_tmp", recursive=true)
 	end
 
 	return t_write
@@ -156,7 +154,7 @@ III. Potential issue
 	some discontinuous result before and after switch of channel.
 
 """
-function isolate_components(paths_all::AbstractArray, InputDict::OrderedDict)
+function isolate_components(paths_all::AbstractArray, InputDict::Dict)
 
 	iso_list = []
 

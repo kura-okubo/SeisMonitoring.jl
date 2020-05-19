@@ -78,7 +78,7 @@ function map_removeEQ(station::String, InputDict::OrderedDict)
             delete!(S1.misc, "noisesignal")
         end
 
-        temppath = joinpath(InputDict["tmpdir_rem"], fikey * ".jld2")
+        temppath = joinpath(InputDict["tmpdir"], fikey * ".jld2")
 
         jldopen(temppath, "w") do fo
             fo["S"] = S1
@@ -86,6 +86,6 @@ function map_removeEQ(station::String, InputDict::OrderedDict)
     end
 
     JLD2.close(fi)
-    
+
     return (bt_kurtosis, bt_stalta)
 end

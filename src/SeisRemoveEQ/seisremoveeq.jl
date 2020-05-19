@@ -43,7 +43,7 @@ function seisremoveeq(InputDict_origin::OrderedDict)
     println("-------START Converting--------")
 
 	# t_convert = @elapsed convert_tmpfile_seisremoveeq(InputDict)
-	t_convert = @elapsed convert_tmpfile(InputDict, "seisremoveeq")
+	t_convert = @elapsed SeisMonitoring.convert_tmpfile(InputDict, "seisremoveeq")
 
     mean_kurtosis_cputime = mean((x->x[1]).(bt_time))
     mean_stalta_cputime   = mean((x->x[2]).(bt_time))

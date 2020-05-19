@@ -14,7 +14,6 @@ function map_seisdownload_NOISE(startid, InputDict::OrderedDict; testdownload::B
     download_time_unit = InputDict["download_time_unit"]
 
 	fodir 				 = InputDict["fodir"]
-	tmpdir 				 = InputDict["tmpdir_dl"]
 	stationxml_dir		 = InputDict["stationxml_dir"]
 	requeststation_file	 = 	InputDict["requeststation_file"]
 
@@ -113,7 +112,7 @@ function map_seisdownload_NOISE(startid, InputDict::OrderedDict; testdownload::B
 			# 			src,"dat"],
 			# 			'.')
 			# save as intermediate binary file
-			t_write = @elapsed wseis(joinpath(InputDict["tmpdir_dl"], fname_out), Stemp)
+			t_write = @elapsed wseis(joinpath(InputDict["tmpdir"], fname_out), Stemp)
 
 			if !InputDict["IsXMLfilepreserved"] && ispath(stationxml_path)
 				rm(stationxml_path)

@@ -75,6 +75,9 @@ function run_job(inputfile::String="";
     if nprocs()-1 >= 1; println("Number of workers: $(nprocs()-1)\n") end
     eval(macroexpand(SeisMonitoring, quote @everywhere using SeisMonitoring end))
 
+    #NOTE: Since using Channel and async during convert_tmpfile, include the function here with everywhere.
+    @everywhere include(joinpath(dirname(pathof(SeisMonitoring)), "Utils/convert_tmpfile.jl")) #SeisDownload, SeisRemoveEQ
+
     stall = time()
 
     if run_seisdownload
