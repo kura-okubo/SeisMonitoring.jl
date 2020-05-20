@@ -102,16 +102,19 @@ function map_seisdownload_NOISE(startid, InputDict::OrderedDict; testdownload::B
 			end
 
 			#===append data contents fraction===#
+			#DEBUG: to avoid too much memory allocation, save each seischannel into seisio file
+
 			for j = 1:Stemp.n
 				if Stemp.misc[j]["dlerror"] == 0 && !isempty(Stemp[j].t)
 					Stemp[j].misc["data_fraction"] = get_noisedatafraction(Stemp[j].x, zerosignal_minpts=100, eps_α=1e-6)
+					fname_out = join([Stemp[j].id, string(stsync), string(etsync), src], "__")*".dat"
+					wseis(joinpath(InputDict["tmpdir"], fname_out), Stemp[j])
 				end
 			end
 
-
 			# Save temp file
-			requeststr_all = join(requeststr, "--")
-			fname_out = join([requeststr_all, string(stsync), string(etsync), src], "__")*".dat"
+			# requeststr_all = join(requeststr, "--")
+			# fname_out = join([requeststr_all, string(stsync), string(etsync), src], "__")*".dat"
 			# fname_out = join([String(y),
 			# 			string(j),
 			# 			replace(split(starttimelist[startid], 'T')[2], ':' => '.'),
@@ -120,7 +123,7 @@ function map_seisdownload_NOISE(startid, InputDict::OrderedDict; testdownload::B
 			# 			src,"dat"],
 			# 			'.')
 			# save as intermediate binary file
-			t_write = @elapsed wseis(joinpath(InputDict["tmpdir"], fname_out), Stemp)
+			# t_write = @elapsed wseis(joinpath(InputDict["tmpdir"], fname_out), Stemp)
 
 			if !InputDict["IsXMLfilepreserved"] && ispath(stationxml_path)
 				rm(stationxml_path)
