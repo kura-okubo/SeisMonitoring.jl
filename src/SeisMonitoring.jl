@@ -17,7 +17,8 @@ export
     # plot command
     smplot_rawdata,
     smplot_corrdata,
-    smplot_stackcc
+    smplot_stackcc,
+    smplot_noiseavailability
 
 
 # NOTE: Do not change the order of include.
@@ -46,5 +47,6 @@ include("Defaultproject/set_default_inputdict.jl") # set global default InputDic
 include("SMPlot/smplot_rawdata.jl")
 include("SMPlot/smplot_corrdata.jl")
 include("SMPlot/smplot_stackcc.jl")
+include("SMPlot/smplot_noiseavailability.jl")
 
 end # module
