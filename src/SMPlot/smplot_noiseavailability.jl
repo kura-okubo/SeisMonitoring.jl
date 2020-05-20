@@ -213,7 +213,7 @@ function sm_vegalite_lasagnaplot(
                         labelFontSize=16}
             },
 
-            config = {axis = {grid = true}},
+            config = {axis = {grid = false}},
         ))
 
 
@@ -275,7 +275,7 @@ function sm_vegalite_lasagnaplot(
                         labelFontSize=16}
             },
 
-            config = {axis = {grid = true}},
+            config = {axis = {grid = false}},
         ))
 
     else
@@ -310,7 +310,7 @@ function sm_vegalite_lasagnaplot(
                         labelFontSize=16}
             },
 
-            config = {axis = {grid = true}},
+            config = {axis = {grid = false}},
         ))
     end
 
