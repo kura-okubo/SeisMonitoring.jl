@@ -333,11 +333,30 @@ function sm_vegalite_availhistgram(
     figsize::Tuple = (800, 600)
 )
 
-    p = (df_all |> @vlplot(:bar,
-    width = figsize[1],
-    height = figsize[2],
-    x={"data_fraction:q", bin=true},
-    y="count()"))
+    # p = (df_all |> @vlplot(:bar,
+    # width = figsize[1],
+    # height = figsize[2],
+    # x={"data_fraction:q", bin=true},
+    # y="count()"))
+
+    p = (df_all |> @vlplot(:line,
+       width = figsize[1],
+       height = figsize[2],
+       transform=[{
+           sort=[{field=:data_fraction}],
+           window=[{field=:count,op="count",as="cumulative_count"}],
+           frame=[nothing,0]
+       },
+        ],
+
+       x={"data_fraction:q",
+          scale = {domain= {unionWith = [0.0, 1.0]},
+                }
+        },
+
+       y={"cumulative_count:q",
+          }))
+
 
     return p
 
