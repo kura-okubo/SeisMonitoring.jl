@@ -96,6 +96,10 @@ function smplot_noiseavailability(filename::String,fodir::String,
 
     p |> FileIO.save(joinpath(fodir, figname*".$(fmt)"))
 
+    # plot histoglam
+    p = sm_vegalite_availhistgram(df_all, figsize=figsize)
+    p |> FileIO.save(joinpath(fodir, figname*"_histogram.$(fmt)"))
+
     println("smplot_noiseavailability is successfully done.")
 
     return nothing
@@ -309,6 +313,31 @@ function sm_vegalite_lasagnaplot(
             config = {axis = {grid = true}},
         ))
     end
+
+    return p
+
+end
+
+
+"""
+sm_vegalite_availhistgram(df_all::DataFrame)
+
+Plot histogram of fraction using Vegalite.jl.
+Documentation can be found at:
+
+- Vegalite.jl website (https://www.queryverse.org/VegaLite.jl/stable/)
+- Offitial Vegalite webpage (https://vega.github.io/vega-lite/)
+"""
+function sm_vegalite_availhistgram(
+    df_all::DataFrame;
+    figsize::Tuple = (800, 600)
+)
+
+    p = (df_all |> @vlplot(:bar,
+    width = figsize[1],
+    height = figsize[2],
+    x={"data_fraction:q", bin=true},
+    y="count()"))
 
     return p
 
