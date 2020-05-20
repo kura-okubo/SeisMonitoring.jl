@@ -14,9 +14,9 @@ function do_work(ch_paths, ch_seisdata) # define work function everywhere
 
 	   if fileextension=="dat"
 		   # SeisIO binary file
-		   S = rseis(path)[1]
+		   SC = rseis(path)[1]
 	   elseif fileextension=="jld2"
-	   	   S = jldopen(path, "r") do fi
+	   	   SC = jldopen(path, "r") do fi
            			fi["S"]
        	   end
 	   else
@@ -25,21 +25,36 @@ function do_work(ch_paths, ch_seisdata) # define work function everywhere
 
 	   SC_all = [] # will contain all seischannels to be saved.
 
-	   for ii = 1:S.n #loop at each seis channel
-		   # make station list
-		   staid = S[ii].id
-		   # skip if S.t is empty
-		   (isempty(S[ii]) || isempty(S[ii].t)) && continue;
-		   s_str = string(u2d(S[ii].t[1,2]*1e-6))[1:19]
-		   # compute end time:
-		   et = S[ii].t[1,2]*1e-6 + (S[ii].t[end,1]-1)/S[ii].fs
-		   e_str=string(u2d(et))[1:19]
-		   # split network, station, location and channel
-		   net, sta, loc, cha = split(S[ii].id, ".")
-		   groupname = joinpath("Waveforms", join([net, sta], "."))
-		   varname	  = join([net, sta, loc, cha], ".")*"__"*s_str*"__"*e_str*"__"*lowercase(cha)
-		   push!(SC_all, (S[ii], groupname, varname))
-	   end
+	   # make station list
+	   staid = SC.id
+	   # skip if S.t is empty
+	   (isempty(SC) || isempty(SC.t)) && continue;
+	   s_str = string(u2d(SC.t[1,2]*1e-6))[1:19]
+	   # compute end time:
+	   et = SC.t[1,2]*1e-6 + (SC.t[end,1]-1)/SC.fs
+	   e_str=string(u2d(et))[1:19]
+	   # split network, station, location and channel
+	   net, sta, loc, cha = split(SC.id, ".")
+	   groupname = joinpath("Waveforms", join([net, sta], "."))
+	   varname	  = join([net, sta, loc, cha], ".")*"__"*s_str*"__"*e_str*"__"*lowercase(cha)
+	   push!(SC_all, (SC, groupname, varname))
+
+	   # archive: used SeisData S
+	   # for ii = 1:S.n #loop at each seis channel
+		   # # make station list
+		   # staid = S[ii].id
+		   # # skip if S.t is empty
+		   # (isempty(S[ii]) || isempty(S[ii].t)) && continue;
+		   # s_str = string(u2d(S[ii].t[1,2]*1e-6))[1:19]
+		   # # compute end time:
+		   # et = S[ii].t[1,2]*1e-6 + (S[ii].t[end,1]-1)/S[ii].fs
+		   # e_str=string(u2d(et))[1:19]
+		   # # split network, station, location and channel
+		   # net, sta, loc, cha = split(S[ii].id, ".")
+		   # groupname = joinpath("Waveforms", join([net, sta], "."))
+		   # varname	  = join([net, sta, loc, cha], ".")*"__"*s_str*"__"*e_str*"__"*lowercase(cha)
+		   # push!(SC_all, (S[ii], groupname, varname))
+	   # end
 
 	   put!(ch_seisdata, tuple(SC_all, myid()))
 	end
