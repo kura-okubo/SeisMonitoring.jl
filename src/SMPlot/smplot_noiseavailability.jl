@@ -1,4 +1,4 @@
-using VegaLite, CSV
+using VegaLite, FileIO, CSV
 """
     smplot_noiseavailability(filename::String,fodir::String,
                             starttime::DateTime,
