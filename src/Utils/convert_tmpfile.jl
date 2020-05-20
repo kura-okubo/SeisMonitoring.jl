@@ -112,7 +112,7 @@ function convert_tmpfile(InputDict::OrderedDict, mode::String)
 			end
 			push!(SCids, SC.id)
 		end
-		println("$(join(SCids[1:5], ":")) ... are processed on worker $where")
+		println("$(SCids[1]) ... are processed on worker $where")
 		#======================================================================#
 
 		n = n - 1
