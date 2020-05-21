@@ -148,6 +148,35 @@ function get_stationchanname(StationPairList::Array{String,1})
     return all_stationchan
 end
 
+#+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++#
+"""
+    cc_medianmute(C::CorrData, cc_medianmute_α::Float64 = 10.0)
+
+Mute cross-correlation function whose maximum amplitude is more than
+`cc_medianmute_α*median(cross-correlation functions)`
+"""
+function cc_medianmute!(C::CorrData, cc_medianmute_α::Float64 = 10.0)
+	C.corr, inds = cc_medianmute(C.corr, cc_medianmute_α)
+	C.t = remove_medianmute(C, inds)
+	return nothing
+end
+
+
+function cc_medianmute(A::AbstractArray, cc_medianmute_α::Float64 = 10.0)
+
+    #1. compute median of maximum amplitude of all corrs
+    T, N = size(A)
+
+    cc_maxamp = vec(maximum(abs.(A), dims=1))
+    cc_medianmax = median(cc_maxamp)
+    inds = findall(x-> x <= cc_medianmute_α*cc_medianmax,cc_maxamp)
+
+    #NOTE: you cannot unbind entire array, so remove_nanandzerocol! is not used here.
+    return A[:, inds], inds
+end
+
+remove_medianmute(C::CorrData, inds) = (return C.t[inds])
+
 
 # key = "BP.CCRB-BP.EADB"
 # all_stationchannels = get_stationchanname(StationPairDict[key])

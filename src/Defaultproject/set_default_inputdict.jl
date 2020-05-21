@@ -63,6 +63,7 @@ InputDict=OrderedDict(
         "cc_bpfilt_method"      => ("ButterWorth", String, "Frequency decomposition method. \"Butterworth\" or \"Wavelet\"."),
         "cc_taper_α0"           => ("0.1", Float64, "Advanced: Lowest tapering fraction for frequency adaptive tapering."),
         "cc_taper_αmax"         => ("0.25", Float64, "Advanced: Highest tapering fraction for frequency adaptive tapering."),
+        "cc_medianmute_α"       => ("10.0", Float64, "Advanced: Threshold factor of median mute within cc_time_unit. NCF is removed if maximum(abs.(corr[:,i])) > cc_medianmute_α * median(maximum(abs.(corr)), dims=1)")
 
         #===SeisStack===#
         "stack_RawData_dir"     => ("default", String, "\"default\" or absolute/relative path to cc directory. \"default\" links to project OUTPUT/cc."),

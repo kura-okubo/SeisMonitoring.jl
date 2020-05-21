@@ -1,4 +1,4 @@
-
+include("spectrumnormalization.jl")
 """
 map_seisxcorrelation(station_pair::String, InputDict::OrderedDict)
 
@@ -47,11 +47,11 @@ function map_seisxcorrelation(key_station_pair::String, StationPairDict::Ordered
         for stationchannel in all_stationchannels
             #1. assemble seisdata
             # NOTE: to avoid biased cc normalization, error if datafraction is too small (<0.95)
-            if (lowercase(InputDict["cc_normalization"]) == "coherence" ||
-                 lowercase(InputDict["cc_normalization"]) == "deconvolution") &&
-                 InputDict["data_contents_fraction"] < 0.8
-                 @warn("data_contents_fraction is better more than 0.8 with $(InputDict["cc_normalization"]) to avoid bias during spectral normalization. Please check the inputfile.")
-             end
+            # if (lowercase(InputDict["cc_normalization"]) == "coherence" ||
+            #      lowercase(InputDict["cc_normalization"]) == "deconvolution") &&
+            #      InputDict["data_contents_fraction"] < 0.8
+            #      @warn("data_contents_fraction is better more than 0.8 with $(InputDict["cc_normalization"]) to avoid bias during spectral normalization. Please check the inputfile.")
+            #  end
 
             t_assemble += @elapsed S1 = assemble_seisdata(stationchannel, fi, starttime, endtime,
                                         data_contents_fraction=InputDict["data_contents_fraction"])
@@ -114,6 +114,9 @@ function map_seisxcorrelation(key_station_pair::String, StationPairDict::Ordered
 
             # continue if xcorr is empty
             isempty(C.corr) && continue
+
+            # mute ccs outlier using median of maximum amplitude
+            cc_medianmute!(C, InputDict["cc_medianmute_α"])
 
             #9. Apply frequency decomposion of cross-correlation function
             C_all, freqband = compute_frequency_decomposition(C, InputDict["freqency_band"],
