@@ -136,7 +136,7 @@ function convert_tmpfile(InputDict::OrderedDict, mode::String)
 	uppercase(fmt) == "JLD2" && JLD2.close(fo)
 
 	if !InputDict["Istmpfilepreserved"]
-		rm("./seisdownload_tmp", recursive=true)
+		rm(InputDict["tmpdir"], recursive=true)
 	end
 
 	return t_write
