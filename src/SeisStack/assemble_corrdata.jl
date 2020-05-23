@@ -49,11 +49,11 @@ function assemble_corrdata(
         for file in files_target # e.g. 2004-04-01T00:00:00--2004-04-02T00:00:00
             abskey = joinpath(stachanpair, file, keyfreq)
             if haskey(CorrData_Buffer, abskey)
-                println("debug: use buffer")
+                # println("debug: use buffer")
                 Ctemp = CorrData_Buffer[abskey]
             else
                 # read data from file
-                println("debug: read data")
+                # println("debug: read data")
                 Ctemp = fileio[joinpath(abskey)]
                 # add to CorrData_Buffer
                 CorrData_Buffer[abskey] = Ctemp
@@ -64,7 +64,7 @@ function assemble_corrdata(
         # if C is nothing or empty, return empty CorrData
         (isnothing(C1) || isempty(C1)) && (C1 = CorrData())
 
-        @show ccfrac = get_cc_contents_fraction(C1,starttime,endtime)
+        ccfrac = get_cc_contents_fraction(C1,starttime,endtime)
 
         if  ccfrac < min_cc_datafraction
             println("debug: data containts $(ccfrac) is less than cc_contents_fraction.")
@@ -121,7 +121,7 @@ function update_CorrData_Buffer!(CorrData_Buffer::Dict, current_abskey_list::Arr
     for symdiff_abskey in symdiff_abskeys
         if symdiff_abskey ∉ current_abskey_list
             delete!(CorrData_Buffer, symdiff_abskey)
-            println("debug: $(symdiff_abskey) is removed from buffer.")
+            # println("debug: $(symdiff_abskey) is removed from buffer.")
         end
     end
     return nothing

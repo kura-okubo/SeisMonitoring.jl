@@ -63,7 +63,7 @@ InputDict=OrderedDict(
         "cc_bpfilt_method"      => ("ButterWorth", String, "Frequency decomposition method. \"Butterworth\" or \"Wavelet\"."),
         "cc_taper_α0"           => ("0.1", Float64, "Advanced: Lowest tapering fraction for frequency adaptive tapering."),
         "cc_taper_αmax"         => ("0.25", Float64, "Advanced: Highest tapering fraction for frequency adaptive tapering."),
-        "cc_medianmute_α"       => ("10.0", Float64, "Advanced: Threshold factor of median mute within cc_time_unit. NCF is removed if maximum(abs.(corr[:,i])) > cc_medianmute_α * median(maximum(abs.(corr)), dims=1)")
+        "cc_medianmute_α"       => ("5.0", Float64, "Advanced: Threshold factor of median mute within cc_time_unit. NCF is removed if maximum(abs.(corr[:,i])) > cc_medianmute_α * median(maximum(abs.(corr)), dims=1)"),
 
         #===SeisStack===#
         "stack_RawData_dir"     => ("default", String, "\"default\" or absolute/relative path to cc directory. \"default\" links to project OUTPUT/cc."),
@@ -76,7 +76,7 @@ InputDict=OrderedDict(
         "min_cc_datafraction"   => ("0.5", Float64, "Advanced: discard cross-correlation if data fraction within stacking period is less that this value."),
         "reference_starttime"   => ("2004-04-01T00:00:00", DateTime, "reference start time"),
         "reference_endtime"     => ("2004-04-02T00:00:00", DateTime, "reference end time"),
-        "dist_threshold"        => ("0.0", Float64, "Threshold of distance used for selective stacking."),
+        "dist_threshold"        => ("1.0", Float64, "Threshold of distance used for selective stacking."),
         "distance_type"         => ("CorrDist", String, "Advanced: Distance type used in selective stacking. See https://github.com/JuliaStats/Distances.jl for available types."),
         "IsZeropadBeforeStack"  => ("false", Bool, "Zero padding outside of coda window using tukey window before stacking."),
         "background_vel"        => ("2000.0", Float64, "[m/s] Approximation of background wave velocity, just used for coda slicing."),
@@ -84,6 +84,7 @@ InputDict=OrderedDict(
         "min_ballistic_twin"    => ("5.0", Float64, "[s] Explicit ballistic time window to remove coherence around zero timelag. This is aimed to remove it mainly for auto-correlation."),
         "max_coda_length"       => ("60.0", Float64, "[s] Maximum coda window length."),
         "slice_minthreshold"    => ("0.1", Float64, "Advanced: Threshold for attenuation decay."),
+        "IsAlternateRefChannel" => ("true", Bool, "Advanced: Allow for using alternative station channel for reference. (e.g. BP.LCCB..BP1-BP.MMNB..BP1 is used as reference for BP.LCCB..SP1-BP.MMNB..SP1)"),
 
         #SeisMeasurement
         "measurement_method"    => ("dualstretching", String, "Stretching method for measuring dv/v and dQ^{-1}. \"stretching\",\"mwcs\",\"wcc\",\"dtw\",\"dualstretching\" "),

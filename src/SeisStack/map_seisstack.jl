@@ -23,12 +23,12 @@ function map_seisstack(fipath, stackmode::String, InputDict::OrderedDict)
         foname = "reference_"*splitdir(fipath)[2]
         fopath = joinpath(InputDict["fodir"], "reference", foname)
         # single start-end time for reference
-        @show starts, ends = [[InputDict["reference_starttime"]], [InputDict["reference_endtime"]]]
+        starts, ends = [[InputDict["reference_starttime"]], [InputDict["reference_endtime"]]]
     elseif stackmode=="shorttime"
         foname = "shorttime_"*splitdir(fipath)[2]
         fopath = joinpath(InputDict["fodir"], "shorttime", foname)
         # multiple shorttime stacking windows
-        @show starts, ends = get_shorttime_window(InputDict["starttime"],InputDict["endtime"], InputDict["cc_time_unit"],
+        starts, ends = get_shorttime_window(InputDict["starttime"],InputDict["endtime"], InputDict["cc_time_unit"],
                                                     InputDict["averagestack_factor"], InputDict["averagestack_step"])
     end
 
@@ -58,6 +58,7 @@ function map_seisstack(fipath, stackmode::String, InputDict::OrderedDict)
     t_assemblecc = 0; t_stack = 0; t_seismeasurement = 0;
 
     for stachanpair = collect(keys(fi))
+
         # stachanpair: BP.CCRB..BP1-BP.EADB..BP1
         sta1, sta2 = split(stachanpair, "-")
         comp = sta1[end]*sta2[end]
@@ -71,6 +72,8 @@ function map_seisstack(fipath, stackmode::String, InputDict::OrderedDict)
             starttime, endtime = [starts[tid], ends[tid]]
             centraltime = u2d((d2u(starttime) + d2u(endtime)) /2) #central time between starttime and endtime
 
+            println("start processing $(stachanpair) at $(string(starttime))-$(string(endtime))")
+
             # assemble corrdata
             t_assemblecc += @elapsed C_all, CorrData_Buffer = assemble_corrdata(fi,stachanpair,starttime,endtime,InputDict["freqency_band"],
                                     CorrData_Buffer=CorrData_Buffer,
@@ -81,8 +84,9 @@ function map_seisstack(fipath, stackmode::String, InputDict::OrderedDict)
             for freqkey in collect(keys(C_all))
                 C = C_all[freqkey]
 
+                (isempty(C.corr) || isempty(C.t)) && continue  # this does not have cc trace within the time window.
                 remove_nanandzerocol!(C)  # remove column which has NaN or all zero
-                isempty(C.corr) && continue  # this does not have cc trace within the time window.
+                (isempty(C.corr) || isempty(C.t)) && continue  # this does not have cc trace within the time window.
 
                 # slice coda window and zero padding before stack if true
                 coda_window, timelag, fillbox = slice_codawindow!(C,
@@ -102,8 +106,9 @@ function map_seisstack(fipath, stackmode::String, InputDict::OrderedDict)
 
                 t_stack += @elapsed sm_stack!(C, stackmode, InputDict) # stack with predefined stack method
 
+                (isempty(C.corr) || isempty(C.t)) && continue  # this does not have cc trace within the time window.
                 remove_nanandzerocol!(C)  # remove column which has NaN or all zero
-                isempty(C.corr) && continue  # this does not have cc trace within the time window.
+                (isempty(C.corr) || isempty(C.t)) && continue  # this does not have cc trace within the time window.
 
                 # append metadata
                 C.misc["stack_starttime"] = starttime
@@ -123,6 +128,8 @@ function map_seisstack(fipath, stackmode::String, InputDict::OrderedDict)
                 !haskey(fo[stachanpair], g1) && JLD2.Group(fo[stachanpair], g1)
                 !haskey(fo, groupname) && (fo[groupname] = C)
             end
+
+            println("debug: current t_seismeasurement = $(t_seismeasurement)[s]")
         end
     end
 

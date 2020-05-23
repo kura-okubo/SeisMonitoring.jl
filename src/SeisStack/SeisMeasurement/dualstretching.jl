@@ -58,7 +58,7 @@ function dualstretching(ref::AbstractArray, cur::AbstractArray, t::AbstractArray
     MeasurementDict["ϵA"] = ϵA
     MeasurementDict["ϵdQ"] = ϵdQ
     MeasurementDict["alldist_dualstretch"] = alldist_dualstretch
-    MeasurementDict["s_alltrace"] = s_alltrace # please avoid to save 3D array for the moment if the potential issue occurs in cluster.
+    # MeasurementDict["s_alltrace"] = s_alltrace # please avoid to save 3D array for the moment if the potential issue occurs in cluster.
     return MeasurementDict
 end
 
@@ -127,16 +127,27 @@ function dualstretching_dQinv(dvv::Float64, Aref::AbstractArray, Acur::AbstractA
     s_alltrace = Array{Float64, 3}(undef, length(t), ntrial_A, ntrial_q)
     Q_traces = Array{Float64, 2}(undef, length(window), ntrial_A*ntrial_q)
 
+    itp = Interpolations.interpolate(Acur, BSpline(Cubic(Line(OnGrid()))))
+    etpf = Interpolations.extrapolate(itp, Flat())
+    tau_scale = range(tau[1], step=tau[2]-tau[1], length=length(t))
+    sitp = Interpolations.scale(etpf, tau_scale)
+
     icount = 1
-    for ii = 1:ntrial_A
+
+    t_trial = @elapsed for ii = 1:ntrial_A
         for jj = 1:ntrial_q
             # Note: stretching current envelope such that
             # γA0(αt, fc) = A1(t, fc)
             # then compute distance regime 1 -> regime 0
-            itp = Interpolations.interpolate(Acur, BSpline(Cubic(Line(OnGrid()))))
-            etpf = Interpolations.extrapolate(itp, Flat())
-            tau_scale = range(tau[1], step=tau[2]-tau[1], length=length(t))
-            sitp = Interpolations.scale(etpf, tau_scale)
+
+            #===NOTE: move the itp process outside of loop===#
+            #=== as coda Qc stretching changes only amplitude===#
+            # itp = Interpolations.interpolate(Acur, BSpline(Cubic(Line(OnGrid()))))
+            # etpf = Interpolations.extrapolate(itp, Flat())
+            # tau_scale = range(tau[1], step=tau[2]-tau[1], length=length(t))
+            # sitp = Interpolations.scale(etpf, tau_scale)
+            #================================================#
+
             s = zeros(length(t))
             for it = 1:length(t)
                 s[it] = (1/γ(β[ii], ϵdQ[jj], fc, α, t[it])) * sitp(t[it])
@@ -177,7 +188,7 @@ function dualstretching_dQinv(dvv::Float64, Aref::AbstractArray, Acur::AbstractA
     dQcinv = ϵdQ[argmin(alldist)[2]]
     dist_dualstretch = minimum(alldist)
 
-    if !isempty(figdir)
+    t_fig = @elapsed if !isempty(figdir)
         isempty(figname) || isempty(fillbox) && error("figname or fillbox is empty.")
         # plot stretching traces
         p_stretch = plot(bg=:white, dpi=100)
@@ -192,8 +203,9 @@ function dualstretching_dQinv(dvv::Float64, Aref::AbstractArray, Acur::AbstractA
             fillrange=[yshift_box.+yrange], fillalpha=0.1, c=:orange,
             label="", linealpha=0.0)
 
-        for ii = 1:size(s_alltrace, 2) # loop in dAA
-            for jj=1:size(s_alltrace, 3) # loop in dQinv
+        plotspan = max(ceil(Int, size(s_alltrace, 2)/10), ceil(Int, size(s_alltrace, 3)/10))
+        for ii = 1:plotspan:size(s_alltrace, 2) # loop in dAA
+            for jj=1:plotspan:size(s_alltrace, 3) # loop in dQinv
                 p_stretch = plot!(t, s_alltrace[:, ii, jj],
                 color = ColorSchemes.rainbow[ii/size(s_alltrace, 2)],
                 linealpha=jj/size(s_alltrace, 3), label="")
@@ -216,6 +228,9 @@ function dualstretching_dQinv(dvv::Float64, Aref::AbstractArray, Acur::AbstractA
         p_heat = Plots.title!("$(figname)")
         savefig(p_heat, joinpath(figdir, "heatmap_$(figname).png"))
     end
+
+
+    # println("debug: t_trial = $(t_trial)[s], t_fig = $(t_fig)[s]")
 
 
     return dAA, dQcinv, dist_dualstretch, ϵA, ϵdQ, alldist, s_alltrace

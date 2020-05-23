@@ -36,7 +36,9 @@ function selectivestack!(C::CorrData, stackmode::String; dist_threshold::Abstrac
 			refmatrix[:, i] = C.misc["reference"]
 		end
 		r = Distances.colwise(disttype(), C.corr, refmatrix)
-		inds = findall(x -> x > dist_threshold, r) # find all traces which are closer than dist_threshold
+		# inds = findall(x -> x > dist_threshold, r) # find all traces which are closer than dist_threshold
+		#NOTE: CorrDist is bounded from [0, 2] in Distances.jl
+		inds = findall(x -> x < dist_threshold, r)
 		C.misc["selectivestack_acceptratio"] = length(inds)/N
 		C.misc["distance_type"] = distance_type
 		C.corr = C.corr[:,inds]
