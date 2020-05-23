@@ -18,7 +18,12 @@ export
     smplot_rawdata,
     smplot_corrdata,
     smplot_stackcc,
-    smplot_noiseavailability
+    smplot_noiseavailability,
+    smplot_pdfpsd,
+    smplot_pdfdvv,
+
+    #stats command
+    smstats_read
 
 
 # NOTE: Do not change the order of include.
@@ -48,5 +53,8 @@ include("SMPlot/smplot_rawdata.jl")
 include("SMPlot/smplot_corrdata.jl")
 include("SMPlot/smplot_stackcc.jl")
 include("SMPlot/smplot_noiseavailability.jl")
+include("SMPlot/smplot_ppsd.jl")
+include("SMPlot/smplot_pdfdvv.jl")
+include("SMStats/smstats_read.jl")
 
 end # module

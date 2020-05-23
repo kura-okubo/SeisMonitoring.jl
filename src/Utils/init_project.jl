@@ -111,6 +111,8 @@ function init_project(
     mkdir(proj_output_abspath*"/plots/seismicdata")
     mkdir(proj_output_abspath*"/plots/cc")
     mkdir(proj_output_abspath*"/plots/stack")
+    mkdir(proj_output_abspath*"/plots/dvv")
+    mkdir(proj_output_abspath*"/plots/dQc")
 
     println("\nProject OUTPUT $proj_output_abspath contains:")
     for (root, dirs, files) in walkdir(proj_output_abspath)

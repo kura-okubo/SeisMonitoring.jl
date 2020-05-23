@@ -72,7 +72,7 @@ function compute_psdpdf(S::SeisChannel, figname::String, segments_length::Real;
     unique!(ixq)
 
     # load pqlx colormap
-    c_pqlx = jldopen("pqlx.jld2", "r") do fi; fi["pqlx.colors"]; end
+    c_pqlx = jldopen(joinpath(pathof(SeisMonitoring), "../src/SMPlot/smplot_pqlx.jld2"), "r") do fi; fi["pqlx.colors"]; end
     loadcolorscheme(:pqlx, c_pqlx, "pqlx color", "for pdfpsd plot")
     #===#
 
@@ -122,34 +122,6 @@ function smplot_pdfpsd(filename::String, figname::String, channel::String, start
 
     compute_psdpdf(S1, figname, segments_length, figsize=figsize, fmt=fmt, xlims=xlims, ylims=ylims, clims=clims)
 end
-
-# # S = rseis("psdtest.seisio")[1]
-# filename = "/Volumes/Kurama_20190821/kurama/research/SeisMonitoring_dev/testproject_2_OUTPUT/seismicdata/EQRemovedData.jld2"
-# # channel = "BP.EADB..BP1"
-# fi = jldopen(filename, "r");
-# starttime = DateTime("2004-04-01")
-# endtime = DateTime("2004-04-07")
-# segments_length = 3600 #time series length (e.g. 1 hour for McNamara and Buland, 2004)
-#
-# # figname = channel
-# fmt = "png"
-#
-# figsize=(800, 600)
-# xlims = (0.01, 5.0)
-# ylims = (-200, -80)
-# clims = (0.0, 0.3)
-#
-# smplot_pdfpsd(filename, "BP.CCRB..BP1", "BP.CCRB..BP1", starttime, endtime, segments_length,
-#             figsize=figsize, xlims=xlims,ylims=ylims,clims=clims,fmt=fmt)
-#
-# smplot_pdfpsd(filename, "BP.EADB..BP1", "BP.EADB..BP1", starttime, endtime, segments_length,
-#             figsize=figsize, xlims=xlims,ylims=ylims,clims=clims,fmt=fmt)
-#
-# smplot_pdfpsd(filename, "BP.FROB..BP1", "BP.FROB..BP1", starttime, endtime, segments_length,
-#             figsize=figsize, xlims=xlims,ylims=ylims,clims=clims,fmt=fmt)
-#
-
-
 
 #===NOTE: if the pdlx.jld2 is missing, run the script below to make colorschemes from (r,g,b) text file===#
 # lines = readlines("pqlx.txt", keep=true)

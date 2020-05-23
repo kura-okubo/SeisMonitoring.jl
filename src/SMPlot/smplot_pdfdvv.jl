@@ -125,7 +125,7 @@ function smplot_pdfdvv(statsfile::String, fodir::String, starttime::DateTime, en
 
         xformatter=x->Dates.format.(Dates.unix2datetime.(x), xaxisformat)
 
-        isempty(xlims) &&  xlims = (d2u(starttime), d2u(endtime))
+        isempty(xlims) &&  (xlims = (d2u(starttime), d2u(endtime)))
 
         # load colormap
         smplot = jldopen(joinpath(pathof(SeisMonitoring), "../src/SMPlot/smplot_pararainbow.jld2"), "r") do fi; fi["smplot.colors"]; end
