@@ -141,7 +141,7 @@ function map_seisxcorrelation(key_station_pair::String, StationPairDict::Ordered
     end
     JLD2.close(fi)
     JLD2.close(fo)
-    # return (t_assemble, t_fft, t_xcorr)
+    return (t_assemble, t_fft, t_xcorr)
     #DEBUG: when returning tuple on cluster, it could cause an error ProcessExitedException(57)
      #    Stacktrace:
      # [1] (::Base.var"#726#728")(::Task) at ./asyncmap.jl:178
@@ -159,5 +159,5 @@ function map_seisxcorrelation(key_station_pair::String, StationPairDict::Ordered
      # [13] run_job(::String; run_seisdownload::Bool, run_seisremoveeq::Bool, run_seisxcorrelation::Bool, run_seisstack::Bool) at /home1/07208/kokubo09/.julia/dev/SeisMonitoring/src/Utils/run_job.jl:119
      # [14] top-level scope at none:2
      #
-    return nothing
+    # return nothing
 end
