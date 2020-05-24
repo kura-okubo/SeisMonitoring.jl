@@ -26,7 +26,9 @@ function map_seisxcorrelation(key_station_pair::String, StationPairDict::Ordered
     fopath = joinpath(InputDict["fodir"], key_station_pair*".jld2")
     #remove existing cc file
     ispath(fopath) && rm(fopath)
-    fo = jldopen(fopath, "w")
+    # fo = jldopen(fopath, "w")
+    # DEBUG: random save error when file size is large
+    fo = jldopen(fopath, true, true, true, IOStream)
 
     starts  = InputDict["starts"]
     ends    = InputDict["ends"]
@@ -137,8 +139,8 @@ function map_seisxcorrelation(key_station_pair::String, StationPairDict::Ordered
             end
         end
     end
-    close(fi)
-    close(fo)
+    JLD2.close(fi)
+    JLD2.close(fo)
     # return (t_assemble, t_fft, t_xcorr)
     #DEBUG: when returning tuple on cluster, it could cause an error ProcessExitedException(57)
      #    Stacktrace:
