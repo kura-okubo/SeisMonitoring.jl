@@ -49,8 +49,8 @@ function seisstack(InputDict_origin::OrderedDict)
         !ispath(joinpath(InputDict["fodir"], "reference")) && mkdir(joinpath(InputDict["fodir"], "reference"))
 
         t_reference = @elapsed bt_time_reference = pmap(x->map_seisstack(x, "reference", InputDict), cc_paths)
-        mean_assemble_cc_reference  = mean((x->x[1]).(bt_time_reference))
-        mean_stack_reference        = mean((x->x[2]).(bt_time_reference))
+        # mean_assemble_cc_reference  = mean((x->x[1]).(bt_time_reference))
+        # mean_stack_reference        = mean((x->x[2]).(bt_time_reference))
     end
     #2. compute shorttime stack
     if InputDict["compute_shorttimestack"]
@@ -59,8 +59,8 @@ function seisstack(InputDict_origin::OrderedDict)
 
         t_shorttime = @elapsed bt_time_shorttime = pmap(x->map_seisstack(x, "shorttime", InputDict), cc_paths)
 
-        mean_assemble_cc_shorttime  = mean((x->x[1]).(bt_time_shorttime))
-        mean_stack_shorttime        = mean((x->x[2]).(bt_time_shorttime))
+        # mean_assemble_cc_shorttime  = mean((x->x[1]).(bt_time_shorttime))
+        # mean_stack_shorttime        = mean((x->x[2]).(bt_time_shorttime))
     end
 
     println("seisstack has been successfully done.")
@@ -68,9 +68,9 @@ function seisstack(InputDict_origin::OrderedDict)
     printstyled("---Summary---\n"; color = :cyan, bold = true)
     println("Total time for reference stack = $(t_reference)[s]")
     println("Total time for shorttime stack = $(t_shorttime)[s]")
-    println("mean time for reference corrdata assemble = $(mean_assemble_cc_reference)[s]")
-    println("mean time for shorttime corrdata assemble = $(mean_assemble_cc_shorttime)[s]")
-    println("mean time for reference stack  =$(mean_stack_reference)[s]")
-    println("mean time for shorttime stack  =$(mean_stack_shorttime)[s]")
+    # println("mean time for reference corrdata assemble = $(mean_assemble_cc_reference)[s]")
+    # println("mean time for shorttime corrdata assemble = $(mean_assemble_cc_shorttime)[s]")
+    # println("mean time for reference stack  =$(mean_stack_reference)[s]")
+    # println("mean time for shorttime stack  =$(mean_stack_shorttime)[s]")
 
 end

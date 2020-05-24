@@ -49,14 +49,15 @@ println("Cross-correlation starttime         = $(InputDict["starttime"])")
 
     println("seisxcorrelation has been successfully done.")
 
-    mean_assemble_cputime   = mean((x->x[1]).(bt_time))
-    mean_fft_cputime        = mean((x->x[2]).(bt_time))
-    mean_xcorr_cputime      = mean((x->x[3]).(bt_time))
+    # DEBUG: to avoid error in return in cluseter, comment out for the moment
+    # mean_assemble_cputime   = mean((x->x[1]).(bt_time))
+    # mean_fft_cputime        = mean((x->x[2]).(bt_time))
+    # mean_xcorr_cputime      = mean((x->x[3]).(bt_time))
 
     printstyled("---Summary---\n"; color = :cyan, bold = true)
     println("Total time for cross-correlation   =$(t_removeeq)[s]")
-    println("time for mean assemble cputime     =$(mean_assemble_cputime)[s]")
-    println("time for mean fft cputime          =$(mean_fft_cputime)[s]")
-    println("time for mean cross-correlation cputime = $(mean_xcorr_cputime)[s]")
+    # println("time for mean assemble cputime     =$(mean_assemble_cputime)[s]")
+    # println("time for mean fft cputime          =$(mean_fft_cputime)[s]")
+    # println("time for mean cross-correlation cputime = $(mean_xcorr_cputime)[s]")
 
 end

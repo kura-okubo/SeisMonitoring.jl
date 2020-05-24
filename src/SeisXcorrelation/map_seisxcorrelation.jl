@@ -139,5 +139,23 @@ function map_seisxcorrelation(key_station_pair::String, StationPairDict::Ordered
     end
     close(fi)
     close(fo)
-    return (t_assemble, t_fft, t_xcorr)
+    # return (t_assemble, t_fft, t_xcorr)
+    #DEBUG: when returning tuple on cluster, it could cause an error ProcessExitedException(57)
+     #    Stacktrace:
+     # [1] (::Base.var"#726#728")(::Task) at ./asyncmap.jl:178
+     # [2] foreach(::Base.var"#726#728", ::Array{Any,1}) at ./abstractarray.jl:1919
+     # [3] maptwice(::Function, ::Channel{Any}, ::Array{Any,1}, ::Array{String,1}) at ./asyncmap.jl:178
+     # [4] wrap_n_exec_twice(::Channel{Any}, ::Array{Any,1}, ::Distributed.var"#204#207"{WorkerPool}, ::Function, ::Array{String,1}) at ./asyncmap.jl:154
+     # [5] async_usemap(::Distributed.var"#188#190"{Distributed.var"#188#189#191"{WorkerPool,SeisMonitoring.var"#38#42"{OrderedCollections.OrderedDict{Any,Any},OrderedCollections.OrderedDict{String,Array{String,1}}}}}, ::Array{String,1}; ntasks::Function, batch_size::Nothing) at ./asyncmap.jl:103
+     # [6] #asyncmap#710 at ./asyncmap.jl:81 [inlined]
+     # [7] pmap(::Function, ::WorkerPool, ::Array{String,1}; distributed::Bool, batch_size::Int64, on_error::Nothing, retry_delays::Array{Any,1}, retry_check::Nothing) at /buildworker/worker/package_linux64/build/usr/share/julia/stdlib/v1.4/Distributed/src/pmap.jl:126
+     # [8] pmap(::Function, ::WorkerPool, ::Array{String,1}) at /buildworker/worker/package_linux64/build/usr/share/julia/stdlib/v1.4/Distributed/src/pmap.jl:101
+     # [9] pmap(::Function, ::Array{String,1}; kwargs::Base.Iterators.Pairs{Union{},Union{},Tuple{},NamedTuple{,Tuple{}}}) at /buildworker/worker/package_linux64/build/usr/share/julia/stdlib/v1.4/Distributed/src/pmap.jl:156
+     # [10] pmap at /buildworker/worker/package_linux64/build/usr/share/julia/stdlib/v1.4/Distributed/src/pmap.jl:156 [inlined]
+     # [11] macro expansion at ./util.jl:234 [inlined]
+     # [12] seisxcorrelation(::OrderedCollections.OrderedDict{String,Tuple{String,DataType,String}}) at /home1/07208/kokubo09/.julia/dev/SeisMonitoring/src/SeisXcorrelation/seisxcorrelation.jl:47
+     # [13] run_job(::String; run_seisdownload::Bool, run_seisremoveeq::Bool, run_seisxcorrelation::Bool, run_seisstack::Bool) at /home1/07208/kokubo09/.julia/dev/SeisMonitoring/src/Utils/run_job.jl:119
+     # [14] top-level scope at none:2
+     #
+    return nothing
 end
