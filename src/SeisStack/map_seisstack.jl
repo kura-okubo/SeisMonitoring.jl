@@ -39,18 +39,15 @@ function map_seisstack(fipath, stackmode::String, InputDict::OrderedDict)
     #==========================#
 
     # Reading reference traces if stack_method needs reference
-    if IsReadReference
+    refname = "reference_"*splitdir(fipath)[2] #reference_BP.CCRB-BP.EADB.jld2
+    fi_refpath =  joinpath(InputDict["fodir"], "reference", refname)
+    if IsReadReference && ispath(fi_refpath)
         # load reference
-        refname = "reference_"*splitdir(fipath)[2] #reference_BP.CCRB-BP.EADB.jld2
-        fi_refpath =  joinpath(InputDict["fodir"], "reference", refname)
-        if ispath(fi_refpath)
-            fi_ref = jldopen(fi_refpath, "r")
-            ReferenceDict = get_reference(fi_ref)
-            close(fi_ref)
-        else
-            # No reference found for this station pairs
-            ReferenceDict = Dict()
-        end
+        fi_ref = jldopen(fi_refpath, "r")
+        ReferenceDict = get_reference(fi_ref)
+        close(fi_ref)
+    else
+        ReferenceDict = Dict()
     end
 
     t_assemblecc = 0; t_stack = 0; t_seismeasurement = 0;
