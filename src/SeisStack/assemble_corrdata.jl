@@ -67,7 +67,7 @@ function assemble_corrdata(
 
             else
                 # read data from file; performing Prestack if true and add to CorrData_Buffer
-                println("debug: read data")
+                # println("debug: read data")
                 Ctemp = fileio[joinpath(abskey)]
                 (isnothing(Ctemp) || isempty(Ctemp)) && continue
                 # evaluate cc contents fraction
@@ -80,7 +80,7 @@ function assemble_corrdata(
                     IsReadReference && append_reference!(Ctemp, stachanpair, freqkey, ReferenceDict, InputDict)
                 # 2. perform smstack
                     sm_stack!(Ctemp, stackmode, InputDict) # stack with predefined stack method
-                    println(Ctemp)
+                    # println(Ctemp)
                 end
                 # add CorrData to CorrData_Buffer after stacking.
                 CorrData_Buffer[abskey] = Ctemp
@@ -102,7 +102,7 @@ function assemble_corrdata(
         # if C is nothing or empty, return empty CorrData
         (isnothing(C1) || isempty(C1)) && (C1 = CorrData())
 
-        println("debug: $(stachanpair) $(fb)Hz ccfrac = $(ccfracs)")
+        # println("debug: $(stachanpair) $(fb)Hz ccfrac = $(ccfracs)")
 
         if  mean(ccfracs) < min_cc_datafraction
             println("debug: data containts $(mean(ccfracs)) is less than cc_contents_fraction.")
