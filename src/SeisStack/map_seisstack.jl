@@ -137,8 +137,8 @@ function map_seisstack(fipath, stackmode::String, InputDict::OrderedDict)
     close(fo)
 
     # DEBUG: for large calculation, avoid return cputimes
-    # return (t_assemblecc, t_stack, t_seismeasurement)
-    return nothing
+    return (t_assemblecc, t_stack, t_seismeasurement)
+    # return nothing
 end
 
 function sm_stack!(C::CorrData, stackmode::String, InputDict::OrderedDict)
