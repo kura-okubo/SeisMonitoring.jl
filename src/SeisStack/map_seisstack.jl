@@ -64,7 +64,7 @@ function map_seisstack(fipath, stackmode::String, InputDict::OrderedDict)
         comp = sta1[end]*sta2[end]
 
         # skip if component pair is not in the list
-        (comp ∉ InputDict["stack_pairs_option"] && InputDict["stack_pairs_option"] != "all") && continue;
+        (comp ∉ InputDict["stack_pairs_option"] && "all" ∉ InputDict["stack_pairs_option"]) && continue;
 
         CorrData_Buffer = Dict()
 
