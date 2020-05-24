@@ -1,4 +1,5 @@
 include("map_seisstack.jl")
+include("sm_stack.jl") # used both map_seisstack and assemble_corrdata for prestacking
 include("seisstack_utils.jl")
 
 """

@@ -49,6 +49,8 @@ function append_reference!(C::CorrData, stachanpair::String, freqkey::String, Re
 	# println(keys(ReferenceDict))
 	# println("debug: refdictpath: $(refdictpath)")
 
+	haskey(C.misc, "reference") && return nothing #this C already has a reference.
+
     if haskey(ReferenceDict, refdictpath)
 		Ctemp = ReferenceDict[refdictpath]
 

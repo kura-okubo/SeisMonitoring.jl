@@ -1,7 +1,5 @@
 include("assemble_corrdata.jl")
 include("seismeasurement.jl")
-#including stacking method
-include("selectivestack.jl")
 
 """
     map_seisstack(fipath, stackmode::String, InputDict::OrderedDict)
@@ -47,7 +45,7 @@ function map_seisstack(fipath, stackmode::String, InputDict::OrderedDict)
         fi_refpath =  joinpath(InputDict["fodir"], "reference", refname)
         if ispath(fi_refpath)
             fi_ref = jldopen(fi_refpath, "r")
-            @show ReferenceDict = get_reference(fi_ref)
+            ReferenceDict = get_reference(fi_ref)
             close(fi_ref)
         else
             # No reference found for this station pairs
@@ -75,10 +73,18 @@ function map_seisstack(fipath, stackmode::String, InputDict::OrderedDict)
             println("start processing $(stachanpair) at $(string(starttime))-$(string(endtime))")
 
             # assemble corrdata
+            # t_assemblecc += @elapsed C_all, CorrData_Buffer = assemble_corrdata(fi,stachanpair,starttime,endtime,InputDict["freqency_band"],
+            #                         CorrData_Buffer=CorrData_Buffer,
+            #                         min_cc_datafraction = InputDict["min_cc_datafraction"],
+            #                         MAX_MEM_USE=InputDict["MAX_MEM_USE"])
             t_assemblecc += @elapsed C_all, CorrData_Buffer = assemble_corrdata(fi,stachanpair,starttime,endtime,InputDict["freqency_band"],
                                     CorrData_Buffer=CorrData_Buffer,
                                     min_cc_datafraction = InputDict["min_cc_datafraction"],
-                                    MAX_MEM_USE=InputDict["MAX_MEM_USE"])
+                                    MAX_MEM_USE=InputDict["MAX_MEM_USE"],
+                                    stackmode=stackmode, #used for prestacking.
+                                    IsReadReference=IsReadReference, #used for prestacking.
+                                    ReferenceDict=ReferenceDict; #used for prestacking.
+                                    InputDict=InputDict) #used for prestacking.
 
             # stack with respect to frequency band
             for freqkey in collect(keys(C_all))
@@ -139,31 +145,4 @@ function map_seisstack(fipath, stackmode::String, InputDict::OrderedDict)
     # DEBUG: for large calculation, avoid return cputimes
     return (t_assemblecc, t_stack, t_seismeasurement)
     # return nothing
-end
-
-function sm_stack!(C::CorrData, stackmode::String, InputDict::OrderedDict)
-
-    stack_method = InputDict["stack_method"]
-
-    if lowercase(stack_method) == "linear"
-        SeisNoise.stack!(C, allstack=true, stacktype=mean)
-
-    elseif lowercase(stack_method) == "selective"
-        selectivestack!(C, stackmode, dist_threshold=InputDict["dist_threshold"],
-                        distance_type=InputDict["distance_type"])
-
-    elseif lowercase(stack_method) == "robust"
-        SeisNoise.robuststack!(C)
-
-    elseif lowercase(stack_method) == "pws"
-        SeisNoise.pws!(C)
-
-    elseif lowercase(stack_method) == "robustpws"
-        SeisNoise.robustpws!(C)
-
-    else
-        error("stack_method: $(stack_method) is not available.")
-    end
-
-    C.misc["stack_method"] = stack_method
 end

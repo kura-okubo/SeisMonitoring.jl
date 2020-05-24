@@ -10,8 +10,11 @@ jld2 with SeisMonitoring.jl format.
 - `stationpair::String` : stationpair to be assembled
 - `starttime::DateTime` : starttime to be assembled
 - `endtime::DateTime`   : endtime to be assembled
-- `cc_data_contents_fraction::Float64=0.8` : if data exists more than data-contents-fraction within target window, return S.
+- `frequency_band::Array{Float64,1}` : Frequency band used to decompose frequency contents of cc.
+- `min_cc_datafraction::Float64` : minimum data fraction of cc within the request time.
 - `CorrData_Buffer::Dict` : Dictionary of CorrData to optimize File IO.
+- `MAX_MEM_USE::AbstractFloat=4.0` : Maximum memory use; throw warning if the memory use exceeds this number.
+- `IsPreStack::Bool=true` : To avoid too large memory allocation prestacking by time unit in cc jld2 file (=cc_time_unit)
 
 # Return
 - `C::CorrData`: CorrData which contains data from starttime to endtime
@@ -25,7 +28,13 @@ function assemble_corrdata(
     frequency_band::Array{Float64,1};
     min_cc_datafraction::Float64 = 0.5,
     CorrData_Buffer::Dict=Dict(),
-    MAX_MEM_USE::AbstractFloat=4.0 #[GB]
+    MAX_MEM_USE::AbstractFloat=4.0, #[GB]
+    #---parameters for prestacking---#
+    stackmode::String="reference", #used for prestacking.
+    IsReadReference::Bool=false, #used for prestacking.
+    ReferenceDict::Dict=(), #used for prestacking.
+    InputDict::OrderedDict=OrderedDict() #used for prestacking.
+    #--------------------------------#
 )
 
     Nfreqband = length(frequency_band) - 1
@@ -44,43 +53,65 @@ function assemble_corrdata(
     # 2. read and merge CorrData for all frequency band
     for fb in freqband
         freqmin, freqmax = fb
-        keyfreq = join([freqmin, freqmax], "-")
+        freqkey = join([freqmin, freqmax], "-")
         C1 = CorrData()
+        ccfracs = []
         for file in files_target # e.g. 2004-04-01T00:00:00--2004-04-02T00:00:00
-            abskey = joinpath(stachanpair, file, keyfreq)
+            abskey = joinpath(stachanpair, file, freqkey)
+
             if haskey(CorrData_Buffer, abskey)
+                # read CorrData Buffer; which is prestacked when IsPreStack==true
                 # println("debug: use buffer")
                 Ctemp = CorrData_Buffer[abskey]
+                ccfrac = Ctemp.misc["tmp_ccfrac_within_cc_time_unit"]
+
             else
-                # read data from file
-                # println("debug: read data")
+                # read data from file; performing Prestack if true and add to CorrData_Buffer
+                println("debug: read data")
                 Ctemp = fileio[joinpath(abskey)]
-                # add to CorrData_Buffer
+                (isnothing(Ctemp) || isempty(Ctemp)) && continue
+                # evaluate cc contents fraction
+                st, et = DateTime.(split(file, "--"))
+                ccfrac = get_cc_contents_fraction(Ctemp,st,et)
+                Ctemp.misc["tmp_ccfrac_within_cc_time_unit"] = ccfrac
+
+                if InputDict["IsPreStack"]
+                # 1. append reference to Ctemp if IsReadReference == true
+                    IsReadReference && append_reference!(Ctemp, stachanpair, freqkey, ReferenceDict, InputDict)
+                # 2. perform smstack
+                    sm_stack!(Ctemp, stackmode, InputDict) # stack with predefined stack method
+                    println(Ctemp)
+                end
+                # add CorrData to CorrData_Buffer after stacking.
                 CorrData_Buffer[abskey] = Ctemp
                 push!(current_abskey_list, abskey)
             end
+
+            push!(ccfracs, ccfrac)
+
             C1 += Ctemp
+
+            # check memory use
+            memuse = round(sizeof(C1.corr) * Nfreqband * 1e-9, digits=6) #[GB]
+            println("debug: size C1.corr=$(size(C1.corr,2)): $(memuse) GB")
+            if memuse > MAX_MEM_USE
+                @warn("Momory use will be $(memuse*Nfreqband) GB, which is more than MAX_MEM_USE=$(MAX_MEM_USE) GB.
+                       This may cause memory overflow in your environment. Please increase MAX_MEM_USE, or use IsPreStack=true.")
+            end
         end
         # if C is nothing or empty, return empty CorrData
         (isnothing(C1) || isempty(C1)) && (C1 = CorrData())
 
-        ccfrac = get_cc_contents_fraction(C1,starttime,endtime)
+        println("debug: $(stachanpair) $(fb)Hz ccfrac = $(ccfracs)")
 
-        if  ccfrac < min_cc_datafraction
-            println("debug: data containts $(ccfrac) is less than cc_contents_fraction.")
+        if  mean(ccfracs) < min_cc_datafraction
+            println("debug: data containts $(mean(ccfracs)) is less than cc_contents_fraction.")
             C1 = CorrData()
         end
 
-        C1.misc["cc_contents_frac"] = ccfrac
+        C1.misc["cc_contents_frac"] = mean(ccfracs)
 
-        # check memory use
-        memuse = round(sizeof(C1.corr) * Nfreqband * 1e-9, digits=2) #[GB]
-        if memuse > MAX_MEM_USE
-            @warn("Momory use will be $(memuse*Nfreqband) GB, which is more than MAX_MEM_USE=$(MAX_MEM_USE) GB.
-                   This may cause memory overflow in your environment.")
-        end
-
-        C_all[keyfreq] = C1
+        C_all[freqkey] = C1
     end
 
     # update CorrData_Buffer
