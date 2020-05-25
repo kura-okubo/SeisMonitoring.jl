@@ -118,9 +118,11 @@ function smplot_pdfpsd(filename::String, figname::String, channel::String, start
     endtime::DateTime, segments_length::Real=3600; figsize=(1200, 800), xlims = (0.01, 5.0),
     ylims = (-200, -80), clims = (0.0, 0.3), fmt = "png")
 
+    fi = jldopen(filename, "r")
     S1 = assemble_seisdata(channel, fi, starttime, endtime, data_contents_fraction=0.0)
 
     compute_psdpdf(S1, figname, segments_length, figsize=figsize, fmt=fmt, xlims=xlims, ylims=ylims, clims=clims)
+    close(fi)
 end
 
 #===NOTE: if the pdlx.jld2 is missing, run the script below to make colorschemes from (r,g,b) text file===#
