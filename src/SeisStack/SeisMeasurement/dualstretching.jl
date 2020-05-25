@@ -118,6 +118,7 @@ function dualstretching_dQinv(dvv::Float64, Aref::AbstractArray, Acur::AbstractA
             fillbox::AbstractArray=[])
 
     stretch_debugplot = !isempty(figdir)
+    ismahalanobis = (lowercase(dist_method) == "mahalanobis")
 
     ϵdQ = range(dQcinvmin, stop=dQcinvmax, length=ntrial_q)
     ϵA = range(dAAmin, stop=dAAmax, length=ntrial_A)
@@ -136,7 +137,7 @@ function dualstretching_dQinv(dvv::Float64, Aref::AbstractArray, Acur::AbstractA
         s_alltrace = Array{Float64, 3}(undef, 0, 0, 0)
     end
 
-    Q_traces = Array{Float64, 2}(undef, length(window), ntrial_A*ntrial_q)
+    ismahalanobis && (Q_traces = Array{Float64, 2}(undef, length(window), ntrial_A*ntrial_q))
 
     itp = Interpolations.interpolate(Acur, BSpline(Cubic(Line(OnGrid()))))
     etpf = Interpolations.extrapolate(itp, Flat())
@@ -170,7 +171,7 @@ function dualstretching_dQinv(dvv::Float64, Aref::AbstractArray, Acur::AbstractA
 
             if lowercase(dist_method) == "euclidean"
                 alldist[ii, jj] = Distances.euclidean(waveform_ref, waveform_cur)
-            elseif lowercase(dist_method) == "mahalanobis"
+            elseif ismahalanobis
                 Q_traces[:, icount] = waveform_cur
                 icount += 1
             else
@@ -179,7 +180,7 @@ function dualstretching_dQinv(dvv::Float64, Aref::AbstractArray, Acur::AbstractA
         end
     end
 
-    if lowercase(dist_method) == "mahalanobis"
+    if ismahalanobis
         #compute covariance matrix
         Q = StatsBase.cov(transpose(Q_traces))
         # println(size(Q))
