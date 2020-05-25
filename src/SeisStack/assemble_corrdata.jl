@@ -46,7 +46,7 @@ function assemble_corrdata(
 
     # find all path within target time window
     files_target = findall_target_cc(cc_unit_time_all, starttime, endtime)
-    isempty(files_target) && return nothing  # the fileio does not have any ccdata within starttime and endtime on the station
+    isempty(files_target) && return C_all, CorrData_Buffer  # the fileio does not have any ccdata within starttime and endtime on the station. return empty C_all.
 
     C_all = Dict{String, CorrData}()
     current_abskey_list = String[] # to be used to update CorrData_Buffer
@@ -93,7 +93,9 @@ function assemble_corrdata(
 
             # check memory use
             memuse = round(sizeof(C1.corr) * Nfreqband * 1e-9, digits=6) #[GB]
-            println("debug: size C1.corr=$(size(C1.corr,2)): $(memuse) GB")
+
+            # println("debug: size C1.corr=$(size(C1.corr,2)): $(memuse) GB")
+
             if memuse > MAX_MEM_USE
                 @warn("Momory use will be $(memuse*Nfreqband) GB, which is more than MAX_MEM_USE=$(MAX_MEM_USE) GB.
                        This may cause memory overflow in your environment. Please increase MAX_MEM_USE, or use IsPreStack=true.")
@@ -149,6 +151,7 @@ update CorrData_Buffer.
 """
 function update_CorrData_Buffer!(CorrData_Buffer::Dict, current_abskey_list::Array{String, 1})
     symdiff_abskeys = symdiff(collect(keys(CorrData_Buffer)), current_abskey_list)
+
     for symdiff_abskey in symdiff_abskeys
         if symdiff_abskey ∉ current_abskey_list
             delete!(CorrData_Buffer, symdiff_abskey)

@@ -83,6 +83,8 @@ function map_seisstack(fipath, stackmode::String, InputDict::OrderedDict)
                                     ReferenceDict=ReferenceDict; #used for prestacking.
                                     InputDict=InputDict) #used for prestacking.
 
+            isempty(C_all) && continue
+
             # stack with respect to frequency band
             for freqkey in collect(keys(C_all))
                 C = C_all[freqkey]
