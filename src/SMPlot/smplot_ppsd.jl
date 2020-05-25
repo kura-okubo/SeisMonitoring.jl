@@ -72,7 +72,7 @@ function compute_psdpdf(S::SeisChannel, figname::String, segments_length::Real;
     unique!(ixq)
 
     # load pqlx colormap
-    c_pqlx = jldopen(joinpath(pathof(SeisMonitoring), "../src/SMPlot/smplot_pqlx.jld2"), "r") do fi; fi["pqlx.colors"]; end
+    c_pqlx = jldopen(joinpath(splitdir(pathof(SeisMonitoring))[1], "SMPlot/smplot_pqlx.jld2"), "r") do fi; fi["pqlx.colors"]; end
     loadcolorscheme(:pqlx, c_pqlx, "pqlx color", "for pdfpsd plot")
     #===#
 
