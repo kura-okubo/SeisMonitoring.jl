@@ -24,6 +24,11 @@ function dualstretching(ref::AbstractArray, cur::AbstractArray, t::AbstractArray
     #3. compute dQinv and dss
     #------------------#
 
+    #==NOTE:===#
+    #Due to memory limitation, s_alltrace is available when !isempty(figdir) ==true (debug_plot=true)
+    #===#
+    stretch_debugplot = !isempty(figdir)
+
     MeasurementDict = Dict()
 
     #1. compute dvv by stretching
@@ -124,7 +129,12 @@ function dualstretching_dQinv(dvv::Float64, Aref::AbstractArray, Acur::AbstractA
     waveform_ref = Aref[window]
 
     # set of stretched/compressed current waveforms
-    s_alltrace = Array{Float64, 3}(undef, length(t), ntrial_A, ntrial_q)
+    if stretch_debugplot
+        s_alltrace = Array{Float64, 3}(undef, length(t), ntrial_A, ntrial_q)
+    else
+        s_alltrace = Array{Float64, 3}(undef, 0, 0, 0)
+    end
+
     Q_traces = Array{Float64, 2}(undef, length(window), ntrial_A*ntrial_q)
 
     itp = Interpolations.interpolate(Acur, BSpline(Cubic(Line(OnGrid()))))
@@ -153,7 +163,7 @@ function dualstretching_dQinv(dvv::Float64, Aref::AbstractArray, Acur::AbstractA
                 s[it] = (1/γ(β[ii], ϵdQ[jj], fc, α, t[it])) * sitp(t[it])
             end
 
-            s_alltrace[:, ii, jj] = s
+            stretch_debugplot && (s_alltrace[:, ii, jj] = s)
 
             waveform_cur = s[window]
 
