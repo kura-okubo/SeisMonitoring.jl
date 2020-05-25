@@ -27,7 +27,6 @@ function dualstretching(ref::AbstractArray, cur::AbstractArray, t::AbstractArray
     #==NOTE:===#
     #Due to memory limitation, s_alltrace is available when !isempty(figdir) ==true (debug_plot=true)
     #===#
-    stretch_debugplot = !isempty(figdir)
 
     MeasurementDict = Dict()
 
@@ -117,6 +116,8 @@ function dualstretching_dQinv(dvv::Float64, Aref::AbstractArray, Acur::AbstractA
             figdir::String="",
             figname::String="",
             fillbox::AbstractArray=[])
+
+    stretch_debugplot = !isempty(figdir)
 
     ϵdQ = range(dQcinvmin, stop=dQcinvmax, length=ntrial_q)
     ϵA = range(dAAmin, stop=dAAmax, length=ntrial_A)
