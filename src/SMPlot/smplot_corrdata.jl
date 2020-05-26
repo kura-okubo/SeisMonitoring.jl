@@ -39,14 +39,23 @@ function smplot_corrdata(filename::String, fodir::String, starttime::Union{Strin
             isempty(freqency_band) && error("no corrdata within $(starttime) and $(endtime) is found.")
             sort!(freqency_band)
 
-            # assemble corrdata on stachankey
-            C_all, CorrData_Buffer = assemble_corrdata(fi,stachankey,starttime,endtime,freqency_band,
-                                                MAX_MEM_USE=MAX_MEM_USE, min_cc_datafraction=0.0)
-
             # plot corrdata with respect to frequency band
-            println(C_all)
-            for freqkey in keys(C_all)
-                C1 = C_all[freqkey]
+            # println(C_all)
+
+            # stack with respect to frequency band
+            Nfreqband = length(freqency_band) - 1
+            freqband = map(i -> [freqency_band[i], freqency_band[i+1]], 1:Nfreqband)
+
+            for fb in freqband
+                freqmin, freqmax = fb
+                freqkey = join([string(freqmin), string(freqmax)], "-")
+
+                # assemble corrdata on stachankey
+                C1, CorrData_Buffer = assemble_corrdata(fi,stachankey,starttime,endtime,freqkey,
+                                                    MAX_MEM_USE=MAX_MEM_USE, min_cc_datafraction=0.0)
+
+                # C1 = C_all[freqkey]
+
                 if isempty(C1.t)
                     @warn("empty corrdata. skip"); continue
                 end

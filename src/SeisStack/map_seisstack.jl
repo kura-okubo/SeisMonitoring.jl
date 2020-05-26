@@ -62,33 +62,41 @@ function map_seisstack(fipath, stackmode::String, InputDict::OrderedDict)
         # skip if component pair is not in the list
         (comp ∉ InputDict["stack_pairs_option"] && "all" ∉ InputDict["stack_pairs_option"]) && continue;
 
-        CorrData_Buffer = Dict()
+        # stack with respect to frequency band
+        Nfreqband = length(InputDict["freqency_band"]) - 1
+        freqband = map(i -> [InputDict["freqency_band"][i], InputDict["freqency_band"][i+1]], 1:Nfreqband)
 
-        for tid in 1:length(starts)
-            starttime, endtime = [starts[tid], ends[tid]]
-            centraltime = u2d((d2u(starttime) + d2u(endtime)) /2) #central time between starttime and endtime
+        for fb in freqband # stack at each frequency band
+            freqmin, freqmax = fb
+            freqkey = join([string(freqmin), string(freqmax)], "-")
 
-            println("start processing $(stachanpair) at $(string(starttime))-$(string(endtime))")
+            CorrData_Buffer = Dict()
 
-            # assemble corrdata
-            # t_assemblecc += @elapsed C_all, CorrData_Buffer = assemble_corrdata(fi,stachanpair,starttime,endtime,InputDict["freqency_band"],
-            #                         CorrData_Buffer=CorrData_Buffer,
-            #                         min_cc_datafraction = InputDict["min_cc_datafraction"],
-            #                         MAX_MEM_USE=InputDict["MAX_MEM_USE"])
-            t_assemblecc += @elapsed C_all, CorrData_Buffer = assemble_corrdata(fi,stachanpair,starttime,endtime,InputDict["freqency_band"],
-                                    CorrData_Buffer=CorrData_Buffer,
-                                    min_cc_datafraction = InputDict["min_cc_datafraction"],
-                                    MAX_MEM_USE=InputDict["MAX_MEM_USE"],
-                                    stackmode=stackmode, #used for prestacking.
-                                    IsReadReference=IsReadReference, #used for prestacking.
-                                    ReferenceDict=ReferenceDict; #used for prestacking.
-                                    InputDict=InputDict) #used for prestacking.
+            for tid in 1:length(starts)
+                starttime, endtime = [starts[tid], ends[tid]]
+                centraltime = u2d((d2u(starttime) + d2u(endtime)) /2) #central time between starttime and endtime
 
-            isempty(C_all) && continue
+                println("start processing $(stachanpair) at $(string(starttime))-$(string(endtime))")
 
-            # stack with respect to frequency band
-            for freqkey in collect(keys(C_all))
-                C = C_all[freqkey]
+
+
+                # assemble corrdata
+                # t_assemblecc += @elapsed C_all, CorrData_Buffer = assemble_corrdata(fi,stachanpair,starttime,endtime,InputDict["freqency_band"],
+                #                         CorrData_Buffer=CorrData_Buffer,
+                #                         min_cc_datafraction = InputDict["min_cc_datafraction"],
+                #                         MAX_MEM_USE=InputDict["MAX_MEM_USE"])
+
+                # DEBUG: return C at each frequency band due to memory overflow.
+                t_assemblecc += @elapsed C, CorrData_Buffer = assemble_corrdata(fi,stachanpair,starttime,endtime,freqkey,
+                                        CorrData_Buffer=CorrData_Buffer,
+                                        min_cc_datafraction = InputDict["min_cc_datafraction"],
+                                        MAX_MEM_USE=InputDict["MAX_MEM_USE"],
+                                        stackmode=stackmode, #used for prestacking.
+                                        IsReadReference=IsReadReference, #used for prestacking.
+                                        ReferenceDict=ReferenceDict; #used for prestacking.
+                                        InputDict=InputDict) #used for prestacking.
+
+                # C = C_all[freqkey]
 
                 (isempty(C.corr) || isempty(C.t)) && continue  # this does not have cc trace within the time window.
                 remove_nanandzerocol!(C)  # remove column which has NaN or all zero
