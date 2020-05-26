@@ -112,7 +112,7 @@ function assemble_corrdata(
     # println("debug: $(stachanpair) $(fb)Hz ccfrac = $(ccfracs)")
 
     if  mean(ccfracs) < min_cc_datafraction
-        println("debug: data containts $(mean(ccfracs)) is less than cc_contents_fraction.")
+        # println("debug: data containts $(mean(ccfracs)) is less than cc_contents_fraction.")
         C = CorrData()
     end
 

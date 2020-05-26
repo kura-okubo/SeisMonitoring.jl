@@ -76,9 +76,7 @@ function map_seisstack(fipath, stackmode::String, InputDict::OrderedDict)
                 starttime, endtime = [starts[tid], ends[tid]]
                 centraltime = u2d((d2u(starttime) + d2u(endtime)) /2) #central time between starttime and endtime
 
-                println("start processing $(stachanpair) at $(string(starttime))-$(string(endtime))")
-
-
+                # println("start processing $(stachanpair) at $(string(starttime))-$(string(endtime))")
 
                 # assemble corrdata
                 # t_assemblecc += @elapsed C_all, CorrData_Buffer = assemble_corrdata(fi,stachanpair,starttime,endtime,InputDict["freqency_band"],
