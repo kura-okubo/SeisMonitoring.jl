@@ -31,7 +31,8 @@ function map_seisstack(fipath, stackmode::String, InputDict::OrderedDict)
     end
 
     ispath(fopath) && rm(fopath)
-    fo = jldopen(fopath, "w")
+    # fo = jldopen(fopath, "w")
+    fo = jldopen(fopath, true, true, true, IOStream)
 
     #==========================#
     # 1. Assemble corrdata between starttime and endtime
