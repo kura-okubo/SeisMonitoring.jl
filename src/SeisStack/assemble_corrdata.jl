@@ -74,7 +74,9 @@ function assemble_corrdata(
                 continue # skipping this time window because of no data
             end
 
-            (isnothing(Ctemp) || isempty(Ctemp)) && continue
+            # (isnothing(Ctemp) || isempty(Ctemp)) && continue # NOTE: causing segmentation error at isempty(Ctemp)
+            isempty(Ctemp.t) && continue
+
             # evaluate cc contents fraction
             st, et = DateTime.(split(file, "--"))
             ccfrac = get_cc_contents_fraction(Ctemp,st,et)
@@ -107,7 +109,8 @@ function assemble_corrdata(
         end
     end
     # if C is nothing or empty, return empty CorrData
-    (isnothing(C) || isempty(C)) && (C = CorrData())
+    # (isnothing(C) || isempty(C)) && (C = CorrData())
+    isempty(C.t) && (C = CorrData())
 
     # println("debug: $(stachanpair) $(fb)Hz ccfrac = $(ccfracs)")
 
