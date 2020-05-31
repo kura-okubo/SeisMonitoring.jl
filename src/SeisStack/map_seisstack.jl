@@ -66,7 +66,7 @@ function map_seisstack(fipath, stackmode::String, InputDict::OrderedDict)
         Nfreqband = length(InputDict["freqency_band"]) - 1
         freqband = map(i -> [InputDict["freqency_band"][i], InputDict["freqency_band"][i+1]], 1:Nfreqband)
 
-        for fb in freqband # stack at each frequency band
+        debug_t1 = @elapsed for fb in freqband # stack at each frequency band
             freqmin, freqmax = fb
             freqkey = join([string(freqmin), string(freqmax)], "-")
 
@@ -80,7 +80,7 @@ function map_seisstack(fipath, stackmode::String, InputDict::OrderedDict)
                 if Dates.Month(centraltime) == 1
                     println("start processing $(stachanpair) at $(string(starttime))-$(string(endtime))")
                 end
-                
+
                 # assemble corrdata
                 # t_assemblecc += @elapsed C_all, CorrData_Buffer = assemble_corrdata(fi,stachanpair,starttime,endtime,InputDict["freqency_band"],
                 #                         CorrData_Buffer=CorrData_Buffer,
@@ -143,13 +143,15 @@ function map_seisstack(fipath, stackmode::String, InputDict::OrderedDict)
                 !haskey(fo[stachanpair], g1) && JLD2.Group(fo[stachanpair], g1)
                 !haskey(fo, groupname) && (fo[groupname] = C)
             end
-
-            println("debug: current t_seismeasurement = $(t_seismeasurement)[s]")
         end
+
+        println("debug: $(stachanpair) is done. all freq cpu time: $(debug_t1)[s].")
     end
 
     close(fi)
     close(fo)
+
+    println("debug: map $(fipath) is done with $(t_assemblecc+t_stack+t_seismeasurement)[s].")
 
     # DEBUG: for large calculation, avoid return cputimes
     return (t_assemblecc, t_stack, t_seismeasurement)
