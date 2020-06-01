@@ -111,11 +111,11 @@ function smplot_pdfdvv(statsfile::String, fodir::String, starttime::DateTime, en
         # 1. pdf and mean
         if lowercase(plottimeunit) == "year"
             xaxisformat = "yyyy"
-            xtickid = filter(x -> (Dates.Month(u2d(x)).value == 1 && Dates.Day(u2d(x)).value == 1), mtbins)
+            xtickid = findall(x -> (Dates.Month(u2d(x)).value == 1 && Dates.Day(u2d(x)).value == 1), mtbins)
             !isempty(xtickid) ? xticks = mtbins[xtickid] :  (@warn("no xticks with $(plottimeunit) plottimeunit. plot auto."); xticks=:auto)
         elseif lowercase(plottimeunit) == "month"
             xaxisformat = "yyyy-m"
-            xtickid = filter(x -> (Dates.Day(u2d(x)).value == 1), mtbins)
+            xtickid = findall(x -> (Dates.Day(u2d(x)).value == 1), mtbins)
             !isempty(xtickid) ? xticks = mtbins[xtickid] :  (@warn("no xticks with $(plottimeunit) plottimeunit. plot auto."); xticks=:auto)
         elseif lowercase(plottimeunit) == "day"
             xaxisformat = "yyyy-m-d"
