@@ -151,7 +151,7 @@ function map_seisstack(fipath, stackmode::String, InputDict::OrderedDict)
     close(fi)
     close(fo)
 
-    println("debug: map $(fipath) is done with $(t_assemblecc+t_stack+t_seismeasurement)[s].")
+    println("debug: map $(fipath) is done with $(t_assemblecc), $(t_stack), $(t_seismeasurement)[s].")
 
     # DEBUG: for large calculation, avoid return cputimes
     return (t_assemblecc, t_stack, t_seismeasurement)
