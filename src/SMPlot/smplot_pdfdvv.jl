@@ -34,6 +34,8 @@ function smplot_pdfdvv(statsfile::String, fodir::String, starttime::DateTime, en
 
     # loop for each freqband
 
+    DvvDicts = []
+
     for freqband in freqbands
 
         # filter with freqband
@@ -162,7 +164,8 @@ function smplot_pdfdvv(statsfile::String, fodir::String, starttime::DateTime, en
         jldopen("$(figname).jld2", "w") do fo
             fo["DvvDict"] = DvvDict
         end
+        push!(DvvDicts, DvvDict)
     end
 
-    return DvvDict
+    return DvvDicts
 end
