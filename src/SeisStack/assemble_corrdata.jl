@@ -37,6 +37,10 @@ function assemble_corrdata(
     #--------------------------------#
 )
 
+    # corrdata_cputime debug
+    dubug_t1 = 0; dubug_t2 = 0; dubug_t3 = 0; dubug_t4 = 0; dubug_t5 = 0;
+    dubug_t6 = 0; dubug_t7 = 0;
+
     # Nfreqband = length(frequency_band) - 1
     # freqband = map(i -> [frequency_band[i], frequency_band[i+1]], 1:Nfreqband)
     # C_all = CorrData[]
@@ -46,7 +50,7 @@ function assemble_corrdata(
     cc_unit_time_all = keys(fileio[stachanpair])
 
     # find all path within target time window
-    files_target = findall_target_cc(cc_unit_time_all, starttime, endtime)
+    dubug_t1 = @elapsed files_target = findall_target_cc(cc_unit_time_all, starttime, endtime)
     isempty(files_target) && return C, CorrData_Buffer  # the fileio does not have any ccdata within starttime and endtime on the station. return empty C_all.
 
     # C_all = Dict{String, CorrData}()
@@ -62,13 +66,13 @@ function assemble_corrdata(
         if haskey(CorrData_Buffer, abskey)
             # read CorrData Buffer; which is prestacked when IsPreStack==true
             # println("debug: use buffer")
-            Ctemp = CorrData_Buffer[abskey]
+            dubug_t2 += @elapsed Ctemp = CorrData_Buffer[abskey]
             ccfrac = Ctemp.misc["tmp_ccfrac_within_cc_time_unit"]
 
         else
             # read data from file; performing Prestack if true and add to CorrData_Buffer
             # println("debug: read data")
-            Ctemp = try
+            dubug_t3 += @elapsed Ctemp = try
                 fileio[joinpath(abskey)]
             catch
                 continue # skipping this time window because of no data
@@ -79,14 +83,14 @@ function assemble_corrdata(
 
             # evaluate cc contents fraction
             st, et = DateTime.(split(file, "--"))
-            ccfrac = get_cc_contents_fraction(Ctemp,st,et)
+            dubug_t4 += @elapsed ccfrac = get_cc_contents_fraction(Ctemp,st,et)
             Ctemp.misc["tmp_ccfrac_within_cc_time_unit"] = ccfrac
 
             if InputDict["IsPreStack"]
             # 1. append reference to Ctemp if IsReadReference == true
-                IsReadReference && append_reference!(Ctemp, stachanpair, freqkey, ReferenceDict, InputDict)
+                dubug_t5 += @elapsed IsReadReference && append_reference!(Ctemp, stachanpair, freqkey, ReferenceDict, InputDict)
             # 2. perform smstack
-                sm_stack!(Ctemp, stackmode, InputDict) # stack with predefined stack method
+                dubug_t6 += @elapsed sm_stack!(Ctemp, stackmode, InputDict) # stack with predefined stack method
                 # println(Ctemp)
             end
             # add CorrData to CorrData_Buffer after stacking.
@@ -125,7 +129,19 @@ function assemble_corrdata(
     # end
 
     # update CorrData_Buffer
-    update_CorrData_Buffer!(CorrData_Buffer, current_abskey_list)
+    dubug_t7 += @elapsed update_CorrData_Buffer!(CorrData_Buffer, current_abskey_list)
+
+
+    println("===Debug cputime===")
+    println("$(stachanpair) $(string(starttime))-$(string(endtime)) $(freqkey)Hz")
+    println("findall_target_cc  : $(dubug_t1)[s]")
+    println("read buffer        : $(dubug_t2)[s]")
+    println("read from file     : $(dubug_t3)[s]")
+    println("get_cc_contents    : $(dubug_t4)[s]")
+    println("append_ref prestack: $(dubug_t5)[s]")
+    println("prestacking        : $(dubug_t6)[s]")
+    println("update corrbuffer  : $(dubug_t7)[s]")
+    println("===================")
 
     return C, CorrData_Buffer
 end

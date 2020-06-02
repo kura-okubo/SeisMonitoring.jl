@@ -79,7 +79,7 @@ function smplot_pdfdvv(statsfile::String, fodir::String, starttime::DateTime, en
             push!(DvvDict["T"], u2d(mtbin))
 
             global df_binned = filter(:date => x -> (stbin <= x < etbin) , df_filtered)
-            println(df_binned)
+            # println(df_binned)
             dvv_all = df_binned.dvv
 
             paircount = length(dvv_all)
@@ -111,14 +111,18 @@ function smplot_pdfdvv(statsfile::String, fodir::String, starttime::DateTime, en
         # plot!(annotation=(0.5,0.5, figtitle), framestyle = :none, subplot=1, fontsize=12)
 
         # 1. pdf and mean
+
+        #NOTE: prepare xticks
+        x_daily_ticks = range(d2u(starttime), stop = (d2u(endtime)-86400), step = 86400) # daily bins in unix time
+
         if lowercase(plottimeunit) == "year"
             xaxisformat = "yyyy"
-            xtickid = findall(x -> (Dates.Month(u2d(x)).value == 1 && Dates.Day(u2d(x)).value == 1), mtbins)
-            !isempty(xtickid) ? xticks = mtbins[xtickid] :  (@warn("no xticks with $(plottimeunit) plottimeunit. plot auto."); xticks=:auto)
+            xtickid = findall(x -> (Dates.Month(u2d(x)).value == 1 && Dates.Day(u2d(x)).value == 1), x_daily_ticks)
+            !isempty(xtickid) ? xticks = x_daily_ticks[xtickid] :  (@warn("no xticks with $(plottimeunit) plottimeunit. plot auto."); xticks=:auto)
         elseif lowercase(plottimeunit) == "month"
             xaxisformat = "yyyy-m"
-            xtickid = findall(x -> (Dates.Day(u2d(x)).value == 1), mtbins)
-            !isempty(xtickid) ? xticks = mtbins[xtickid] :  (@warn("no xticks with $(plottimeunit) plottimeunit. plot auto."); xticks=:auto)
+            xtickid = findall(x -> (Dates.Day(u2d(x)).value == 1), x_daily_ticks)
+            !isempty(xtickid) ? xticks = x_daily_ticks[xtickid] :  (@warn("no xticks with $(plottimeunit) plottimeunit. plot auto."); xticks=:auto)
         elseif lowercase(plottimeunit) == "day"
             xaxisformat = "yyyy-m-d"
             xticks=:auto
