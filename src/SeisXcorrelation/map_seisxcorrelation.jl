@@ -125,8 +125,19 @@ function map_seisxcorrelation(key_station_pair::String, StationPairDict::Ordered
                                                 cc_bpfilt_method=InputDict["cc_bpfilt_method"],
                                                 α0=InputDict["cc_taper_α0"], αmax=InputDict["cc_taper_αmax"])
 
+            # Prestacking to decrease the datasize if true
+            # if InputDict["IsPreStack"]
+            # # 1. append reference to Ctemp if IsReadReference == true for selective stack
+            #     dubug_t5 += @elapsed IsReadReference && append_reference!(Ctemp, stachanpair, freqkey, ReferenceDict, InputDict)
+            # # 2. perform smstack
+            #     dubug_t6 += @elapsed sm_stack!(Ctemp, stackmode, InputDict) # stack with predefined stack method
+            #     # println(Ctemp)
+            # end
+
             #10. Save corr-data
             for (ic, CD) in enumerate(C_all)
+
+                InputDict["IsPreStack"] && sm_stack!(CD, "reference", InputDict) # stack with predefined stack method
 
                 g1 = join([string(starttime), string(endtime)], "--")  #2004-01-01T00:00:00--2004-01-02T00:00:00
                 g2 = join([string(freqband[ic][1]), string(freqband[ic][2])], "-") #0.1-0.2

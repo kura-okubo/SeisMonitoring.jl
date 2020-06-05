@@ -86,13 +86,13 @@ function assemble_corrdata(
             dubug_t4 += @elapsed ccfrac = get_cc_contents_fraction(Ctemp,st,et)
             Ctemp.misc["tmp_ccfrac_within_cc_time_unit"] = ccfrac
 
-            if InputDict["IsPreStack"]
-            # 1. append reference to Ctemp if IsReadReference == true
-                dubug_t5 += @elapsed IsReadReference && append_reference!(Ctemp, stachanpair, freqkey, ReferenceDict, InputDict)
-            # 2. perform smstack
-                dubug_t6 += @elapsed sm_stack!(Ctemp, stackmode, InputDict) # stack with predefined stack method
-                # println(Ctemp)
-            end
+            # if InputDict["IsPreStack"]
+            # # 1. append reference to Ctemp if IsReadReference == true for selective stack
+            #     dubug_t5 += @elapsed IsReadReference && append_reference!(Ctemp, stachanpair, freqkey, ReferenceDict, InputDict)
+            # # 2. perform smstack
+            #     dubug_t6 += @elapsed sm_stack!(Ctemp, stackmode, InputDict) # stack with predefined stack method
+            #     # println(Ctemp)
+            # end
             # add CorrData to CorrData_Buffer after stacking.
             CorrData_Buffer[abskey] = Ctemp
             push!(current_abskey_list, abskey)

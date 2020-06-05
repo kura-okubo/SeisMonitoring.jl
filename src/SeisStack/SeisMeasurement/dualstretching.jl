@@ -143,6 +143,7 @@ function dualstretching_dQinv(dvv::Float64, Aref::AbstractArray, Acur::AbstractA
     etpf = Interpolations.extrapolate(itp, Flat())
     tau_scale = range(tau[1], step=tau[2]-tau[1], length=length(t))
     sitp = Interpolations.scale(etpf, tau_scale)
+    sitp_tr = sitp.(t)
 
     icount = 1
 
@@ -162,7 +163,7 @@ function dualstretching_dQinv(dvv::Float64, Aref::AbstractArray, Acur::AbstractA
 
             s = zeros(length(t))
             for it = 1:length(t)
-                s[it] = (1/γ(β[ii], ϵdQ[jj], fc, α, t[it])) * sitp(t[it])
+                s[it] = (1/γ(β[ii], ϵdQ[jj], fc, α, t[it])) * sitp_tr[it]
             end
 
             stretch_debugplot && (s_alltrace[:, ii, jj] = s)
@@ -241,9 +242,7 @@ function dualstretching_dQinv(dvv::Float64, Aref::AbstractArray, Acur::AbstractA
         savefig(p_heat, joinpath(figdir, "heatmap_$(figname).png"))
     end
 
-
     # println("debug: t_trial = $(t_trial)[s], t_fig = $(t_fig)[s]")
-
 
     return dAA, dQcinv, dist_dualstretch, ϵA, ϵdQ, alldist, s_alltrace
 end

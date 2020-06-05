@@ -133,6 +133,7 @@ function call_param_seisxcorrelation!(g::GtkGridLeaf, rowcount::Int)
                 "pairs_option",
                 "IsOnebit",
                 "cc_bpfilt_method",
+                "IsPreStack"
                 ]
 
         for key in ParamList

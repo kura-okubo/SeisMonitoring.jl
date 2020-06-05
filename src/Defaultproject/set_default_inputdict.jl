@@ -64,6 +64,7 @@ InputDict=OrderedDict(
         "cc_taper_α0"           => ("0.1", Float64, "Advanced: Lowest tapering fraction for frequency adaptive tapering."),
         "cc_taper_αmax"         => ("0.25", Float64, "Advanced: Highest tapering fraction for frequency adaptive tapering."),
         "cc_medianmute_α"       => ("5.0", Float64, "Advanced: Threshold factor of median mute within cc_time_unit. NCF is removed if maximum(abs.(corr[:,i])) > cc_medianmute_α * median(maximum(abs.(corr)), dims=1)"),
+        "IsPreStack"            => ("true", Bool, "Advanced: Pre-stacking corrdata within each cc_time_unit when assembling the corrdata for the sake of saving memory use."),
 
         #===SeisStack===#
         "stack_RawData_dir"     => ("default", String, "\"default\" or absolute/relative path to cc directory. \"default\" links to project OUTPUT/cc."),
@@ -85,7 +86,6 @@ InputDict=OrderedDict(
         "max_coda_length"       => ("60.0", Float64, "[s] Maximum coda window length."),
         "slice_minthreshold"    => ("0.1", Float64, "Advanced: Threshold for attenuation decay."),
         "IsAlternateRefChannel" => ("true", Bool, "Advanced: Allow for using alternative station channel for reference. (e.g. BP.LCCB..BP1-BP.MMNB..BP1 is used as reference for BP.LCCB..SP1-BP.MMNB..SP1)"),
-        "IsPreStack"            => ("true", Bool, "Advanced: Pre-stacking corrdata within each cc_time_unit when assembling the corrdata for the sake of saving memory use."),
 
         #SeisMeasurement
         "measurement_method"    => ("dualstretching", String, "Stretching method for measuring dv/v and dQ^{-1}. \"stretching\",\"mwcs\",\"wcc\",\"dtw\",\"dualstretching\" "),
