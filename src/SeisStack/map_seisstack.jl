@@ -91,11 +91,11 @@ function map_seisstack(fipath, stackmode::String, InputDict::OrderedDict)
                 t_assemblecc += @elapsed C, CorrData_Buffer = assemble_corrdata(fi,stachanpair,starttime,endtime,freqkey,
                                         CorrData_Buffer=CorrData_Buffer,
                                         min_cc_datafraction = InputDict["min_cc_datafraction"],
-                                        MAX_MEM_USE=InputDict["MAX_MEM_USE"],
-                                        stackmode=stackmode, #used for prestacking.
-                                        IsReadReference=IsReadReference, #used for prestacking.
-                                        ReferenceDict=ReferenceDict; #used for prestacking.
-                                        InputDict=InputDict) #used for prestacking.
+                                        MAX_MEM_USE=InputDict["MAX_MEM_USE"])
+                                        # stackmode=stackmode, #used for prestacking.
+                                        # IsReadReference=IsReadReference, #used for prestacking.
+                                        # ReferenceDict=ReferenceDict; #used for prestacking.
+                                        # InputDict=InputDict) #used for prestacking.
 
                 # C = C_all[freqkey]
 

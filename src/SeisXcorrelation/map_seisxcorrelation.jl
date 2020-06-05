@@ -1,4 +1,6 @@
 include("spectrumnormalization.jl")
+include("get_cc_contents_fraction.jl")
+
 """
 map_seisxcorrelation(station_pair::String, InputDict::OrderedDict)
 
@@ -119,6 +121,9 @@ function map_seisxcorrelation(key_station_pair::String, StationPairDict::Ordered
 
             # mute ccs outlier using median of maximum amplitude
             cc_medianmute!(C, InputDict["cc_medianmute_α"])
+
+            # compute cc contents fraction
+            C.misc["ccfrac_within_cc_time_unit"] = get_cc_contents_fraction(C,starttime,endtime)
 
             #9. Apply frequency decomposion of cross-correlation function
             C_all, freqband = compute_frequency_decomposition(C, InputDict["freqency_band"],

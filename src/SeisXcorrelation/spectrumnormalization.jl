@@ -18,7 +18,7 @@ end
 
 
 #NOTE:========================================================================#
-# spectrum_coherence and spectrum_deconvolution is defined below to replace
+# spectrum_coherence and spectrum_deconvolution are defined below to replace
 # the smoothing function from SeisNoise.smooth() to SeisMonitoring.smooth_withfiltfilt()
 #=============================================================================#
 

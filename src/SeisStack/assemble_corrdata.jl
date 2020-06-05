@@ -1,4 +1,4 @@
-include("get_cc_contents_fraction.jl")
+# include("get_cc_contents_fraction.jl")
 """
     assemble_corrdata(C::SeisChannel)
 
@@ -30,10 +30,10 @@ function assemble_corrdata(
     CorrData_Buffer::Dict=Dict(),
     MAX_MEM_USE::AbstractFloat=4.0, #[GB]
     #---parameters for prestacking---#
-    stackmode::String="reference", #used for prestacking.
-    IsReadReference::Bool=false, #used for prestacking.
-    ReferenceDict::Dict=(), #used for prestacking.
-    InputDict::OrderedDict=OrderedDict() #used for prestacking.
+    # stackmode::String="reference", #used for prestacking.
+    # IsReadReference::Bool=false, #used for prestacking.
+    # ReferenceDict::Dict=(), #used for prestacking.
+    # InputDict::OrderedDict=OrderedDict() #used for prestacking.
     #--------------------------------#
 )
 
@@ -83,8 +83,11 @@ function assemble_corrdata(
 
             # evaluate cc contents fraction
             st, et = DateTime.(split(file, "--"))
-            dubug_t4 += @elapsed ccfrac = get_cc_contents_fraction(Ctemp,st,et)
-            Ctemp.misc["tmp_ccfrac_within_cc_time_unit"] = ccfrac
+
+            # NOTE: Ctemp.misc["ccfrac_within_cc_time_unit"] is computed at SeisXcorrelation stage.
+            # dubug_t4 += @elapsed ccfrac = get_cc_contents_fraction(Ctemp,st,et)
+            # Ctemp.misc["tccfrac_within_cc_time_unit"] = ccfrac
+            ccfrac = Ctemp.misc["ccfrac_within_cc_time_unit"]
 
             # if InputDict["IsPreStack"]
             # # 1. append reference to Ctemp if IsReadReference == true for selective stack
@@ -137,7 +140,7 @@ function assemble_corrdata(
     println("findall_target_cc  : $(dubug_t1)[s]")
     println("read buffer        : $(dubug_t2)[s]")
     println("read from file     : $(dubug_t3)[s]")
-    println("get_cc_contents    : $(dubug_t4)[s]")
+    # println("get_cc_contents    : $(dubug_t4)[s]")
     println("append_ref prestack: $(dubug_t5)[s]")
     println("prestacking        : $(dubug_t6)[s]")
     println("update corrbuffer  : $(dubug_t7)[s]")
