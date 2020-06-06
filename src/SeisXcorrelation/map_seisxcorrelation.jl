@@ -122,6 +122,9 @@ function map_seisxcorrelation(key_station_pair::String, StationPairDict::Ordered
             # mute ccs outlier using median of maximum amplitude
             cc_medianmute!(C, InputDict["cc_medianmute_α"])
 
+            # continue again if xcorr is empty
+            isempty(C.corr) && continue
+
             # compute cc contents fraction
             C.misc["ccfrac_within_cc_time_unit"] = get_cc_contents_fraction(C,starttime,endtime)
 
