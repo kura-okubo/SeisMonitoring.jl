@@ -141,8 +141,8 @@ function assemble_corrdata(
     println("read buffer        : $(dubug_t2)[s]")
     println("read from file     : $(dubug_t3)[s]")
     # println("get_cc_contents    : $(dubug_t4)[s]")
-    println("append_ref prestack: $(dubug_t5)[s]")
-    println("prestacking        : $(dubug_t6)[s]")
+    # println("append_ref prestack: $(dubug_t5)[s]")
+    # println("prestacking        : $(dubug_t6)[s]")
     println("update corrbuffer  : $(dubug_t7)[s]")
     println("===================")
 
