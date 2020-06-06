@@ -67,7 +67,7 @@ function assemble_corrdata(
             # read CorrData Buffer; which is prestacked when IsPreStack==true
             # println("debug: use buffer")
             dubug_t2 += @elapsed Ctemp = CorrData_Buffer[abskey]
-            ccfrac = Ctemp.misc["tmp_ccfrac_within_cc_time_unit"]
+            ccfrac = Ctemp.misc["ccfrac_within_cc_time_unit"]
 
         else
             # read data from file; performing Prestack if true and add to CorrData_Buffer
