@@ -1,5 +1,6 @@
 include("assemble_corrdata.jl")
 include("seismeasurement.jl")
+using SeisMonitoring: cc_medianmute!
 
 """
     map_seisstack(fipath, stackmode::String, InputDict::OrderedDict)
@@ -102,7 +103,10 @@ function map_seisstack(fipath, stackmode::String, InputDict::OrderedDict)
                 (isempty(C.corr) || isempty(C.t)) && continue  # this does not have cc trace within the time window.
                 remove_nanandzerocol!(C)  # remove column which has NaN or all zero
                 (isempty(C.corr) || isempty(C.t)) && continue  # this does not have cc trace within the time window.
-
+                # apply median mute
+                cc_medianmute!(C, InputDict["cc_medianmute_α"])
+                (isempty(C.corr) || isempty(C.t)) && continue  # this does not have cc trace within the time window.
+                
                 # slice coda window and zero padding before stack if true
                 coda_window, timelag, fillbox = slice_codawindow!(C,
                                         InputDict["background_vel"],

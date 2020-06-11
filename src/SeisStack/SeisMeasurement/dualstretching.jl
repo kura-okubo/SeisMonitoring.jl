@@ -1,5 +1,5 @@
 using Interpolations, Statistics, Distances, StatsBase, ColorSchemes, Plots
-
+using SeisMonitoring: smooth_withfiltfilt
 """
     dualstretching(ref::AbstractArray, cur::AbstractArray, t::AbstractArray, fc::Float64,
                         window::AbstractArray;
@@ -124,6 +124,14 @@ function dualstretching_dQinv(dvv::Float64, Aref::AbstractArray, Acur::AbstractA
     ϵA = range(dAAmin, stop=dAAmax, length=ntrial_A)
     α = (1.0 + dvv)
     β = (1.0 .+ ϵA)
+
+    #---NOTE: 2020/06/11 Applying boxcar smoothing on Aref and Acur---#
+    fs = 1.0/(t[2]-t[1])
+    window_sec = 5.0 #[s]
+    window_len = trunc(Int, fs*window_sec)
+    Aref = smooth_withfiltfilt(Aref, window_len=window_len, window=:rect)
+    Acur = smooth_withfiltfilt(Acur, window_len=window_len, window=:rect)
+    #-------------------------------------------------------------#
 
     γ(β0, dQcinv0, fc, α0, t) = β0 * exp(-dQcinv0 * pi * fc * α0 * t)
     alldist = zeros(ntrial_A, ntrial_q)
