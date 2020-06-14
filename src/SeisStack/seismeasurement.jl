@@ -56,6 +56,7 @@ function seismeasurement!(C::CorrData, InputDict::OrderedDict)
                                 dAAmin=-InputDict["dAA_stretching_range"],
                                 dAAmax=+InputDict["dAA_stretching_range"],
                                 ntrial_A=InputDict["dAA_stretching_Ntrial"],
+                                smoothing_window_len=InputDict["smoothing_window_len"]
                                 # parameters for distance and debug figure plot
                                 dist_method=InputDict["stretch_distmethod"],
                                 figdir=figdir,

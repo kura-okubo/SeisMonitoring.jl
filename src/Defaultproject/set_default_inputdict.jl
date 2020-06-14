@@ -95,6 +95,7 @@ InputDict=OrderedDict(
         "dQc_stretching_Ntrial" => ("51", Int, "Advanced: dual stretching trial number for dQc."),
         "dAA_stretching_range"  => ("0.05", Float64, "Advanced: dual stretching trial range for dAA (+- abs(dvv_stretching_range))."),
         "dAA_stretching_Ntrial" => ("51", Int, "Advanced: dual stretching trial number for dAA."),
+        "smoothing_window_len"  => ("15.0", Float64, "Advanced: [s] smoothing time window length to measure coda Q change."),
         "stretch_distmethod"    => ("euclidean", String, "Distance method used for stretching method. \"euclidean\" or \"mahalanobis\""),
         "stretch_debugplot"     => ("true", Bool, "Advanced: plot debug figures for stretching method (this option increases stacking cpu time)"),
 

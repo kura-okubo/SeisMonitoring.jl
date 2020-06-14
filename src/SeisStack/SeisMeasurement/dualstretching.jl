@@ -16,6 +16,7 @@ function dualstretching(ref::AbstractArray, cur::AbstractArray, t::AbstractArray
                         dvmin::Float64=-0.1,dvmax::Float64=0.1,ntrial_v::Int=500,
                         dQcinvmin::Float64=-0.01, dQcinvmax::Float64=+0.01, ntrial_q::Int=101,
                         dAAmin::Float64=-0.02, dAAmax::Float64=+0.02, ntrial_A::Int=101,
+                        smoothing_window_len::AbstractFloat=15.0,
                         dist_method::String="euclidean", figdir::String="", figname::String="", fillbox::AbstractArray=[])
 
     #---Process flow---#
@@ -51,6 +52,7 @@ function dualstretching(ref::AbstractArray, cur::AbstractArray, t::AbstractArray
                 dAAmax=dAAmax,
                 ntrial_q=ntrial_q,
                 ntrial_A=ntrial_A,
+                smoothing_window_len=smoothing_window_len,
                 dist_method = dist_method,
                 figdir=figdir,
                 figname=figname,
@@ -112,6 +114,7 @@ function dualstretching_dQinv(dvv::Float64, Aref::AbstractArray, Acur::AbstractA
             dAAmax::AbstractFloat=0.05,
             ntrial_q::Int=201,
             ntrial_A::Int=101,
+            smoothing_window_len::AbstractFloat=15.0,
             dist_method::String="euclidean",
             figdir::String="",
             figname::String="",
@@ -127,7 +130,7 @@ function dualstretching_dQinv(dvv::Float64, Aref::AbstractArray, Acur::AbstractA
 
     #---NOTE: 2020/06/11 Applying boxcar smoothing on Aref and Acur---#
     fs = 1.0/(t[2]-t[1])
-    window_sec = 5.0 #[s]
+    window_sec = smoothing_window_len #[s]
     window_len = trunc(Int, fs*window_sec)
     Aref = smooth_withfiltfilt(Aref, window_len=window_len, window=:rect)
     Acur = smooth_withfiltfilt(Acur, window_len=window_len, window=:rect)
