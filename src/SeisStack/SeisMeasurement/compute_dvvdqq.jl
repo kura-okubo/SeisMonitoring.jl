@@ -73,10 +73,10 @@ function stretching_dvv(ref::AbstractArray,cur::AbstractArray,t::AbstractArray,
         # u0(αt) = u1(t) (representation synchronized with this notebook)
         # compute correlation regime 1 -> regime 0
         #s = LinearInterpolation(tau[:,ii],cur,extrapolation_bc=Flat())(t)
-        itp = interpolate(cur, BSpline(Cubic(Line(OnGrid()))))
-        etpf = extrapolate(itp, Flat())
+        itp = Interpolations.interpolate(cur, BSpline(Cubic(Line(OnGrid()))))
+        etpf = Interpolations.extrapolate(itp, Flat())
         tau_scale = range(tau[1,ii], step=abs(tau[2,ii]-tau[1,ii]), length=length(t))
-        sitp = scale(etpf, tau_scale)
+        sitp = Interpolations.scale(etpf, tau_scale)
         s = sitp(t)
         waveform_cur = s[window]
         allC[ii] = cor(waveform_ref,waveform_cur)
