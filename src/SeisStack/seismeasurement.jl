@@ -1,4 +1,5 @@
 include("SeisMeasurement/dualstretching.jl")
+include("SeisMeasurement/compute_dvvdqq.jl")
 
 """
     seismeasurement!(C::CorrData, InputDict::OrderedDict)
@@ -62,6 +63,18 @@ function seismeasurement!(C::CorrData, InputDict::OrderedDict)
                                 figdir=figdir,
                                 figname=C.name*"--"*string(C.misc["stack_centraltime"])*"--"*join([C.freqmin, C.freqmax], "-"),
                                 fillbox =C.misc["fillbox"])
+
+    elseif lowercase(measurement_method) == "compute_dvvdqq"
+
+        fc = (C.freqmin+C.freqmax)/2.0
+
+
+		MeasurementDict = compute_dvvdqq(ref, cur, C.misc["timelag"], fc, C.misc["coda_window"],
+		                        geometrical_spreading_α=InputDict["geometricalspreading_α"],
+		                        coda_smooth_window=InputDict["smoothing_window_len"],
+		                        figdir=figdir,
+		                        figname=C.name*"--"*string(C.misc["stack_centraltime"])*"--"*join([C.freqmin, C.freqmax], "-"),
+		                        fillbox=C.misc["fillbox"])
 
     else
         error("measurement_method:$(measurement_method) is not available.")
