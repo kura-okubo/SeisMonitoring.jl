@@ -1,12 +1,12 @@
 using SeisIO, SeisNoise, Dates, JLD2, DataFrames, CSV, Distributed
 """
-    smstats_read()
+    smstats_read_computedvvdqq()
 
 Get the statistics of change of velocity and attenuation history, and save them to CSV file.
 
 
 """
-function smstats_read(shorttimestackdir::String, fodir::String, starttime::Union{String, DateTime}, endtime::Union{String, DateTime};
+function smstats_read_computedvvdqq(shorttimestackdir::String, fodir::String, starttime::Union{String, DateTime}, endtime::Union{String, DateTime};
                     foname::String = "monitoring_stats.csv")
 
     !ispath(fodir) && mkpath(fodir)
@@ -15,13 +15,15 @@ function smstats_read(shorttimestackdir::String, fodir::String, starttime::Union
 
     paths = SeisIO.ls(shorttimestackdir)
 
-    df_mapped = pmap(x -> map_get_monitoringdf(x, starttime, endtime), paths)
+    df_mapped = pmap(x -> map_get_monitoringdf_comnputedvvdqq(x, starttime, endtime), paths)
     #df_mapped = pmap(x -> map_get_monitoringdf(x, starttime, endtime), paths[1:10])
 
     # append the data frame
 
     df_all = DataFrame(date=DateTime[], stationpair=String[], networks=String[], components=String[], freqband=String[],
-                        cc_dvv=Float64[], dvv=Float64[], dist_dualstretch=Float64[], dQcinv = Float64[], dAA=Float64[])
+                        cc_dvv=Float64[], dvv=Float64[],
+                        dqq_pos=Float64[], dqq_neg=Float64[], dqq_avg = Float64[],
+                        dss_pos=Float64[], dss_neg=Float64[], dss_avg = Float64[])
 
     for df = df_mapped
         !isnothing(df) && append!(df_all, df)
@@ -35,7 +37,7 @@ function smstats_read(shorttimestackdir::String, fodir::String, starttime::Union
     return nothing
 end
 
-function map_get_monitoringdf(path::String, starttime::DateTime, endtime::DateTime)
+function map_get_monitoringdf_comnputedvvdqq(path::String, starttime::DateTime, endtime::DateTime)
 
     fi = try
         jldopen(path, "r")
@@ -46,7 +48,9 @@ function map_get_monitoringdf(path::String, starttime::DateTime, endtime::DateTi
 
     # loop keys
     df_path = DataFrame(date=DateTime[], stationpair=String[], networks=String[], components=String[], freqband=String[],
-                        cc_dvv=Float64[], dvv=Float64[], dist_dualstretch=Float64[], dQcinv = Float64[], dAA=Float64[])
+                        cc_dvv=Float64[], dvv=Float64[],
+                        dqq_pos=Float64[], dqq_neg=Float64[], dqq_avg = Float64[],
+                        dss_pos=Float64[], dss_neg=Float64[], dss_avg = Float64[])
 
     for stachankey in keys(fi)
         println("start reading $(stachankey)")
@@ -62,8 +66,8 @@ function map_get_monitoringdf(path::String, starttime::DateTime, endtime::DateTi
                 # this file has overlap with the target timewindow [starttime, endtime]
                     corrkey = joinpath(stachankey, timekey, freqkey)
                     C = fi[corrkey]
-                    if !haskey(C.misc, "dvv") && !haskey(C.misc, "dQcinv")
-                        @warn("$(corrkey) does not have dvv nor dQcinv. Please check measurement_method in the input file.")
+                    if !haskey(C.misc, "dvv") && !haskey(C.misc, "dqq_avg")
+                        @warn("$(corrkey) does not have dvv nor dqq_avg. Please check measurement_method in the input file.")
                         continue;
                     end
 
@@ -76,11 +80,15 @@ function map_get_monitoringdf(path::String, starttime::DateTime, endtime::DateTi
                         df = leftjoin(df, df_dvv, on=:date)
                     end
 
-                    # append dQc and dAA
-                    if haskey(C.misc, "dQcinv")
-                        df_dQc = DataFrame(date = C.misc["stack_centraltime"], dist_dualstretch = float(C.misc["dist_dualstretch"]),
-                         dQcinv = float(C.misc["dQcinv"]), dAA = float(C.misc["dAA"]))
-                        df = leftjoin(df, df_dQc, on=:date)
+                    # append dqq and dss
+                    if haskey(C.misc, "dqq_avg")
+                        df_dqq = DataFrame(date = C.misc["stack_centraltime"],
+                        dqq_pos= float(C.misc["dqq_pos"]), dqq_neg= float(C.misc["dqq_neg"]), dqq_avg = float(C.misc["dqq_avg"]))
+                        df = leftjoin(df, df_dqq, on=:date)
+
+                        df_dss = DataFrame(date = C.misc["stack_centraltime"],
+                        dss_pos= float(C.misc["dss_pos"]), dss_neg= float(C.misc["dss_neg"]), dss_avg = float(C.misc["dss_avg"]))
+                        df = leftjoin(df, df_dss, on=:date)
                     end
 
                     append!(df_path, df)

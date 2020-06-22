@@ -206,9 +206,9 @@ function compute_dqq(dvv::Float64, tr_ref::AbstractArray, tr_cur::AbstractArray,
         # plot reference smoothed envelope
         plot!(t, QcDict_ref["Atα_log10_smoothed"], label="Aref*t^a smoothed", color=:blue, linewidth=1.5)
 
-        xmax = 50
+        xmax = maximum(abs.(t))
         ymax = 0.95*maximum(QcDict_cur["Atα_log10"])
-        plot!(xlim=(-xmax, xmax), ylim = (ymax-4, ymax))
+        plot!(xlim=(-xmax, xmax), ylim = (ymax-4, ymax), margin=5Plots.mm)
         xlabel!("Time lag[s]")
         ylabel!("log10(Energy)")
 
@@ -248,7 +248,7 @@ function compute_dqq(dvv::Float64, tr_ref::AbstractArray, tr_cur::AbstractArray,
         xlabel!("Time lag[s]")
         ylabel!("log10(Energy)")
         title!("dqq_avg, dss_avg = $(dqq_avg), $(dss_avg)")
-        p_all = plot(p1, p2, layout = (2, 1), size=(800, 800))
+        p_all = plot(p1, p2, layout = (2, 1), size=(800, 800), margin=5Plots.mm)
 
         savefig(p_all, joinpath(figdir, "computedqq_$(figname).png"))
 

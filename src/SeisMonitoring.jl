@@ -23,8 +23,8 @@ export
     smplot_pdfdvv,
 
     #stats command
-    smstats_read
-
+    smstats_read,
+    smstats_read_computedvvdqq
 
 # NOTE: Do not change the order of include.
 include("SeisDownload/seisdownload.jl")
@@ -56,5 +56,6 @@ include("SMPlot/smplot_noiseavailability.jl")
 include("SMPlot/smplot_ppsd.jl")
 include("SMPlot/smplot_pdfdvv.jl")
 include("SMStats/smstats_read.jl")
+include("SMStats/smstats_read_computedvvdqq.jl")
 
 end # module
