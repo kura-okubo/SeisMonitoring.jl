@@ -55,7 +55,7 @@ function append_reference!(C::CorrData, stachanpair::String, freqkey::String, Re
 		Ctemp = ReferenceDict[refdictpath]
 
 		# coda window is computed with reference curve
-		coda_window, timelag, fillbox, _ = energybased_slice_codawindow!(Ctemp, background_vel,
+		coda_window, timelag, fillbox, _ = energybased_slice_codawindow!(Ctemp, InputDict["background_vel"],
 												min_ballistic_twin=InputDict["min_ballistic_twin"], # explicit ballistic time window (see doc)
 												nondim_min_coda_length=InputDict["nondim_min_coda_length"],
 												nondim_max_coda_length=InputDict["nondim_max_coda_length"], #15.0,
@@ -102,7 +102,7 @@ function append_reference!(C::CorrData, stachanpair::String, freqkey::String, Re
 
 		Ctemp = ReferenceDict[alt_refdictpath]
 
-		coda_window, timelag, fillbox, _ = energybased_slice_codawindow!(Ctemp, background_vel,
+		coda_window, timelag, fillbox, _ = energybased_slice_codawindow!(Ctemp, InputDict["background_vel"],
 												min_ballistic_twin=InputDict["min_ballistic_twin"], # explicit ballistic time window (see doc)
 												nondim_min_coda_length=InputDict["nondim_min_coda_length"],
 												nondim_max_coda_length=InputDict["nondim_max_coda_length"], #15.0,
