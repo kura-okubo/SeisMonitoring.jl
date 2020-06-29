@@ -87,7 +87,7 @@ function get_stationpairs(StationDict::OrderedDict, cc_normalization::String="cr
                     #netstachan1 and netstachan2 are e.g. "BP.CCRB..BP1" and "BP.EADB..BP2"
                     #parse components and push it into pairdict
                     paircomp= netstachan1[end]*netstachan2[end]
-					ct = get_chanpairtype([netstachan1, netstachan2])
+					ct = get_chanpairtype(string.([netstachan1, netstachan2]))
                     if (paircomp ∈ pairs_option || "all" ∈ pairs_option) && (ct ∈ chanpair_type || "all" ∈ chanpair_type)
                         # pairs_option can be either "XX, YY, ZZ, XY..." or "all"
                         # this pair is added to StationPairDict

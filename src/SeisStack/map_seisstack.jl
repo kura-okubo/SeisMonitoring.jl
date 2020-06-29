@@ -60,7 +60,7 @@ function map_seisstack(fipath, stackmode::String, InputDict::OrderedDict)
         sta1, sta2 = split(stachanpair, "-")
         comp = sta1[end]*sta2[end]
 
-        ct = get_chanpairtype([sta1, sta2])
+        ct = get_chanpairtype(string.([sta1, sta2]))
 
         # skip if component pair is not in the list
         (comp ∉ InputDict["stack_pairs_option"] && "all" ∉ InputDict["stack_pairs_option"]) && continue;
