@@ -213,7 +213,7 @@ function compute_dqq(dvv::Float64, tr_ref::AbstractArray, tr_cur::AbstractArray,
     t_fig = @elapsed if !isempty(figdir)
 
         !ispath(figdir) && mkpath(figdir)
-        
+
         p1 = plot(bg=:white, size=(800, 400), dpi=100, legend=:topright)
 
         if !isempty(coda_window)
@@ -252,6 +252,7 @@ function compute_dqq(dvv::Float64, tr_ref::AbstractArray, tr_cur::AbstractArray,
         xmax = maximum(abs.(t))
         ymax = 0.95*maximum(QcDict_cur["Atα_log10"])
         plot!(xlim=(-xmax, xmax), ylim = (ymax-4, ymax), margin=5Plots.mm)
+        title!("$(figname)")
         xlabel!("Time lag[s]")
         ylabel!("log10(Energy)")
 
