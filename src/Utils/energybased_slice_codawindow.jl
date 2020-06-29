@@ -82,7 +82,7 @@ function energybased_slice_codawindow!(
 
 	timelag = collect(-maxlag:1/fs:maxlag)
 
-	coda_maxlag = nondim_codamaxlag/fm
+	coda_maxlag = min(maxlag, nondim_codamaxlag/fm)
 	mincodalen = nondim_min_coda_length/fm
 	maxcodalen = nondim_max_coda_length/fm
 
