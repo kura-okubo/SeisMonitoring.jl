@@ -54,13 +54,17 @@ function append_reference!(C::CorrData, stachanpair::String, freqkey::String, Re
     if haskey(ReferenceDict, refdictpath)
 		Ctemp = ReferenceDict[refdictpath]
 
-		slice_codawindow!(Ctemp,
-							InputDict["background_vel"],
-							InputDict["coda_Qinv"],
-							InputDict["min_ballistic_twin"],
-							InputDict["max_coda_length"],
-							attenuation_minthreshold=InputDict["slice_minthreshold"],
-							zeropad=InputDict["IsZeropadBeforeStack"])
+		# coda window is computed with reference curve
+		coda_window, timelag, fillbox, _ = energybased_slice_codawindow!(Ctemp, background_vel,
+												min_ballistic_twin=InputDict["min_ballistic_twin"], # explicit ballistic time window (see doc)
+												nondim_min_coda_length=InputDict["nondim_min_coda_length"],
+												nondim_max_coda_length=InputDict["nondim_max_coda_length"], #15.0,
+												nondim_codamaxlag=InputDict["nondim_codamaxlag"],
+												coda_energy_threshold=InputDict["coda_energy_threshold"])
+
+		C.misc["coda_window"] = coda_window
+		C.misc["timelag"] = timelag
+		C.misc["fillbox"] = fillbox
 
 		C.misc["reference"] = Ctemp.corr[:,1]
 
@@ -98,14 +102,17 @@ function append_reference!(C::CorrData, stachanpair::String, freqkey::String, Re
 
 		Ctemp = ReferenceDict[alt_refdictpath]
 
-		slice_codawindow!(Ctemp,
-							InputDict["background_vel"],
-							InputDict["coda_Qinv"],
-							InputDict["min_ballistic_twin"],
-							InputDict["max_coda_length"],
-							attenuation_minthreshold=InputDict["slice_minthreshold"],
-							zeropad=InputDict["IsZeropadBeforeStack"])
+		coda_window, timelag, fillbox, _ = energybased_slice_codawindow!(Ctemp, background_vel,
+												min_ballistic_twin=InputDict["min_ballistic_twin"], # explicit ballistic time window (see doc)
+												nondim_min_coda_length=InputDict["nondim_min_coda_length"],
+												nondim_max_coda_length=InputDict["nondim_max_coda_length"], #15.0,
+												nondim_codamaxlag=InputDict["nondim_codamaxlag"],
+												coda_energy_threshold=InputDict["coda_energy_threshold"])
 
+
+		C.misc["coda_window"] = coda_window
+		C.misc["timelag"] = timelag
+		C.misc["fillbox"] = fillbox
 		C.misc["reference"] = Ctemp.corr[:,1]
 	end
 

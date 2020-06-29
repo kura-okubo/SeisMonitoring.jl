@@ -1,4 +1,5 @@
 using Interpolations, Statistics, Distances, StatsBase, ColorSchemes, JLD2, DataFrames, StatsModels, GLM
+using SeisMonitoring: smooth_withfiltfilt
 
 """
     compute_dvvdqq(ref::AbstractArray, cur::AbstractArray, t::AbstractArray, fc::Float64,
@@ -130,33 +131,70 @@ function compute_dqq(dvv::Float64, tr_ref::AbstractArray, tr_cur::AbstractArray,
 
     #3. Compute dq/q
     # Refernce Qcinv
-    coef_pos_ref = coeftable(QcDict_ref["model_pos"]).cols[1]
-    coef_neg_ref = coeftable(QcDict_ref["model_neg"]).cols[1]
-    Qcinv_pos_ref = (-coef_pos_ref[2])/(pi * fc * log10(exp(1)))
-    Qcinv_neg_ref = (-coef_neg_ref[2])/(pi * fc * log10(exp(1)))
+
+    Qcinv_pos_ref = QcDict_ref["Qcinv_pos"]
+    Qcinv_neg_ref = QcDict_ref["Qcinv_neg"]
 
     # Current Qcinv
-    coef_pos_cur = coeftable(QcDict_cur["model_pos"]).cols[1]
-    coef_neg_cur = coeftable(QcDict_cur["model_neg"]).cols[1]
-    Qcinv_pos_cur = (-coef_pos_cur[2])/(pi * fc * log10(exp(1)))
-    Qcinv_neg_cur = (-coef_neg_cur[2])/(pi * fc * log10(exp(1)))
+    Qcinv_pos_cur = QcDict_cur["Qcinv_pos"]
+    Qcinv_neg_cur = QcDict_cur["Qcinv_neg"]
 
     # Compute dQcinv/Qcinv
     dqq_pos = (Qcinv_pos_cur - Qcinv_pos_ref)/Qcinv_pos_ref
     dqq_neg = (Qcinv_neg_cur - Qcinv_neg_ref)/Qcinv_neg_ref
-    dqq_avg = (dqq_pos + dqq_neg)/2.0
+
+    if !isnan(dqq_pos) && !isnan(dqq_neg)
+        dqq_avg = (dqq_pos + dqq_neg)/2.0
+    elseif !isnan(dqq_pos) && isnan(dqq_neg)
+        dqq_avg = dqq_pos
+    elseif isnan(dqq_pos) && !isnan(dqq_neg)
+        dqq_avg = dqq_neg
+    else
+        dqq_avg = NaN
+    end
 
     #4. Compute ds/s
     # Refernce S
-    S_pos_ref = 10^(coef_pos_ref[1])
-    S_neg_ref = 10^(coef_neg_ref[1])
-    S_pos_cur = 10^(coef_pos_cur[1])
-    S_neg_cur = 10^(coef_neg_cur[1])
+    if !isnan(Qcinv_pos_ref)
+        coef_pos_ref = coeftable(QcDict_ref["model_pos"]).cols[1]
+        S_pos_ref = 10^(coef_pos_ref[1])
+    else
+        S_pos_ref = NaN
+    end
+
+    if !isnan(Qcinv_neg_ref)
+        coef_neg_ref = coeftable(QcDict_ref["model_neg"]).cols[1]
+        S_neg_ref = 10^(coef_neg_ref[1])
+    else
+        S_neg_ref = NaN
+    end
+
+    if !isnan(Qcinv_pos_cur)
+        coef_pos_cur = coeftable(QcDict_cur["model_pos"]).cols[1]
+        S_pos_cur = 10^(coef_pos_cur[1])
+    else
+        S_pos_cur = NaN
+    end
+
+    if !isnan(Qcinv_neg_cur)
+        coef_neg_cur = coeftable(QcDict_cur["model_neg"]).cols[1]
+        S_neg_cur = 10^(coef_neg_cur[1])
+    else
+        S_neg_cur = NaN
+    end
 
     dss_pos = (S_pos_cur - S_pos_ref)/S_pos_ref
     dss_neg = (S_neg_cur - S_neg_ref)/S_neg_ref
-    dss_avg = (dss_pos + dss_neg)/2.0
 
+    if !isnan(dss_pos) && !isnan(dss_neg)
+        dss_avg = (dss_pos + dss_neg)/2.0
+    elseif !isnan(dss_pos) && isnan(dss_neg)
+        dss_avg = dss_pos
+    elseif isnan(dss_pos) && !isnan(dss_neg)
+        dss_avg = dss_neg
+    else
+        dss_avg = NaN
+    end
 
     #5. Store parameter into dictionary
     DqqDict = Dict(
@@ -175,24 +213,29 @@ function compute_dqq(dvv::Float64, tr_ref::AbstractArray, tr_cur::AbstractArray,
     t_fig = @elapsed if !isempty(figdir)
 
         !ispath(figdir) && mkpath(figdir)
-
-        # p1: plot raw trace and envelope function after correction of geometrical spreading
+        
         p1 = plot(bg=:white, size=(800, 400), dpi=100, legend=:topright)
-        yshift_box = [0,0]
-        plot!(fillbox[1:2], yshift_box,
-            fillrange=[yshift_box.-20], fillalpha=0.1, c=:orange,
-            label="", linealpha=0.0)
-        plot!(fillbox[1:2], yshift_box,
-            fillrange=[yshift_box.+0.9], fillalpha=0.1, c=:orange,
-            label="", linealpha=0.0)
 
-        plot!(fillbox[3:4], yshift_box,
-            fillrange=[yshift_box.-20], fillalpha=0.1, c=:orange,
-            label="", linealpha=0.0)
-        plot!(fillbox[3:4], yshift_box,
-            fillrange=[yshift_box.+0.9], fillalpha=0.1, c=:orange,
-            label="", linealpha=0.0)
+        if !isempty(coda_window)
 
+            # p1: plot raw trace and envelope function after correction of geometrical spreading
+            yshift_box = [0,0]
+            plot!(fillbox[1:2], yshift_box,
+                fillrange=[yshift_box.-20], fillalpha=0.1, c=:orange,
+                label="", linealpha=0.0)
+            plot!(fillbox[1:2], yshift_box,
+                fillrange=[yshift_box.+0.9], fillalpha=0.1, c=:orange,
+                label="", linealpha=0.0)
+
+            if length(fillbox) == 4
+                plot!(fillbox[3:4], yshift_box,
+                    fillrange=[yshift_box.-20], fillalpha=0.1, c=:orange,
+                    label="", linealpha=0.0)
+                plot!(fillbox[3:4], yshift_box,
+                    fillrange=[yshift_box.+0.9], fillalpha=0.1, c=:orange,
+                    label="", linealpha=0.0)
+            end
+        end
 
         # plot current abs cc, envelope and smoothed envelope
         # compute absolute (not hilbert envelope) signal energy
@@ -248,7 +291,7 @@ function compute_dqq(dvv::Float64, tr_ref::AbstractArray, tr_cur::AbstractArray,
         xlabel!("Time lag[s]")
         ylabel!("log10(Energy)")
         title!("dqq_avg, dss_avg = $(dqq_avg), $(dss_avg)")
-        p_all = plot(p1, p2, layout = (2, 1), size=(800, 800), margin=5Plots.mm)
+        p_all = plot(p1, p2, layout = (2, 1), size=(800, 800), margin=8Plots.mm)
 
         savefig(p_all, joinpath(figdir, "computedqq_$(figname).png"))
 
@@ -295,57 +338,85 @@ function compute_codaQ(x::AbstractArray, t::AbstractArray, fs::Float64, geometri
     Atα_log10 = log10.(Atα)
 
     # debug:this will be imported from SeisMonitoring
-    function smooth_withfiltfilt(A::AbstractArray; window_len::Int=11, window::Symbol=:rect)
-        w = getfield(DSP.Windows, window)(window_len)
-        A = DSP.filtfilt(w ./ sum(w), A)
-        return A
-    end
+    # function smooth_withfiltfilt(A::AbstractArray; window_len::Int=11, window::Symbol=:rect)
+    #     w = getfield(DSP.Windows, window)(window_len)
+    #     A = DSP.filtfilt(w ./ sum(w), A)
+    #     return A
+    # end
 
     #3. Apply boxcar smoothing
     window_len = trunc(Int, fs*coda_smooth_window)
     Atα_log10_smoothed = smooth_withfiltfilt(Atα_log10, window_len=window_len, window=:rect)
 
     #4. Split cc into positve and negative part
-    tcenter = findfirst(x -> x >= 0.0, t)
-    pos_ind = tcenter:length(t)
-    neg_ind = tcenter:-1:1
-    t_pos   = t[pos_ind]
-    t_neg   = -t[neg_ind]
-    A_pos   = Atα_log10_smoothed[pos_ind]
-    A_neg   = Atα_log10_smoothed[neg_ind]
+    t_pos, t_neg, A_pos, A_neg = split_cc(Atα_log10_smoothed, t)
+
+    # tcenter = findfirst(x -> x >= 0.0, t)
+    # pos_ind = tcenter:length(t)
+    # neg_ind = tcenter:-1:1
+    # t_pos   = t[pos_ind]
+    # t_neg   = -t[neg_ind]
+    # A_pos   = Atα_log10_smoothed[pos_ind]
+    # A_neg   = Atα_log10_smoothed[neg_ind]
 
     # extract coda time window
     coda_pos_ind = findall(x -> x in t[coda_window], t_pos)
     coda_neg_ind = findall(x -> x in t[coda_window], t_neg)
 
     # make weights for linear regression
-    wts_pos = zeros(Float64, length(t_pos))
-    wts_neg = zeros(Float64, length(t_neg))
-    wts_pos[coda_pos_ind] .= 1.0
-    wts_neg[coda_neg_ind] .= 1.0
+    # to consider antisymmetric coda window, process positive and negative side separately
 
-    # linear regression using GLM module
-    data_pos = DataFrame(X=t_pos, Y=A_pos)
-    data_neg = DataFrame(X=t_neg, Y=A_neg)
+    # Positive side
+    if !isempty(coda_pos_ind)
+        wts_pos = zeros(Float64, length(t_pos))
+        wts_pos[coda_pos_ind] .= 1.0
+        # linear regression using GLM module
+        data_pos = DataFrame(X=t_pos, Y=A_pos)
+        model_pos = GLM.lm(@formula(Y ~ X), data_pos, wts=wts_pos)
+        coef_pos = coeftable(model_pos).cols[1]
+        fit_curve_pos = coef_pos[1] .+ coef_pos[2].* t_pos
+        #compute Qc inverse
+        Qcinv_pos = (-coef_pos[2])/(pi * fc * log10(exp(1)))
+    else
+        wts_pos = zeros(Float64, length(t_pos))
+        model_pos = []
+        Qcinv_pos = NaN
+    end
 
-    medel_pos = GLM.lm(@formula(Y ~ X), data_pos, wts=wts_pos)
-    medel_neg = GLM.lm(@formula(Y ~ X), data_neg, wts=wts_neg)
 
-    coef_pos = coeftable(medel_pos).cols[1]
-    coef_neg = coeftable(medel_neg).cols[1]
-    fit_curve_pos = coef_pos[1] .+ coef_pos[2].* t_pos
-    fit_curve_neg = coef_neg[1] .+ coef_neg[2].* t_neg
+    if !isempty(coda_neg_ind)
 
-    #compute Qc inverse
-    Qcinv_pos = (-coef_pos[2])/(pi * fc * log10(exp(1)))
-    Qcinv_neg = (-coef_neg[2])/(pi * fc * log10(exp(1)))
-    Qcinv_avg = (Qcinv_pos+Qcinv_neg)/2
+        wts_neg = zeros(Float64, length(t_neg))
+        wts_neg[coda_neg_ind] .= 1.0
+        # linear regression using GLM module
+        data_neg = DataFrame(X=t_neg, Y=A_neg)
+        model_neg = GLM.lm(@formula(Y ~ X), data_neg, wts=wts_neg)
+        coef_neg = coeftable(model_neg).cols[1]
+        fit_curve_neg = coef_neg[1] .+ coef_neg[2].* t_neg
+        #compute Qc inverse
+        Qcinv_neg = (-coef_neg[2])/(pi * fc * log10(exp(1)))
+
+    else
+        wts_neg = zeros(Float64, length(t_neg))
+        model_neg = []
+        Qcinv_neg = NaN
+    end
+
+    if !isempty(coda_pos_ind) && !isempty(coda_neg_ind)
+        Qcinv_avg = (Qcinv_pos+Qcinv_neg)/2
+    elseif !isempty(coda_pos_ind) && isempty(coda_neg_ind)
+        Qcinv_avg = Qcinv_pos
+    elseif isempty(coda_pos_ind) && !isempty(coda_neg_ind)
+        Qcinv_avg = Qcinv_neg
+    else
+        Qcinv_avg = NaN
+    end
 
     QcDict = Dict("Qcinv_pos" => Qcinv_pos,
                 "Qcinv_neg" => Qcinv_neg,
                 "Qcinv_avg" => Qcinv_avg,
-                "model_pos" => medel_pos,
-                "model_neg" => medel_neg,
+                "model_pos" => model_pos,
+                "model_neg" => model_neg,
                 "t_pos"=>t_pos,
                 "t_neg"=>t_neg,
                 "A_pos"=>A_pos,

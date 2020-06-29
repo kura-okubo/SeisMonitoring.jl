@@ -68,6 +68,8 @@ function seismeasurement!(C::CorrData, InputDict::OrderedDict)
 
         fc = (C.freqmin+C.freqmax)/2.0
 
+		isempty(C.misc["coda_window"]) && return nothing # if coda window is empty, don't perform coda Q measurement
+
 
 		MeasurementDict = compute_dvvdqq(ref, cur, C.misc["timelag"], fc, C.misc["coda_window"],
 		                        geometrical_spreading_α=InputDict["geometricalspreading_α"],

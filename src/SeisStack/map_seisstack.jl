@@ -106,19 +106,20 @@ function map_seisstack(fipath, stackmode::String, InputDict::OrderedDict)
                 # apply median mute
                 cc_medianmute!(C, InputDict["cc_medianmute_α"])
                 (isempty(C.corr) || isempty(C.t)) && continue  # this does not have cc trace within the time window.
-                
+
                 # slice coda window and zero padding before stack if true
-                coda_window, timelag, fillbox = slice_codawindow!(C,
-                                        InputDict["background_vel"],
-                                        InputDict["coda_Qinv"],
-                                        InputDict["min_ballistic_twin"],
-                                        InputDict["max_coda_length"],
-                                        attenuation_minthreshold=InputDict["slice_minthreshold"],
-                                        zeropad=InputDict["IsZeropadBeforeStack"])
-                # append coda_window, timelag and fillbox for plotting
-                C.misc["coda_window"] = coda_window
-                C.misc["timelag"] = timelag
-                C.misc["fillbox"] = fillbox
+                #NOTE: coda window is fixed with reference curve.
+                # coda_window, timelag, fillbox = slice_codawindow!(C,
+                #                         InputDict["background_vel"],
+                #                         InputDict["coda_Qinv"],
+                #                         InputDict["min_ballistic_twin"],
+                #                         InputDict["max_coda_length"],
+                #                         attenuation_minthreshold=InputDict["slice_minthreshold"],
+                #                         zeropad=InputDict["IsZeropadBeforeStack"])
+                # # append coda_window, timelag and fillbox for plotting
+                # C.misc["coda_window"] = coda_window
+                # C.misc["timelag"] = timelag
+                # C.misc["fillbox"] = fillbox
 
                 # append reference curve if needed
                 IsReadReference && append_reference!(C, stachanpair, freqkey, ReferenceDict, InputDict)

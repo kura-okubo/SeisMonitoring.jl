@@ -31,6 +31,7 @@ include("SeisDownload/seisdownload.jl")
 include("SeisRemoveEQ/seisremoveeq.jl")
 include("SeisXcorrelation/seisxcorrelation.jl")
 include("SeisStack/seisstack.jl")
+include("SeisStack/sm_stack.jl") # used both map_seisstack and assemble_corrdata for prestacking
 include("SMGUI/makeinput_gui.jl")
 include("Utils/init_project.jl")
 include("Utils/run_job.jl")
@@ -45,6 +46,7 @@ include("Utils/remove_nanandzerocol.jl") # used at seisstack
 include("Utils/slice_codawindow.jl") # used at seisstack
 include("Utils/convert_tmpfile.jl") # used at seisdownload and seisremoveeq
 include("Utils/get_noisedatafraction.jl") # used at seisdownload, seisremoveeq and seisxcorrelation
+include("Utils/split_cc.jl") # used at slice_coda_window, seismeasurement
 
 include("Defaultproject/set_default_inputdict.jl") # set global default InputDict
 

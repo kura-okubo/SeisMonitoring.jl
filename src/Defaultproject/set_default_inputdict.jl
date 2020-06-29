@@ -80,11 +80,14 @@ InputDict=OrderedDict(
         "dist_threshold"        => ("1.0", Float64, "Threshold of distance used for selective stacking."),
         "distance_type"         => ("CorrDist", String, "Advanced: Distance type used in selective stacking. See https://github.com/JuliaStats/Distances.jl for available types."),
         "IsZeropadBeforeStack"  => ("false", Bool, "Zero padding outside of coda window using tukey window before stacking."),
+        #Coda_slice
         "background_vel"        => ("2000.0", Float64, "[m/s] Approximation of background wave velocity, just used for coda slicing."),
-        "coda_Qinv"             => ("0.01", Float64, "Approximation of inverse coda_Q, Qc^{-1}, just used for coda slicing."),
-        "min_ballistic_twin"    => ("5.0", Float64, "[s] Explicit ballistic time window to remove coherence around zero timelag. This is aimed to remove it mainly for auto-correlation."),
-        "max_coda_length"       => ("60.0", Float64, "[s] Maximum coda window length."),
-        "slice_minthreshold"    => ("0.1", Float64, "Advanced: Threshold for attenuation decay."),
+        "min_ballistic_twin"    => ("1.0", Float64, "[s] Explicit ballistic time window to remove coherence around zero timelag. This is aimed to remove it mainly for auto-correlation."),
+        "nondim_min_coda_length"=> ("1.0", Float64, "nondimensional minimum coda window length"),
+        "nondim_max_coda_length"=> ("30.0", Float64, "nondimensional maximum coda window length"),
+        "nondim_codamaxlag"     => ("60.0", Float64, "coda max lag where kinetic energy is evaluated."),
+        "coda_energy_threshold" => ("0.95", Float64, "Advanced: Threshold for attenuation decay."),
+
         "IsAlternateRefChannel" => ("true", Bool, "Advanced: Allow for using alternative station channel for reference. (e.g. BP.LCCB..BP1-BP.MMNB..BP1 is used as reference for BP.LCCB..SP1-BP.MMNB..SP1)"),
 
         #SeisMeasurement
