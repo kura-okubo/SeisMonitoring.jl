@@ -43,7 +43,8 @@ get stations pairs to compute cross-correlations.
 # Return
 - `StationPairDict::Dict` Station pair dictionary containing all station and channel pairs to be computed.
 """
-function get_stationpairs(StationDict::OrderedDict, cc_normalization::String="cross-correlation", pairs_option::Array{SubString{String},1}=["all"])
+function get_stationpairs(StationDict::OrderedDict, cc_normalization::String="cross-correlation",
+	pairs_option::Array{SubString{String},1}=["all"], chanpair_type::Array{SubString{String},1}=["all"])
 
     stations = collect(keys(StationDict))
     Nstation = length(stations)
@@ -86,8 +87,8 @@ function get_stationpairs(StationDict::OrderedDict, cc_normalization::String="cr
                     #netstachan1 and netstachan2 are e.g. "BP.CCRB..BP1" and "BP.EADB..BP2"
                     #parse components and push it into pairdict
                     paircomp= netstachan1[end]*netstachan2[end]
-
-                    if paircomp ∈ pairs_option || "all" ∈ pairs_option
+					ct = get_chanpairtype([netstachan1, netstachan2])
+                    if (paircomp ∈ pairs_option || "all" ∈ pairs_option) && (ct ∈ chanpair_type || "all" ∈ chanpair_type)
                         # pairs_option can be either "XX, YY, ZZ, XY..." or "all"
                         # this pair is added to StationPairDict
                         push!(StationPairDict[pairkey], join([netstachan1, netstachan2], "-"))

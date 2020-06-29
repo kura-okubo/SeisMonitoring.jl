@@ -60,8 +60,12 @@ function map_seisstack(fipath, stackmode::String, InputDict::OrderedDict)
         sta1, sta2 = split(stachanpair, "-")
         comp = sta1[end]*sta2[end]
 
+        ct = get_chanpairtype([sta1, sta2])
+
         # skip if component pair is not in the list
         (comp ∉ InputDict["stack_pairs_option"] && "all" ∉ InputDict["stack_pairs_option"]) && continue;
+        # skip if chanpair type is not in the list
+        (ct ∉ InputDict["chanpair_type"] && "all" ∉ InputDict["chanpair_type"]) && continue;
 
         # stack with respect to frequency band
         Nfreqband = length(InputDict["freqency_band"]) - 1

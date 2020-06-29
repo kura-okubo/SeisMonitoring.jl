@@ -56,6 +56,7 @@ InputDict=OrderedDict(
         "cc_normalization"      => ("deconvolution", String, "none, coherence or deconvolution."),
         "corr_type"             => ("CC", String, "Type of correlation: `CC` (standard cross-correlation) or `PCC` (phase cross-correlation). See also doc in SeisNoise.jl"),
         "pairs_option"          => ("11, 22, 33", Array{String, 1}, "\"all\" or list of component pairs. e.g. XX, YY, ZZ"),
+        "chanpair_type"         => ("all", Array{String, 1}, "\"all\" or list of channel pair type. e.g. auto-achan, cross-achan, cross-xchan"),
         "data_contents_fraction"=> ("0.8", Float64, "Advanced: discard cross-correlation if data fraction within cc_time_unit is less that this value."),
         "IsOnebit"              => ("false", Bool, "Apply One-bit normalization."),
         "smoothing_windowlength"=> ("7", Int64, "Advanced: number of points for boxcar smoothing window on coherence and deconvolution."),

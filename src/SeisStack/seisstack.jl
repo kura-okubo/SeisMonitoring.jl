@@ -36,6 +36,7 @@ function seisstack(InputDict_origin::OrderedDict)
     println("Compute_reference        = $(InputDict["compute_reference"])")
     println("Compute_shorttimestack   = $(InputDict["compute_shorttimestack"])")
     println("Station pairs option     = $(InputDict["stack_pairs_option"])")
+    println("Stack chanpair type      = $(InputDict["chanpair_type"])")
     println("***************************************\n")
 
     # get all cc files
