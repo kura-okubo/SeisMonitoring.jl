@@ -87,7 +87,7 @@ InputDict=OrderedDict(
         "nondim_min_coda_length"=> ("1.0", Float64, "nondimensional minimum coda window length"),
         "nondim_max_coda_length"=> ("30.0", Float64, "nondimensional maximum coda window length"),
         "nondim_codamaxlag"     => ("60.0", Float64, "coda max lag where kinetic energy is evaluated."),
-        "coda_energy_threshold" => ("0.95", Float64, "Advanced: Threshold for attenuation decay."),
+        "coda_energy_threshold" => ("-1.0", Float64, "Advanced: Threshold for attenuation decay."),
 
         "IsAlternateRefChannel" => ("true", Bool, "Advanced: Allow for using alternative station channel for reference. (e.g. BP.LCCB..BP1-BP.MMNB..BP1 is used as reference for BP.LCCB..SP1-BP.MMNB..SP1)"),
 
