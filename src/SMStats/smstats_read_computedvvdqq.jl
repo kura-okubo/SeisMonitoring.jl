@@ -50,7 +50,8 @@ function map_get_monitoringdf_comnputedvvdqq(path::String, starttime::DateTime, 
     df_path = DataFrame(date=DateTime[], stationpair=String[], networks=String[], components=String[], freqband=String[],
                         cc_dvv=Float64[], dvv=Float64[],
                         dqq_pos=Float64[], dqq_neg=Float64[], dqq_avg = Float64[],
-                        dss_pos=Float64[], dss_neg=Float64[], dss_avg = Float64[])
+                        dss_pos=Float64[], dss_neg=Float64[], dss_avg = Float64[],
+                        Qcinv_pos_ref=Float64[],Qcinv_neg_ref=Float64[],Qcinv_pos_cur=Float64[],Qcinv_neg_cur=Float64[])
 
     for stachankey in keys(fi)
         println("start reading $(stachankey)")
