@@ -258,35 +258,52 @@ function compute_dqq(dvv::Float64, tr_ref::AbstractArray, tr_cur::AbstractArray,
 
         # p2: plot scaled fitting linear curve
         p2 = plot(bg=:white, size=(800, 400), dpi=100)
-        yshift_box = [0,0]
-        plot!(fillbox[1:2], yshift_box,
-            fillrange=[yshift_box.-20], fillalpha=0.1, c=:orange,
-            label="", linealpha=0.0)
-        plot!(fillbox[1:2], yshift_box,
-            fillrange=[yshift_box.+0.9], fillalpha=0.1, c=:orange,
-            label="", linealpha=0.0)
 
-        plot!(fillbox[3:4], yshift_box,
-            fillrange=[yshift_box.-20], fillalpha=0.1, c=:orange,
-            label="", linealpha=0.0)
-        plot!(fillbox[3:4], yshift_box,
-            fillrange=[yshift_box.+0.9], fillalpha=0.1, c=:orange,
-            label="", linealpha=0.0)
+        if !isempty(coda_window)
+
+            yshift_box = [0,0]
+            plot!(fillbox[1:2], yshift_box,
+                fillrange=[yshift_box.-20], fillalpha=0.1, c=:orange,
+                label="", linealpha=0.0)
+            plot!(fillbox[1:2], yshift_box,
+                fillrange=[yshift_box.+0.9], fillalpha=0.1, c=:orange,
+                label="", linealpha=0.0)
+
+            if length(fillbox) == 4
+                plot!(fillbox[3:4], yshift_box,
+                    fillrange=[yshift_box.-20], fillalpha=0.1, c=:orange,
+                    label="", linealpha=0.0)
+                plot!(fillbox[3:4], yshift_box,
+                    fillrange=[yshift_box.+0.9], fillalpha=0.1, c=:orange,
+                    label="", linealpha=0.0)
+            end
+        end
+
 
         # plot linear fitting curve
-        coef_pos_ref = coeftable(QcDict_ref["model_pos"]).cols[1]
-        coef_neg_ref = coeftable(QcDict_ref["model_neg"]).cols[1]
-        coef_pos_cur = coeftable(QcDict_cur["model_pos"]).cols[1]
-        coef_neg_cur = coeftable(QcDict_cur["model_neg"]).cols[1]
+        if !isempty(QcDict_ref["model_pos"])
+            coef_pos_ref = coeftable(QcDict_ref["model_pos"]).cols[1]
+            fit_curve_pos_ref = coef_pos_ref[2].* QcDict_ref["t_pos"]
+            plot!(QcDict_ref["t_pos"], fit_curve_pos_ref, label="reference", color=:black)
+        end
 
-        # scaled fit curve
-        fit_curve_pos_ref = coef_pos_ref[2].* QcDict_ref["t_pos"]
-        fit_curve_neg_ref = coef_neg_ref[2].* QcDict_ref["t_neg"]
-        fit_curve_pos_cur = coef_pos_cur[2].* QcDict_cur["t_pos"]
-        fit_curve_neg_cur = coef_neg_cur[2].* QcDict_cur["t_neg"]
+        if !isempty(QcDict_ref["model_neg"])
+            coef_neg_ref = coeftable(QcDict_ref["model_neg"]).cols[1]
+            fit_curve_neg_ref = coef_neg_ref[2].* QcDict_ref["t_neg"]
+            plot!(QcDict_ref["t_neg"], fit_curve_neg_ref, label="reference", color=:black)
+        end
 
-        plot!(vcat(-QcDict_ref["t_neg"], QcDict_ref["t_pos"]), vcat(fit_curve_neg_ref, fit_curve_pos_ref) , label="reference", color=:black)
-        plot!(vcat(-QcDict_cur["t_neg"], QcDict_cur["t_pos"]), vcat(fit_curve_neg_cur, fit_curve_pos_cur) , label="current", color=:red)
+        if !isempty(QcDict_cur["model_pos"])
+            coef_pos_cur = coeftable(QcDict_cur["model_pos"]).cols[1]
+            fit_curve_pos_cur = coef_pos_cur[2].* QcDict_cur["t_pos"]
+            plot!(QcDict_cur["t_pos"], fit_curve_pos_cur, label="current", color=:red)
+        end
+
+        if !isempty(QcDict_cur["model_neg"])
+            coef_neg_cur = coeftable(QcDict_cur["model_neg"]).cols[1]
+            fit_curve_neg_cur = coef_neg_cur[2].* QcDict_cur["t_neg"]
+            plot!(QcDict_cur["t_neg"], fit_curve_neg_cur, label="current", color=:red)
+        end
 
         plot!(xlim=(-xmax, xmax), ylim = (-1.0, 0.5))
         xlabel!("Time lag[s]")
