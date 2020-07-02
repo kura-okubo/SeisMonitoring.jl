@@ -56,7 +56,7 @@ function compute_frequency_decomposition(
 
       for traceid = 1:N
          tr = @view C_broadband.corr[:, traceid]
-         W, sj, freqs, coi = SeisDvv.cwt(tr,dt,C.freqmin,C.freqmax,dj = dj)
+         W, sj, freqs, coi = SeisDvv.cwt(tr,dt,C_broadband.freqmin,C_broadband.freqmax,dj = dj)
          for (ifb, fb) in enumerate(freqband)
             freqmin, freqmax = fb
             # find all index within frequency band
