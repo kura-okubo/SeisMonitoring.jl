@@ -287,7 +287,7 @@ function compute_dqq(dvv::Float64, tr_ref::AbstractArray, tr_cur::AbstractArray,
             plot!(QcDict_ref["t_pos"], fit_curve_pos_ref, label="reference", color=:black)
         end
 
-        if !isnan(QcDict_ref["Qcinv_meg"])
+        if !isnan(QcDict_ref["Qcinv_neg"])
             coef_neg_ref = coeftable(QcDict_ref["model_neg"]).cols[1]
             fit_curve_neg_ref = coef_neg_ref[2].* QcDict_ref["t_neg"]
             plot!(QcDict_ref["t_neg"], fit_curve_neg_ref, label="reference", color=:black)
@@ -299,7 +299,7 @@ function compute_dqq(dvv::Float64, tr_ref::AbstractArray, tr_cur::AbstractArray,
             plot!(QcDict_cur["t_pos"], fit_curve_pos_cur, label="current", color=:red)
         end
 
-        if !isnan(QcDict_cur["Qcinv_meg"])
+        if !isnan(QcDict_cur["Qcinv_neg"])
             coef_neg_cur = coeftable(QcDict_cur["model_neg"]).cols[1]
             fit_curve_neg_cur = coef_neg_cur[2].* QcDict_cur["t_neg"]
             plot!(QcDict_cur["t_neg"], fit_curve_neg_cur, label="current", color=:red)
