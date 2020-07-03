@@ -281,25 +281,25 @@ function compute_dqq(dvv::Float64, tr_ref::AbstractArray, tr_cur::AbstractArray,
 
 
         # plot linear fitting curve
-        if !isempty(QcDict_ref["model_pos"])
+        if !isnan(QcDict_ref["Qcinv_pos"])
             coef_pos_ref = coeftable(QcDict_ref["model_pos"]).cols[1]
             fit_curve_pos_ref = coef_pos_ref[2].* QcDict_ref["t_pos"]
             plot!(QcDict_ref["t_pos"], fit_curve_pos_ref, label="reference", color=:black)
         end
 
-        if !isempty(QcDict_ref["model_neg"])
+        if !isnan(QcDict_ref["Qcinv_meg"])
             coef_neg_ref = coeftable(QcDict_ref["model_neg"]).cols[1]
             fit_curve_neg_ref = coef_neg_ref[2].* QcDict_ref["t_neg"]
             plot!(QcDict_ref["t_neg"], fit_curve_neg_ref, label="reference", color=:black)
         end
 
-        if !isempty(QcDict_cur["model_pos"])
+        if !isnan(QcDict_cur["Qcinv_pos"])
             coef_pos_cur = coeftable(QcDict_cur["model_pos"]).cols[1]
             fit_curve_pos_cur = coef_pos_cur[2].* QcDict_cur["t_pos"]
             plot!(QcDict_cur["t_pos"], fit_curve_pos_cur, label="current", color=:red)
         end
 
-        if !isempty(QcDict_cur["model_neg"])
+        if !isnan(QcDict_cur["Qcinv_meg"])
             coef_neg_cur = coeftable(QcDict_cur["model_neg"]).cols[1]
             fit_curve_neg_cur = coef_neg_cur[2].* QcDict_cur["t_neg"]
             plot!(QcDict_cur["t_neg"], fit_curve_neg_cur, label="current", color=:red)
