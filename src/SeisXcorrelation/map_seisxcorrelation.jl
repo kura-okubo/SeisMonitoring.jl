@@ -30,7 +30,8 @@ function map_seisxcorrelation(key_station_pair::String, StationPairDict::Ordered
     ispath(fopath) && rm(fopath)
     # fo = jldopen(fopath, "w")
     # DEBUG: random save error when file size is large
-    fo = jldopen(fopath, true, true, true, IOStream)
+    # fo = jldopen(fopath, true, true, true, IOStream)
+    fo = jldopen(fopath, "w")
 
     starts  = InputDict["starts"]
     ends    = InputDict["ends"]

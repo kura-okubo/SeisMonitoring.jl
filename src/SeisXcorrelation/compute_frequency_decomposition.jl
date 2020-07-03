@@ -54,16 +54,20 @@ function compute_frequency_decomposition(
       # 3D corr array to temporally store the all traces
       tr_freq_reconstructed = zeros(Float32, T, N, Nfreqband)
 
+      global_freqmin = freqency_band[1]
+      global_freqmax = freqency_band[end]
+
       for traceid = 1:N
          tr = @view C_broadband.corr[:, traceid]
-         W, sj, freqs, coi = SeisDvv.cwt(tr,dt,C_broadband.freqmin,C_broadband.freqmax,dj = dj)
+         W, sj, freqs, coi = SeisDvv.cwt(tr,dt,global_freqmin,global_freqmax,dj = dj)
          for (ifb, fb) in enumerate(freqband)
             freqmin, freqmax = fb
             # find all index within frequency band
             inds = findall(f -> freqmin <= f <= freqmax, freqs)
             for ind in inds
                inv_W = SeisDvv.icwt(W[:, ind], sj[ind], dt, dj = dj)
-               any(isnan.(inv_W)) && (println("nan found in icwt."); println(inv_W))
+               # any(isnan.(inv_W)) && (println("nan found in icwt."); println(inv_W))
+               any(isnan.(inv_W)) && (println("nan found in icwt."))
                #inv_W is reconstructed trace within freqband in time domain
                tr_freq_reconstructed[:, traceid, ifb] = inv_W
             end
