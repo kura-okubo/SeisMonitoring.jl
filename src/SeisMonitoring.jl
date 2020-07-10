@@ -40,6 +40,7 @@ include("Utils/parse_inputdict.jl") #Utils, SMGUI
 include("Utils/get_parameter.jl")
 include("Utils/set_parameter.jl")
 include("Utils/make_slurmbatch.jl")
+include("Utils/make_requeststation.jl")
 
 # shared lib
 include("Utils/remove_nanandzerocol.jl") # used at seisstack
