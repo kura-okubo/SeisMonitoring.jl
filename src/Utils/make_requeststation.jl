@@ -112,6 +112,8 @@ function make_requeststation_fromIRISgmap(fipath::String; locchan::Dict=Dict(), 
         end
     end
 
+    return fopath
+
 end
 
 

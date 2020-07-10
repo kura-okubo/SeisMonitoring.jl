@@ -11,6 +11,7 @@ export
     run_job,
     makeinput_gui,
     make_slurmbatch,
+    make_requeststation_fromIRISgmap,
     get_parameter,
     set_parameter,
 
