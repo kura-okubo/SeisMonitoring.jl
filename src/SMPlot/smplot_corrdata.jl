@@ -1,4 +1,4 @@
-using SeisMonitoring: assemble_corrdata
+using SeisMonitoring: assemble_corrdata, cc_medianmute!
 """
     smplot_corrdata(filename::String, fodir::String, starttime::Union{String, DateTime}, endtime::Union{String, DateTime};
                     channelpair::AbstractArray=["all"], dpi::Int=100)
@@ -9,7 +9,8 @@ Plot CorrData within the requested start and endtime.
     The `linear` stacked trace is shown at bottom panel. Please use smplot_stackcc() to plot the stacked data by SeisMonitoring.seisstack().
 """
 function smplot_corrdata(filename::String, fodir::String, starttime::Union{String, DateTime}, endtime::Union{String, DateTime};
-                channelpair::AbstractArray=["all"], dpi::Int=100, MAX_MEM_USE::AbstractFloat=4.0)
+                channelpair::AbstractArray=["all"], dpi::Int=100, plotmaxlag::Float64=0,
+                cc_medianmute_α::Float64=2.0, MAX_MEM_USE::AbstractFloat=4.0)
 
     ispath(filename) ? fi = jldopen(filename, "r") : error("$(filename) not found.")
     typeof(starttime) == String && (starttime = DateTime(starttime))
@@ -55,13 +56,16 @@ function smplot_corrdata(filename::String, fodir::String, starttime::Union{Strin
                                                     MAX_MEM_USE=MAX_MEM_USE, min_cc_datafraction=0.0)
 
                 # C1 = C_all[freqkey]
+                cc_medianmute!(C1, cc_medianmute_α)
 
+                # modify plot maxlag
                 if isempty(C1.t)
                     @warn("empty corrdata. skip"); continue
                 end
                 tkey = join([starttime, endtime], "--")
                 SeisNoise.corrplot(C1)
                 p = Plots.plot!(title = "$(stachankey): $(tkey): $(freqkey) Hz", titlefontsize=8, dpi=dpi)
+                !iszero(plotmaxlag) && xlims!(-plotmaxlag, plotmaxlag)
                 @show figname = joinpath(fodir, join([stachankey, tkey, freqkey], "__"))*".png"
                 Plots.savefig(p, figname)
             end
