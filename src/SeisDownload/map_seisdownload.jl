@@ -77,8 +77,8 @@ function map_seisdownload_NOISE(startid, InputDict::OrderedDict; testdownload::B
 			end
 
 			if Stemp == 1
-				# error this entire request
-				return 1
+				# error this request str
+				continue
 			end
 
 			Isdataflag = false
