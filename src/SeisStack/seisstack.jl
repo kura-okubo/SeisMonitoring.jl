@@ -50,8 +50,8 @@ function seisstack(InputDict_origin::OrderedDict)
         !ispath(joinpath(InputDict["fodir"], "reference")) && mkdir(joinpath(InputDict["fodir"], "reference"))
 
         t_reference = @elapsed bt_time_reference = pmap(x->map_seisstack(x, "reference", InputDict), cc_paths)
-        # mean_assemble_cc_reference  = mean((x->x[1]).(bt_time_reference))
-        # mean_stack_reference        = mean((x->x[2]).(bt_time_reference))
+        mean_assemble_cc_reference  = mean((x->x[1]).(bt_time_reference))
+        mean_stack_reference        = mean((x->x[2]).(bt_time_reference))
     end
     #2. compute shorttime stack
     if InputDict["compute_shorttimestack"]

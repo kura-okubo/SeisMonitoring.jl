@@ -69,7 +69,7 @@ function map_get_monitoringdf_comnputedvvdqq(path::String, starttime::DateTime, 
                     corrkey = joinpath(stachankey, timekey, freqkey)
                     C = fi[corrkey]
                     if !haskey(C.misc, "dvv") && !haskey(C.misc, "dqq_avg")
-                        @warn("$(corrkey) does not have dvv nor dqq_avg. Please check measurement_method in the input file.")
+                        # @warn("$(corrkey) does not have dvv nor dqq_avg. Please check measurement_method in the input file.")
                         continue;
                     end
 

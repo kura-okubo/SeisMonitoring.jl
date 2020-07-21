@@ -140,8 +140,11 @@ function log10_slice_codawindow!(
 	# x_neg_zeropad[coda_maxlag_neg_id:end] .= 0.0
 
 	# compute maximum and find threshold
-	max_A_pos = maximum(x_pos)
-	max_A_neg = maximum(x_neg)
+	@show max_A_pos = maximum(x_pos)
+	@show max_A_neg = maximum(x_neg)
+
+	@show minimum(x_pos)
+	@show minimum(x_neg)
 
 	coda_energy_threshold + max_A_pos
 	coda_energy_threshold + max_A_neg
@@ -185,7 +188,14 @@ function log10_slice_codawindow!(
 
 	#evaluate coda window and return values
 	if isempty(coda_window)
-		@warn("Coda window is null. Please check parameters.")
+		# @warn("Coda window is null. Please check parameters.")
+		#DEBUG:
+		println("-----------------------")
+		println(fm)
+		println((max_coda_neg, coda_window_len_neg, coda_window_len_pos, max_coda_pos))
+		println((min_coda_pos, coda_window_len_neg, coda_window_len_pos, max_coda_pos))
+		println("-----------------------")
+
 		return ([], [], [], CodaSliceDict)
 	end
 
