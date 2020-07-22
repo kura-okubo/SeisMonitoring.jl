@@ -67,8 +67,10 @@ function map_seisxcorrelation(key_station_pair::String, StationPairDict::Ordered
             R1 = RawData(S1, InputDict["cc_len"], InputDict["cc_step"])
             #4. detrend, taper and band pass before computing fft and cross-correlation
             # clean_up!(R1, InputDict["freqency_band"][1], InputDict["freqency_band"][end]) # NOTE: Not applying bandpass!() here for the validation of wavelet filter
-            detrend!(R1.x)
-            taper!(R1.x,R1.fs)
+            detrend!(R1)
+            demean!(R1)
+            taper!(R1)
+            # taper!(R1.x,R1.fs)
 
             #5. apply one-bit normalization if true
             InputDict["IsOnebit"] && onebit!(R1)
