@@ -63,10 +63,12 @@ function assemble_seisdata(
     isempty(S1) && return nothing
 
     # flatten data
-    S1 = merge(S1)
+    # S1 = merge(S1) # NOTE: to save memory use, replaced to merge!() to avoid deepcopy
+    merge!(S1)
     # println(S1.t)
     # ungap at missing few sampling point due to rounding samplingcase
-    S1 = ungap(S1)
+    # S1 = ungap(S1)
+    ungap!(S1)
     # reconvert to seischannel
 
     #+++Deprecated the notes below; now using get_noisedatafraction to find noise data contents.+++#

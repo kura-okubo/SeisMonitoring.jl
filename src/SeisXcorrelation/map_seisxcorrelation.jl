@@ -94,14 +94,14 @@ function map_seisxcorrelation(key_station_pair::String, StationPairDict::Ordered
             if haskey(FFTDict, sta1)
                 FFT1 = FFTDict[sta1]
             else
-                println("$(sta1) at $(starttime) is missing the data. skipping cc.")
+                # println("$(sta1) at $(starttime) is missing the data. skipping cc.")
                 continue
             end
 
             if haskey(FFTDict, sta2)
                 FFT2 = FFTDict[sta2]
             else
-                println("$(sta2) at $(starttime) is missing the data. skipping cc.")
+                # println("$(sta2) at $(starttime) is missing the data. skipping cc.")
                 continue
             end
 
