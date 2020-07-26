@@ -128,6 +128,26 @@ function map_seisstack(fipath, stackmode::String, InputDict::OrderedDict)
                 # append reference curve if needed
                 IsReadReference && append_reference!(C, stachanpair, freqkey, ReferenceDict, InputDict)
 
+                # compute coda window when stackmode is "reference"
+                if stackmode=="reference"
+                    figdir = InputDict["codaslice_debugplot"] ? joinpath(abspath(InputDict["project_outputdir"]), "plots/stack") : ""
+
+                    coda_window, timelag, fillbox, _ = mwcc_slice_codawindow(
+                                                    C,InputDict["background_vel"],
+                                                    InputDict["min_ballistic_twin"],
+                                                    InputDict["max_coda_length"],
+                                                    mwcc_threshold=InputDict["mwcc_threshold"],
+                                                    coda_init_factor=2.0, # fixed for the moment
+                                                    mwcc_len_α=InputDict["mwcc_len_α"],
+                                                    debugplot=InputDict["codaslice_debugplot"],
+                                                    foname=C.name*"_$(freqkey)_codaslicedebug",
+                                                    fodir=figdir)
+
+            		C.misc["coda_window"] = coda_window
+            		C.misc["timelag"] = timelag
+            		C.misc["fillbox"] = fillbox
+                end
+
                 t_stack += @elapsed sm_stack!(C, stackmode, InputDict) # stack with predefined stack method
 
                 (isempty(C.corr) || isempty(C.t)) && continue  # this does not have cc trace within the time window.

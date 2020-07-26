@@ -37,7 +37,7 @@ InputDict=OrderedDict(
         "IsWhitening"           => ("false", Bool, "Apply Spectral whitening."),
         "freqmin_whiten"        => ("0.1", Float64, "Minimum cutoff frequency for spectral whitening"),
         "freqmax_whiten"        => ("1.0", Float64, "Maximum cutoff frequency for spectral whitening"),
-        "Append_alltraces"      => ("true", Bool, "Append kurtosis and stalta traces to SeisChannel (this increases data size)"),
+        "Append_alltraces"      => ("false", Bool, "Append kurtosis and stalta traces to SeisChannel (this increases data size)"),
         "shorttime_window"      => ("180", Float64, "Short-time window used to compute kurtosis and sta/lta"),
         "longtime_window"       => ("86400", Float64, "Long-time window used to compute sta/lta"),
         "timewindow_overlap"    => ("60", Float64, "Short-time window overlap to compute kurtosis and sta/lta"),
@@ -84,10 +84,14 @@ InputDict=OrderedDict(
         #Coda_slice
         "background_vel"        => ("2000.0", Float64, "[m/s] Approximation of background wave velocity, just used for coda slicing."),
         "min_ballistic_twin"    => ("1.0", Float64, "[s] Explicit ballistic time window to remove coherence around zero timelag. This is aimed to remove it mainly for auto-correlation."),
-        "nondim_min_coda_length"=> ("1.0", Float64, "nondimensional minimum coda window length"),
-        "nondim_max_coda_length"=> ("30.0", Float64, "nondimensional maximum coda window length"),
-        "nondim_codamaxlag"     => ("60.0", Float64, "coda max lag where kinetic energy is evaluated."),
-        "coda_energy_threshold" => ("-1.0", Float64, "Advanced: Threshold for attenuation decay."),
+        "max_coda_length"       => ("60.0", Float64, "[s] Maximum coda window length."),
+        "mwcc_threshold"        => ("0.5", Float64, " mwcc slice coda threshold."),
+        "mwcc_len_α"            => ("3.0", Float64, "moving window size factor (size = (mwcc_len_α/fm)*fs [point])."),
+        "codaslice_debugplot"    => ("false", Bool, "If plot debug figures for coda slicing."),
+
+        "nondim_max_coda_length"=> ("30.0", Float64, "Deprecated: nondimensional maximum coda window length"),
+        "nondim_codamaxlag"     => ("60.0", Float64, "Deprecated: coda max lag where kinetic energy is evaluated."),
+        "coda_energy_threshold" => ("-1.0", Float64, "Deprecated: Advanced: Threshold for attenuation decay."),
 
         "IsAlternateRefChannel" => ("true", Bool, "Advanced: Allow for using alternative station channel for reference. (e.g. BP.LCCB..BP1-BP.MMNB..BP1 is used as reference for BP.LCCB..SP1-BP.MMNB..SP1)"),
 

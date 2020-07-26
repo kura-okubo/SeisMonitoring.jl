@@ -38,6 +38,7 @@ function smplot_pdfdvv(statsfile::String, fodir::String, starttime::DateTime, en
 
     for freqband in freqbands
 
+        println("$(freqband) start plotting.")
         # filter with freqband
         df_filtered = filter(:freqband => x -> (x == freqband) , df)
 
@@ -78,7 +79,7 @@ function smplot_pdfdvv(statsfile::String, fodir::String, starttime::DateTime, en
 
             push!(DvvDict["T"], u2d(mtbin))
 
-            global df_binned = filter(:date => x -> (stbin <= x < etbin) , df_filtered)
+            df_binned = filter(:date => x -> (stbin <= x < etbin) , df_filtered)
             # println(df_binned)
             dvv_all = df_binned.dvv
 
@@ -96,13 +97,14 @@ function smplot_pdfdvv(statsfile::String, fodir::String, starttime::DateTime, en
             #compute pdf of dvv
              h = StatsBase.fit(Histogram, dvv_all, dvvbins)
              hn = normalize(h, mode=:probability)
-             println(hn.weights)
+             # println(hn.weights)
              # append to DvvDict
              push!(DvvDict["dvv_mean"], Statistics.mean(dvv_all))
              DvvDict["pdfdvv"] = hcat(DvvDict["pdfdvv"], hn.weights)
              push!(DvvDict["count_pairs"], paircount)
         end
 
+        println("plotting pdfdvv.")
         # plot pdf-mean of dvv and bar count.
         plot(layout = grid(2, 2, heights=[0.6, 0.4], widths=[0.9, 0.1]), link=:x)
 

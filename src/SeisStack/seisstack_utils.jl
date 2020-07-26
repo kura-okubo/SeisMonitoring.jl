@@ -57,12 +57,12 @@ function append_reference!(C::CorrData, stachanpair::String, freqkey::String, Re
 		Ctemp = ReferenceDict[refdictpath]
 
 		# coda window is computed with reference curve
-		coda_window, timelag, fillbox, _ = energybased_slice_codawindow!(Ctemp, InputDict["background_vel"],
-												min_ballistic_twin=InputDict["min_ballistic_twin"], # explicit ballistic time window (see doc)
-												nondim_min_coda_length=InputDict["nondim_min_coda_length"],
-												nondim_max_coda_length=InputDict["nondim_max_coda_length"], #15.0,
-												nondim_codamaxlag=InputDict["nondim_codamaxlag"],
-												coda_energy_threshold=InputDict["coda_energy_threshold"])
+		# coda_window, timelag, fillbox, _ = energybased_slice_codawindow!(Ctemp, InputDict["background_vel"],
+		# 										min_ballistic_twin=InputDict["min_ballistic_twin"], # explicit ballistic time window (see doc)
+		# 										nondim_min_coda_length=InputDict["nondim_min_coda_length"],
+		# 										nondim_max_coda_length=InputDict["nondim_max_coda_length"], #15.0,
+		# 										nondim_codamaxlag=InputDict["nondim_codamaxlag"],
+		# 										coda_energy_threshold=InputDict["coda_energy_threshold"])
 
 		# coda_window, timelag, fillbox, _ = log10_slice_codawindow!(Ctemp, InputDict["background_vel"],
 		# 										min_ballistic_twin=InputDict["min_ballistic_twin"], # explicit ballistic time window (see doc)
@@ -72,9 +72,9 @@ function append_reference!(C::CorrData, stachanpair::String, freqkey::String, Re
 		# 										nondim_max_coda_length=InputDict["nondim_max_coda_length"], #15.0,
 		# 										coda_energy_threshold=InputDict["coda_energy_threshold"])
 
-		C.misc["coda_window"] = coda_window
-		@show C.misc["timelag"] = timelag
-		@show C.misc["fillbox"] = fillbox
+		C.misc["coda_window"] = Ctemp.misc["coda_window"]
+		C.misc["timelag"] = Ctemp.misc["timelag"]
+		C.misc["fillbox"] = Ctemp.misc["fillbox"]
 
 		C.misc["reference"] = Ctemp.corr[:,1]
 
@@ -118,17 +118,17 @@ function append_reference!(C::CorrData, stachanpair::String, freqkey::String, Re
 		# 										nondim_max_coda_length=InputDict["nondim_max_coda_length"], #15.0,
 		# 										nondim_codamaxlag=InputDict["nondim_codamaxlag"],
 		# 										coda_energy_threshold=InputDict["coda_energy_threshold"])
-		coda_window, timelag, fillbox, _ = log10_slice_codawindow!(Ctemp, InputDict["background_vel"],
-												min_ballistic_twin=InputDict["min_ballistic_twin"], # explicit ballistic time window (see doc)
-												geometrical_spreading_α=InputDict["geometricalspreading_α"],
-												coda_smooth_window=InputDict["smoothing_window_len"],
-												nondim_min_coda_length=InputDict["nondim_min_coda_length"],
-												nondim_max_coda_length=InputDict["nondim_max_coda_length"], #15.0,
-												coda_energy_threshold=InputDict["coda_energy_threshold"])
-
-		C.misc["coda_window"] = coda_window
-		C.misc["timelag"] = timelag
-		C.misc["fillbox"] = fillbox
+		# coda_window, timelag, fillbox, _ = log10_slice_codawindow!(Ctemp, InputDict["background_vel"],
+		# 										min_ballistic_twin=InputDict["min_ballistic_twin"], # explicit ballistic time window (see doc)
+		# 										geometrical_spreading_α=InputDict["geometricalspreading_α"],
+		# 										coda_smooth_window=InputDict["smoothing_window_len"],
+		# 										nondim_min_coda_length=InputDict["nondim_min_coda_length"],
+		# 										nondim_max_coda_length=InputDict["nondim_max_coda_length"], #15.0,
+		# 										coda_energy_threshold=InputDict["coda_energy_threshold"])
+		#
+		C.misc["coda_window"] = Ctemp.misc["coda_window"]
+		C.misc["timelag"] = Ctemp.misc["timelag"]
+		C.misc["fillbox"] = Ctemp.misc["fillbox"]
 		C.misc["reference"] = Ctemp.corr[:,1]
 	end
 
