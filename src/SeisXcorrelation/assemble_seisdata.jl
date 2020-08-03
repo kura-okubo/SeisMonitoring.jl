@@ -33,7 +33,7 @@ To avoid that, please set close enough between `cc_time_unit` (unit of target wi
 Good example: save the data chunk every day, and assemble the data into one day or harf a day.
 """
 function assemble_seisdata(
-    netstachan::String,
+    netstachan::AbstractString,
     fileio,
     starttime::DateTime,
     endtime::DateTime;

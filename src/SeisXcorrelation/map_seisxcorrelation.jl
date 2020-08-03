@@ -17,31 +17,20 @@ Compute cross-correlation save data in jld2 file with CorrData format.
 
 #
 """
-function map_seisxcorrelation(key_station_pair::String, StationPairDict::OrderedDict, InputDict::OrderedDict)
+function map_seisxcorrelation(key_station_pair::String, InputDict::OrderedDict)
 
     println("start processing $(key_station_pair)")
 
     # open FileIO of RawData
     fi = jldopen(InputDict["cc_absolute_RawData_path"], "r")
-
-    # open output file
-    fopath = joinpath(InputDict["fodir"], key_station_pair*".jld2")
-    #remove existing cc file
-    ispath(fopath) && rm(fopath)
-    # fo = jldopen(fopath, "w")
-    # DEBUG: random save error when file size is large
-    # fo = jldopen(fopath, true, true, true, IOStream)
-    fo = jldopen(fopath, "w")
+    fo = nothing
 
     starts  = InputDict["starts"]
     ends    = InputDict["ends"]
 
-    #==========================#
-    # 1. Compute all FFT associated with key_station_pair (e.g. "BP.CCRB-BP.EADB")
-    # 2. Compute cross-correlation by the loop of station channel pairs
-    #==========================#
+    # all_stationchannels = get_stationchanname(StationPairDict[key_station_pair])
+    sta1, sta2 = split(key_station_pair, "-")
 
-    all_stationchannels = get_stationchanname(StationPairDict[key_station_pair])
     t_assemble, t_fft, t_xcorr = zeros(3)
 
     for tid in 1:length(starts)
@@ -49,7 +38,7 @@ function map_seisxcorrelation(key_station_pair::String, StationPairDict::Ordered
 
         FFTDict = Dict()
 
-        for stationchannel in all_stationchannels
+        for stationchannel in [sta1, sta2]
             #1. assemble seisdata
             # NOTE: to avoid biased cc normalization, error if datafraction is too small (<0.95)
             # if (lowercase(InputDict["cc_normalization"]) == "coherence" ||
@@ -70,7 +59,6 @@ function map_seisxcorrelation(key_station_pair::String, StationPairDict::Ordered
             detrend!(R1)
             demean!(R1)
             taper!(R1)
-            # taper!(R1.x,R1.fs)
 
             #5. apply one-bit normalization if true
             InputDict["IsOnebit"] && onebit!(R1)
@@ -79,89 +67,85 @@ function map_seisxcorrelation(key_station_pair::String, StationPairDict::Ordered
             #6. compute fft
             t_fft += @elapsed FFT1 = compute_fft(R1)
             #7. spectral normalization
-            # InputDict["cc_normalization"] == "coherence" && coherence!(FFT1, InputDict["smoothing_half_win"], InputDict["waterlevel"])
             InputDict["cc_normalization"] == "coherence" && spectrum_coherence!(FFT1, InputDict["smoothing_windowlength"], InputDict["water_level"])
             #8. add to FFTDict
             !isempty(FFT1) && (FFTDict[stationchannel] = FFT1)
         end
 
-        # println(FFTDict)
+        # for channel_pair in StationPairDict[key_station_pair]
+        # sta1, sta2 = split(key_station_pair, "-")
+        # perform cross-correlation within the cc_time_unit window
+        # load FFTData from dictionary
+        if haskey(FFTDict, sta1)
+            FFT1 = FFTDict[sta1]
+        else
+            # println("$(sta1) at $(starttime) is missing the data. skipping cc.")
+            continue
+        end
 
-        for channel_pair in StationPairDict[key_station_pair]
-            sta1, sta2 = split(channel_pair, "-")
-            # perform cross-correlation within the cc_time_unit window
-            # load FFTData from dictionary
-            if haskey(FFTDict, sta1)
-                FFT1 = FFTDict[sta1]
-            else
-                # println("$(sta1) at $(starttime) is missing the data. skipping cc.")
-                continue
+        if haskey(FFTDict, sta2)
+            FFT2 = FFTDict[sta2]
+        else
+            # println("$(sta2) at $(starttime) is missing the data. skipping cc.")
+            continue
+        end
+
+        # when deconvolution method id used, first station is used as source; e.g. "BP.CCRB..BP1-BP.CCRB..BP1" then BP.CCRB..BP1 is used.
+        # NOTE: don't apply twice of deconvolution!(FFT1) during the loop.
+        if InputDict["cc_normalization"] == "deconvolution"
+            FFT1_tobecorrelated = spectrum_deconvolution(FFT1, InputDict["smoothing_windowlength"], InputDict["water_level"])
+        else
+            FFT1_tobecorrelated = FFT1
+        end
+
+        #8. Compute cross-correlation
+        #t_xcorr += @elapsed C = compute_cc(FFT1, FFT2, InputDict["maxlag"], corr_type=InputDict["cc_method"])
+        t_xcorr += @elapsed C = correlate(FFT1_tobecorrelated, FFT2, InputDict["maxlag"], corr_type=InputDict["corr_type"]) # updated version in SeisNoise.jl
+
+        # continue if xcorr is empty
+        isempty(C.corr) && continue
+
+        # compute cc contents fraction
+        C.misc["ccfrac_within_cc_time_unit"] = get_cc_contents_fraction(C,starttime,endtime)
+
+        #9. Apply frequency decomposion of cross-correlation function
+        C_all, freqband = compute_frequency_decomposition(C, InputDict["freqency_band"],
+                                            cc_bpfilt_method=InputDict["cc_bpfilt_method"],
+                                            α0=InputDict["cc_taper_α0"], αmax=InputDict["cc_taper_αmax"])
+
+        #10. Save corr-data
+        for (ic, CD) in enumerate(C_all)
+
+            # mute ccs outlier using median of maximum amplitude
+            cc_medianmute!(CD, InputDict["cc_medianmute_α"])
+            # continue again if xcorr is empty
+            isempty(CD.corr) && continue
+
+            InputDict["IsPreStack"] && sm_stack!(CD, "reference", InputDict) # stack with predefined stack method
+
+            g1 = join([string(starttime), string(endtime)], "--")  #2004-01-01T00:00:00--2004-01-02T00:00:00
+            g2 = join([string(freqband[ic][1]), string(freqband[ic][2])], "-") #0.1-0.2
+            groupname = joinpath(g1, g2)
+            # create JLD2.Group
+            if isnothing(fo)
+                # open output file
+                fopath = joinpath(InputDict["fodir"], key_station_pair*".jld2")
+                #remove existing cc file
+                ispath(fopath) && rm(fopath)
+                # fo = jldopen(fopath, "w")
+                # DEBUG: random save error when file size is large
+                # fo = jldopen(fopath, true, true, true, IOStream)
+                fo = jldopen(fopath, "w")
             end
 
-            if haskey(FFTDict, sta2)
-                FFT2 = FFTDict[sta2]
-            else
-                # println("$(sta2) at $(starttime) is missing the data. skipping cc.")
-                continue
-            end
-
-            # when deconvolution method id used, first station is used as source; e.g. "BP.CCRB..BP1-BP.CCRB..BP1" then BP.CCRB..BP1 is used.
-            # InputDict["cc_normalization"] == "deconvolution" && deconvolution!(FFT1, InputDict["smoothing_half_win"], InputDict["waterlevel"])
-
-            # NOTE: don't apply twice of deconvolution!(FFT1) during the loop.
-            if InputDict["cc_normalization"] == "deconvolution"
-                FFT1_tobecorrelated = spectrum_deconvolution(FFT1, InputDict["smoothing_windowlength"], InputDict["water_level"])
-            else
-                FFT1_tobecorrelated = FFT1
-            end
-
-            #8. Compute cross-correlation
-            #t_xcorr += @elapsed C = compute_cc(FFT1, FFT2, InputDict["maxlag"], corr_type=InputDict["cc_method"])
-            t_xcorr += @elapsed C = correlate(FFT1_tobecorrelated, FFT2, InputDict["maxlag"], corr_type=InputDict["corr_type"]) # updated version in SeisNoise.jl
-
-            # continue if xcorr is empty
-            isempty(C.corr) && continue
-
-            # compute cc contents fraction
-            C.misc["ccfrac_within_cc_time_unit"] = get_cc_contents_fraction(C,starttime,endtime)
-
-            #9. Apply frequency decomposion of cross-correlation function
-            C_all, freqband = compute_frequency_decomposition(C, InputDict["freqency_band"],
-                                                cc_bpfilt_method=InputDict["cc_bpfilt_method"],
-                                                α0=InputDict["cc_taper_α0"], αmax=InputDict["cc_taper_αmax"])
-
-            # Prestacking to decrease the datasize if true
-            # if InputDict["IsPreStack"]
-            # # 1. append reference to Ctemp if IsReadReference == true for selective stack
-            #     dubug_t5 += @elapsed IsReadReference && append_reference!(Ctemp, stachanpair, freqkey, ReferenceDict, InputDict)
-            # # 2. perform smstack
-            #     dubug_t6 += @elapsed sm_stack!(Ctemp, stackmode, InputDict) # stack with predefined stack method
-            #     # println(Ctemp)
-            # end
-
-            #10. Save corr-data
-            for (ic, CD) in enumerate(C_all)
-
-                # mute ccs outlier using median of maximum amplitude
-                cc_medianmute!(CD, InputDict["cc_medianmute_α"])
-                # continue again if xcorr is empty
-                isempty(CD.corr) && continue
-
-                InputDict["IsPreStack"] && sm_stack!(CD, "reference", InputDict) # stack with predefined stack method
-
-                g1 = join([string(starttime), string(endtime)], "--")  #2004-01-01T00:00:00--2004-01-02T00:00:00
-                g2 = join([string(freqband[ic][1]), string(freqband[ic][2])], "-") #0.1-0.2
-                groupname = joinpath(channel_pair, g1, g2)
-                # println(groupname)
-                # create JLD2.Group
-                !haskey(fo, channel_pair) && JLD2.Group(fo, channel_pair)
-                !haskey(fo[channel_pair], g1) && JLD2.Group(fo[channel_pair], g1)
-                !haskey(fo, groupname) && (fo[groupname] = CD)
-            end
+            !haskey(fo, g1) && JLD2.Group(fo, g1)
+            !haskey(fo, groupname) && (fo[groupname] = CD)
         end
     end
     JLD2.close(fi)
-    JLD2.close(fo)
+
+    !isnothing(fo) && JLD2.close(fo)
+
     return (t_assemble, t_fft, t_xcorr)
     #DEBUG: when returning tuple on cluster, it could cause an error ProcessExitedException(57)
      #    Stacktrace:

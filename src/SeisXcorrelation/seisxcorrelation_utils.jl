@@ -49,7 +49,8 @@ function get_stationpairs(StationDict::OrderedDict, cc_normalization::String="cr
     stations = collect(keys(StationDict))
     Nstation = length(stations)
 
-    StationPairDict = OrderedDict{String, Array{String, 1}}()
+	# StationPairDict = OrderedDict{String, Array{String, 1}}()
+	StationPairs = String[]
 
     for i = 1:Nstation
 
@@ -69,12 +70,12 @@ function get_stationpairs(StationDict::OrderedDict, cc_normalization::String="cr
             sta1 = stations[i]
             sta2 = stations[j]
 
-            pairkey = join([sta1, sta2], "-")
+            # pairkey = join([sta1, sta2], "-")
 
-            if !haskey(StationPairDict, pairkey)
-
-                StationPairDict[pairkey] = Array{String, 1}(undef, 0)
-            end
+            # if !haskey(StationPairDict, pairkey)
+			#
+            #     StationPairDict[pairkey] = Array{String, 1}(undef, 0)
+            # end
 
             # evaluate components
 
@@ -91,13 +92,15 @@ function get_stationpairs(StationDict::OrderedDict, cc_normalization::String="cr
                     if (paircomp ∈ pairs_option || "all" ∈ pairs_option) && (ct ∈ chanpair_type || "all" ∈ chanpair_type)
                         # pairs_option can be either "XX, YY, ZZ, XY..." or "all"
                         # this pair is added to StationPairDict
-                        push!(StationPairDict[pairkey], join([netstachan1, netstachan2], "-"))
+						channelkey = join([netstachan1, netstachan2], "-")
+						# push!(StationPairDict[pairkey], join([netstachan1, netstachan2], "-"))
+						push!(StationPairs, channelkey)
                     end
                 end
             end
         end
     end
-    return StationPairDict
+    return StationPairs
 end
 #
 # cc_normalization = "deconvolution" #"cross-correlation"

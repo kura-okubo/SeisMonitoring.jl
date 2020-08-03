@@ -39,14 +39,16 @@ function seisxcorrelation(InputDict_origin::OrderedDict)
                                         InputDict["starttime"], InputDict["endtime"])
     # scan station info
     StationDict = scan_stations(InputDict["cc_absolute_RawData_path"])
+    println(StationDict)
     # get station pairs
-    StationPairDict = get_stationpairs(StationDict, InputDict["cc_normalization"], InputDict["pairs_option"], InputDict["chanpair_type"])
+    StationPairs = get_stationpairs(StationDict, InputDict["cc_normalization"], InputDict["pairs_option"], InputDict["chanpair_type"])
+    println(StationPairs)
 
     println("-------START Cross-correlation--------")
 
     # Parallelize with stationpairs
-    t_removeeq = @elapsed bt_time = pmap(x->map_seisxcorrelation(x, StationPairDict, InputDict),
-                                                    collect(keys(StationPairDict)))
+    t_removeeq = @elapsed bt_time = pmap(x->map_seisxcorrelation(x, InputDict),
+                                                StationPairs)
 
     println("seisxcorrelation has been successfully done.")
 
