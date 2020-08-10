@@ -7,7 +7,7 @@ jld2 with SeisMonitoring.jl format.
 
 # Arguments
 - `fileio::JLD2.JLDFile`: JLD2.JLDFile io of input jld2 file
-- `stationpair::String` : stationpair to be assembled
+# - `stationpair::String` : NOTE: This is deprecated because of the change of corrdata jld2 format. stationpair to be assembled
 - `starttime::DateTime` : starttime to be assembled
 - `endtime::DateTime`   : endtime to be assembled
 - `freqkey::String` : Frequency band key used to decompose frequency contents of cc.
@@ -22,7 +22,7 @@ jld2 with SeisMonitoring.jl format.
 """
 function assemble_corrdata(
     fileio,
-    stachanpair::String,    #BP.CCRB..BP1-BP.EADB..BP1
+    # stachanpair::String,    #BP.CCRB..BP1-BP.EADB..BP1
     starttime::DateTime,
     endtime::DateTime,
     freqkey::String;
@@ -47,7 +47,8 @@ function assemble_corrdata(
     C = CorrData()
 
     # 1. find all target timewindow
-    cc_unit_time_all = keys(fileio[stachanpair])
+    # cc_unit_time_all = keys(fileio[stachanpair])
+    cc_unit_time_all = keys(fileio)
 
     # find all path within target time window
     dubug_t1 = @elapsed files_target = findall_target_cc(cc_unit_time_all, starttime, endtime)
@@ -61,7 +62,8 @@ function assemble_corrdata(
         # freqkey = join([freqmin, freqmax], "-")
     ccfracs = []
     for file in files_target # e.g. 2004-04-01T00:00:00--2004-04-02T00:00:00
-        abskey = joinpath(stachanpair, file, freqkey)
+        # abskey = joinpath(stachanpair, file, freqkey)
+        abskey = joinpath(file, freqkey)
 
         if haskey(CorrData_Buffer, abskey)
             # read CorrData Buffer; which is prestacked when IsPreStack==true

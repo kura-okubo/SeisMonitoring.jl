@@ -70,6 +70,7 @@ InputDict=OrderedDict(
         #===SeisStack===#
         "stack_RawData_dir"     => ("default", String, "\"default\" or absolute/relative path to cc directory. \"default\" links to project OUTPUT/cc."),
         "stack_method"          => ("linear", String, "stacking method: linear, selective, robust, pws, robustpws are available"),
+        "collect_stationpairs"  => ("true", Bool, "true if correct station pairs. Stacking without this process does not work."),
         "compute_reference"     => ("true", Bool, "true if compute reference stack for longterm stack."),
         "compute_shorttimestack"=> ("true", Bool, "true if compute shorttime stack for continuous monitoring."),
         "stack_pairs_option"    => ("11, 22, 33", Array{String, 1}, "\"all\" or list of component pairs. e.g. XX, YY, ZZ"),
