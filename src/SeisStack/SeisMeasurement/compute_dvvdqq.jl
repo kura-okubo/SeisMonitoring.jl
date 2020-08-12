@@ -219,22 +219,24 @@ function compute_dqq(dvv::Float64, tr_ref::AbstractArray, tr_cur::AbstractArray,
         if !isempty(coda_window)
 
             # p1: plot raw trace and envelope function after correction of geometrical spreading
-            yshift_box = [0,0]
-            plot!(fillbox[1:2], yshift_box,
-                fillrange=[yshift_box.-20], fillalpha=0.1, c=:orange,
-                label="", linealpha=0.0)
-            plot!(fillbox[1:2], yshift_box,
-                fillrange=[yshift_box.+0.9], fillalpha=0.1, c=:orange,
-                label="", linealpha=0.0)
+            # yshift_box = [0,0]
+            # plot!(fillbox[1:2], yshift_box,
+            #     fillrange=[yshift_box.-20], fillalpha=0.1, c=:orange,
+            #     label="", linealpha=0.0)
+            # plot!(fillbox[1:2], yshift_box,
+            #     fillrange=[yshift_box.+0.9], fillalpha=0.1, c=:orange,
+            #     label="", linealpha=0.0)
+            #
+            # if length(fillbox) == 4
+            #     plot!(fillbox[3:4], yshift_box,
+            #         fillrange=[yshift_box.-20], fillalpha=0.1, c=:orange,
+            #         label="", linealpha=0.0)
+            #     plot!(fillbox[3:4], yshift_box,
+            #         fillrange=[yshift_box.+0.9], fillalpha=0.1, c=:orange,
+            #         label="", linealpha=0.0)
+            # end
+            vline!(t[coda_window], width=1.0, color=:orange, legend=false, alpha=0.3)
 
-            if length(fillbox) == 4
-                plot!(fillbox[3:4], yshift_box,
-                    fillrange=[yshift_box.-20], fillalpha=0.1, c=:orange,
-                    label="", linealpha=0.0)
-                plot!(fillbox[3:4], yshift_box,
-                    fillrange=[yshift_box.+0.9], fillalpha=0.1, c=:orange,
-                    label="", linealpha=0.0)
-            end
         end
 
         # plot current abs cc, envelope and smoothed envelope
@@ -260,25 +262,26 @@ function compute_dqq(dvv::Float64, tr_ref::AbstractArray, tr_cur::AbstractArray,
         p2 = plot(bg=:white, size=(800, 400), dpi=100)
 
         if !isempty(coda_window)
+            #
+            # yshift_box = [0,0]
+            # plot!(fillbox[1:2], yshift_box,
+            #     fillrange=[yshift_box.-20], fillalpha=0.1, c=:orange,
+            #     label="", linealpha=0.0)
+            # plot!(fillbox[1:2], yshift_box,
+            #     fillrange=[yshift_box.+0.9], fillalpha=0.1, c=:orange,
+            #     label="", linealpha=0.0)
+            #
+            # if length(fillbox) == 4
+            #     plot!(fillbox[3:4], yshift_box,
+            #         fillrange=[yshift_box.-20], fillalpha=0.1, c=:orange,
+            #         label="", linealpha=0.0)
+            #     plot!(fillbox[3:4], yshift_box,
+            #         fillrange=[yshift_box.+0.9], fillalpha=0.1, c=:orange,
+            #         label="", linealpha=0.0)
+            # end
+            vline!(t[coda_window], width=1.0, color=:orange, legend=false, alpha=0.3)
 
-            yshift_box = [0,0]
-            plot!(fillbox[1:2], yshift_box,
-                fillrange=[yshift_box.-20], fillalpha=0.1, c=:orange,
-                label="", linealpha=0.0)
-            plot!(fillbox[1:2], yshift_box,
-                fillrange=[yshift_box.+0.9], fillalpha=0.1, c=:orange,
-                label="", linealpha=0.0)
-
-            if length(fillbox) == 4
-                plot!(fillbox[3:4], yshift_box,
-                    fillrange=[yshift_box.-20], fillalpha=0.1, c=:orange,
-                    label="", linealpha=0.0)
-                plot!(fillbox[3:4], yshift_box,
-                    fillrange=[yshift_box.+0.9], fillalpha=0.1, c=:orange,
-                    label="", linealpha=0.0)
-            end
         end
-
 
         # plot linear fitting curve
         if !isnan(QcDict_ref["Qcinv_pos"])
@@ -378,8 +381,10 @@ function compute_codaQ(x::AbstractArray, t::AbstractArray, fs::Float64, geometri
     # A_neg   = Atα_log10_smoothed[neg_ind]
 
     # extract coda time window
+    # coda_pos_ind = findall(x -> x in t[coda_window], t_pos)
+    # coda_neg_ind = findall(x -> x in t[coda_window], t_neg)
     coda_pos_ind = findall(x -> x in t[coda_window], t_pos)
-    coda_neg_ind = findall(x -> x in t[coda_window], t_neg)
+    coda_neg_ind = findall(x -> x in -t[coda_window], t_neg) # sign of t_neg is fliped to be positive, so apply minus to t[coda_window]. 
 
     # make weights for linear regression
     # to consider antisymmetric coda window, process positive and negative side separately
@@ -390,7 +395,23 @@ function compute_codaQ(x::AbstractArray, t::AbstractArray, fs::Float64, geometri
         wts_pos[coda_pos_ind] .= 1.0
         # linear regression using GLM module
         data_pos = DataFrame(X=t_pos, Y=A_pos)
-        model_pos = GLM.lm(@formula(Y ~ X), data_pos, wts=wts_pos)
+        #DEBUG:
+        try
+            model_pos = GLM.lm(@formula(Y ~ X), data_pos, wts=wts_pos)
+        catch
+            println("debug GLM.lm")
+            @show coda_window
+            @show t[coda_window]
+            @show t
+            @show t_pos
+            @show coda_pos_ind
+            println("data_pos")
+            println(data_pos)
+            println("wts_pos")
+            println(wts_pos)
+            exit(1)
+        end
+
         coef_pos = coeftable(model_pos).cols[1]
         fit_curve_pos = coef_pos[1] .+ coef_pos[2].* t_pos
         #compute Qc inverse

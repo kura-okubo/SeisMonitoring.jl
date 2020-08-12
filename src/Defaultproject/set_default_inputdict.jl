@@ -88,6 +88,7 @@ InputDict=OrderedDict(
         "max_coda_length"       => ("60.0", Float64, "[s] Maximum coda window length."),
         "mwcc_threshold"        => ("0.5", Float64, " mwcc slice coda threshold."),
         "mwcc_len_α"            => ("3.0", Float64, "moving window size factor (size = (mwcc_len_α/fm)*fs [point])."),
+        "min_codalength_α"       => ("1.0", Float64, "Threshold of minimum codawindow length: min_codalength = min_codalength_α*mwcc window length."),
         "codaslice_debugplot"    => ("false", Bool, "If plot debug figures for coda slicing."),
 
         "nondim_max_coda_length"=> ("30.0", Float64, "Deprecated: nondimensional maximum coda window length"),

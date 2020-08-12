@@ -1,8 +1,6 @@
 using SeisMonitoring: assemble_corrdata, cc_medianmute!, smooth_withfiltfilt
 using SeisIO, SeisNoise, JLD2, Dates, Plots, Statistics, DSP, Interpolations
 
-export mwcc_slice_codawindow
-
 @doc """
     mwcc_slice_codawindow!(A, maxlag, fm, fs, dist, background_vel, coda_Qinv,
 	min_ballistic_twin, max_coda_length; attenuation_minthreshold=0.1, zeropad=false)
@@ -22,8 +20,9 @@ function mwcc_slice_codawindow(
 		min_ballistic_twin::Real, # explicit ballistic time window (see doc)
 		max_coda_length::Real; # maximum coda window length [s]
 		mwcc_threshold::Real=0.5, # threshold of mwcc
-		coda_init_factor::Real=2.0, # coda window starts from coda_init_factor*dist/vel
+		coda_init_factor::Real=1.0, # coda window starts from coda_init_factor*dist/vel
 		mwcc_len_α::Real=3.0, # mwcc length is defined as mwcc_len_α*fm
+		min_codalength_α::Real=1.0, # minimum coda length defined as min_codalength_α * mwcc_len
 		# zeropad::Bool=false
 		)
 
@@ -99,17 +98,41 @@ function mwcc_slice_codawindow(
 	CodaSliceDict=Dict("cc" => cc,
 						"timelag" => timelag)
 
-	#evaluate coda window and return values
-	if isempty(coda_window)
-	    @warn("Coda window is null. Please check parameters.")
+	# evaluate if positive and negative coda_window length is longer than minimum threshold
+	# 1. decompose coda window into positive and negative
+	coda_pos_ind = findall(x -> x>=centerid , coda_window)
+	coda_neg_ind = findall(x -> x<centerid , coda_window)
+	min_codalength_points = trunc(Int, mwcc_len * min_codalength_α)
+
+	if (length(coda_pos_ind) < min_codalength_points) && (length(coda_neg_ind) < min_codalength_points)
+		# both positive and negative do not have enough coda window length
+		@warn("Coda window is empty.")
 		return ([], [], [], CodaSliceDict)
+	elseif length(coda_pos_ind) < min_codalength_points
+		# only negative part has coda window
+		coda_window_all = coda_neg_ind
+	elseif length(coda_neg_ind) < min_codalength_points
+		# only positive part has coda window
+		coda_window_all = coda_pos_ind
+	else
+		# both positive and negative have enough coda window length
+		coda_window_all = coda_window
 	end
 
-	# NOTE: fill_box will be deprecated due to the change of coda definision.
-	fill_box = [timelag[minimum(coda_window)], timelag[min(ba_window_neg,minbal_window_neg)],
-				timelag[max(ba_window_pos,minbal_window_pos)], timelag[maximum(coda_window)]]
+	#evaluate coda window and return values
+	# if isempty(coda_window)
+	#     @warn("Coda window is empty.")
+	# 	return ([], [], [], CodaSliceDict)
+	# elseif length(coda_window) < min_codalength_points
+	# 	@warn("Coda window is shorter than mwcc_len * min_codalength_α.")
+	# 	return ([], [], [], CodaSliceDict)
+	# end
 
-	return (coda_window, timelag, fill_box, CodaSliceDict)
+	# NOTE: fill_box will be deprecated due to the change of coda definision.
+	fill_box = [timelag[minimum(coda_window_all)], timelag[min(ba_window_neg,minbal_window_neg)],
+				timelag[max(ba_window_pos,minbal_window_pos)], timelag[maximum(coda_window_all)]]
+
+	return (coda_window_all, timelag, fill_box, CodaSliceDict)
 end
 
 
@@ -202,8 +225,9 @@ function mwcc_slice_codawindow(
 		min_ballistic_twin::Real, # explicit ballistic time window (see doc)
 		max_coda_length::Real; # maximum coda window length [s]
 		mwcc_threshold::Real=0.5, # threshold of mwcc
-		coda_init_factor::Real=2.0, # coda window starts from coda_init_factor*dist/vel
+		coda_init_factor::Real=1.0, # coda window starts from coda_init_factor*dist/vel
 		mwcc_len_α::Real=3.0, # mwcc length is defined as mwcc_len_α*fm
+		min_codalength_α::Real=1.0, # minimum coda length defined as min_codalength_α * mwcc_len
 		debugplot::Bool=false, # plot debug figures
 		foname::String="", # figure name for debug plot
 		fodir::String="",
@@ -218,14 +242,15 @@ function mwcc_slice_codawindow(
 	coda_init_factor=coda_init_factor, mwcc_len_α=mwcc_len_α)
 
 	# debug plot is available only with corr data.
-	if debugplot && !isempty(coda_window)
+	if debugplot
 		p1 = corrplot(C)
 		xlims!(xlims)
 		# plot vlines on coda window
-		p1 = vline!(timelag[coda_window], width=1.0, color=:orange, legend=false, alpha=0.3)
 
-		p2 = plot(timelag, CodaSliceDict["cc"], label="")
-		p2 = vline!(timelag[coda_window], width=1.0, color=:orange, legend=false, alpha=0.3)
+		!isempty(coda_window) && (p1 = vline!(timelag[coda_window], width=1.0, color=:orange, legend=false, alpha=0.3))
+
+		p2 = plot(CodaSliceDict["timelag"], CodaSliceDict["cc"], color=:black, label="")
+		!isempty(coda_window) && (p2 = vline!(timelag[coda_window], width=1.0, color=:orange, legend=false, alpha=0.3))
 
 		xlims!(xlims)
 		xlabel!("Time lag[s]")
@@ -242,28 +267,30 @@ function mwcc_slice_codawindow(
 end
 #
 # # Test script
-# station = "CLC" #CGO
-# fi = jldopen("./CI.$(station)-CI.$(station).jld2")
+# finame = "BP.LCCB-BP.VCAB-11.jld2"
+# fi = jldopen(finame)
 # CorrData_Buffer = Dict()
-# stachanpair = "CI.$(station)..BHZ-CI.$(station)..BHZ"
-# starttime = DateTime(2019,4,1)
-# endtime = DateTime(2020,4,1)
-# freqkey = "1.0-2.0"
-# C, CorrData_Buffer = assemble_corrdata(fi,stachanpair,starttime,endtime,freqkey,
+# starttime = DateTime(2015,1,1)
+# endtime = DateTime(2015,2,1)
+# freqkey = "0.9-1.0"
+# C, CorrData_Buffer = assemble_corrdata(fi,starttime,endtime,freqkey,
 #                                         min_cc_datafraction = 0.5)
 #
 # cc_medianmute!(C, 2.0)
 #
-# C.dist = 0.0
 # background_vel=1000
 # min_ballistic_twin=1.0
+# coda_init_factor=1.0
 # max_coda_length=60.0
-# mwcc_threshold=0.4
+# mwcc_threshold=0.5
 # mwcc_len_α = 3.0
+# min_codalength_α=1.0
 #
-# foname = C.name
+# stationpairname = splitdir(finame)[2][1:end-5]
+# foname = stationpairname*"_"*freqkey
 # fodir = "./debugplot"
 # !ispath(fodir) && mkpath(fodir)
 #
 # coda_window, timelag, fillbox, CodaSliceDict = mwcc_slice_codawindow(C,background_vel, min_ballistic_twin, max_coda_length,
-# 		mwcc_threshold=mwcc_threshold, coda_init_factor=2.0, mwcc_len_α=mwcc_len_α, debugplot=true, foname=foname, fodir=fodir)
+# 		mwcc_threshold=mwcc_threshold, coda_init_factor=coda_init_factor, mwcc_len_α=mwcc_len_α,
+# 		min_codalength_α=min_codalength_α, debugplot=true, foname=foname, fodir=fodir)

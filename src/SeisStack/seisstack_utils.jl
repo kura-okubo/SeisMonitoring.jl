@@ -150,11 +150,9 @@ Append reference trace in C.misc["reference"] from ReferenceDict. updated for st
 function append_reference!(C::CorrData, freqkey::String, ReferenceDict::Dict, InputDict::OrderedDict)
     refdictpath = freqkey #0.1-0.2
 	# println(keys(ReferenceDict))
-	println("debug: refdictpath: $(refdictpath)")
+	# println("debug: refdictpath: $(refdictpath)")
 
 	haskey(C.misc, "reference") && return nothing #this C already has a reference.
-
-	println(C.id)
 
     if haskey(ReferenceDict, refdictpath)
 		Ctemp = ReferenceDict[refdictpath]
