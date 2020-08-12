@@ -54,60 +54,63 @@ function map_get_monitoringdf_comnputedvvdqq(path::String, starttime::DateTime, 
                         dss_pos=Float64[], dss_neg=Float64[], dss_avg = Float64[],
                         Qcinv_pos_ref=Float64[],Qcinv_neg_ref=Float64[],Qcinv_pos_cur=Float64[],Qcinv_neg_cur=Float64[])
 
-    for stachankey in keys(fi)
-        println("start reading $(stachankey)")
-        for timekey in keys(fi[stachankey])
-            for freqkey in keys(fi[joinpath(stachankey, timekey)])
-                #1. parse metadata
-                station1, station2 = split(stachankey, "-")
-                networks = join([split(station1, ".")[1], split(station2, ".")[1]], "-")
-                components = station1[end]*station2[end]
+    # for stachankey in keys(fi)
+    stachankey = split(splitdir(path)[2][1:end-5], "_")[2]
+    println("start reading $(stachankey)")
+    for timekey in keys(fi)
+        for freqkey in keys(fi[timekey])
+            #1. parse metadata
+            # station1, station2 = split(stachankey, "-")
+            # networks = join([split(station1, ".")[1], split(station2, ".")[1]], "-")
+            # components = station1[end]*station2[end]
+            station1, station2, components = split(stachankey, "-")
+            networks = join([split(station1, ".")[1], split(station2, ".")[1]], "-")
 
-                st, et = DateTime.(split(timekey, "--"))
-                if !(starttime >= et || endtime <= st)
-                # this file has overlap with the target timewindow [starttime, endtime]
-                    corrkey = joinpath(stachankey, timekey, freqkey)
-                    C = fi[corrkey]
-                    if !haskey(C.misc, "dvv") && !haskey(C.misc, "dqq_avg")
-                        # @warn("$(corrkey) does not have dvv nor dqq_avg. Please check measurement_method in the input file.")
-                        continue;
-                    end
-
-                    # append dataframe
-                    df = DataFrame(date = C.misc["stack_centraltime"], stationpair=stachankey,
-                                    networks=networks, components=components, freqband=freqkey)
-                    # append dvv
-                    if haskey(C.misc, "dvv")
-                        df_dvv = DataFrame(date = C.misc["stack_centraltime"], cc_dvv = float(C.misc["cc_dvv"]), dvv = float(C.misc["dvv"]))
-                        df = leftjoin(df, df_dvv, on=:date)
-                    end
-
-                    # append dqq and dss
-                    if haskey(C.misc, "dqq_avg")
-                        df_dqq = DataFrame(date = C.misc["stack_centraltime"],
-                        dqq_pos= float(C.misc["dqq_pos"]), dqq_neg= float(C.misc["dqq_neg"]), dqq_avg = float(C.misc["dqq_avg"]))
-                        df = leftjoin(df, df_dqq, on=:date)
-
-                        df_dss = DataFrame(date = C.misc["stack_centraltime"],
-                        dss_pos= float(C.misc["dss_pos"]), dss_neg= float(C.misc["dss_neg"]), dss_avg = float(C.misc["dss_avg"]))
-                        df = leftjoin(df, df_dss, on=:date)
-                    end
-
-                    # append Qc
-                    if haskey(C.misc, "Qcinv_pos_cur")
-                        df_Qcinv = DataFrame(date = C.misc["stack_centraltime"],
-                            Qcinv_pos_ref= float(C.misc["Qcinv_pos_ref"]), Qcinv_neg_ref= float(C.misc["Qcinv_neg_ref"]),
-                            Qcinv_pos_cur= float(C.misc["Qcinv_pos_cur"]), Qcinv_neg_cur= float(C.misc["Qcinv_neg_cur"]),)
-                        df = leftjoin(df, df_Qcinv, on=:date)
-
-                    end
-
-
-                    append!(df_path, df)
+            st, et = DateTime.(split(timekey, "--"))
+            if !(starttime >= et || endtime <= st)
+            # this file has overlap with the target timewindow [starttime, endtime]
+                corrkey = joinpath(timekey, freqkey)
+                C = fi[corrkey]
+                if !haskey(C.misc, "dvv") && !haskey(C.misc, "dqq_avg")
+                    # @warn("$(corrkey) does not have dvv nor dqq_avg. Please check measurement_method in the input file.")
+                    continue;
                 end
+
+                # append dataframe
+                df = DataFrame(date = C.misc["stack_centraltime"], stationpair="$(station1)-$(station2)",
+                                networks=networks, components=components, freqband=freqkey)
+                # append dvv
+                if haskey(C.misc, "dvv")
+                    df_dvv = DataFrame(date = C.misc["stack_centraltime"], cc_dvv = float(C.misc["cc_dvv"]), dvv = float(C.misc["dvv"]))
+                    df = leftjoin(df, df_dvv, on=:date)
+                end
+
+                # append dqq and dss
+                if haskey(C.misc, "dqq_avg")
+                    df_dqq = DataFrame(date = C.misc["stack_centraltime"],
+                    dqq_pos= float(C.misc["dqq_pos"]), dqq_neg= float(C.misc["dqq_neg"]), dqq_avg = float(C.misc["dqq_avg"]))
+                    df = leftjoin(df, df_dqq, on=:date)
+
+                    df_dss = DataFrame(date = C.misc["stack_centraltime"],
+                    dss_pos= float(C.misc["dss_pos"]), dss_neg= float(C.misc["dss_neg"]), dss_avg = float(C.misc["dss_avg"]))
+                    df = leftjoin(df, df_dss, on=:date)
+                end
+
+                # append Qc
+                if haskey(C.misc, "Qcinv_pos_cur")
+                    df_Qcinv = DataFrame(date = C.misc["stack_centraltime"],
+                        Qcinv_pos_ref= float(C.misc["Qcinv_pos_ref"]), Qcinv_neg_ref= float(C.misc["Qcinv_neg_ref"]),
+                        Qcinv_pos_cur= float(C.misc["Qcinv_pos_cur"]), Qcinv_neg_cur= float(C.misc["Qcinv_neg_cur"]),)
+                    df = leftjoin(df, df_Qcinv, on=:date)
+
+                end
+
+
+                append!(df_path, df)
             end
         end
     end
+    # end
     close(fi)
 
     return df_path
