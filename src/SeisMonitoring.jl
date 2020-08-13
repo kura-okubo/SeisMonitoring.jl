@@ -9,7 +9,7 @@ export
     # util commands
     init_project,
     run_job,
-    makeinput_gui,
+    # makeinput_gui,
     make_slurmbatch,
     make_requeststation_fromIRISgmap,
     get_parameter,
@@ -33,7 +33,8 @@ include("SeisRemoveEQ/seisremoveeq.jl")
 include("SeisXcorrelation/seisxcorrelation.jl")
 include("SeisStack/seisstack.jl")
 include("SeisStack/sm_stack.jl") # used both map_seisstack and assemble_corrdata for prestacking
-include("SMGUI/makeinput_gui.jl")
+# NOTE: do not include GUI if julia is in parallel.
+# include("SMGUI/makeinput_gui.jl")
 include("Utils/init_project.jl")
 include("Utils/run_job.jl")
 include("Utils/inputdict_io.jl") #Utils, SMGUI
