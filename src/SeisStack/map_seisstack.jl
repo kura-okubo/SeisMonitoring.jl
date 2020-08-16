@@ -178,8 +178,8 @@ function map_seisstack(fipath, stackmode::String, InputDict::OrderedDict)
             # create JLD2.Group
             if isnothing(fo)
                 # DEBUG: random save error when file size is large
-                # fo = jldopen(fopath, true, true, true, IOStream)
-                fo = jldopen(fopath, "w")
+                fo = jldopen(fopath, true, true, true, IOStream)
+                # fo = jldopen(fopath, "w")
             end
 
             # save data into jld2

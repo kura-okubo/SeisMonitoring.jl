@@ -134,8 +134,8 @@ function map_seisxcorrelation(key_station_pair::String, InputDict::OrderedDict)
                 ispath(fopath) && rm(fopath)
                 # fo = jldopen(fopath, "w")
                 # DEBUG: random save error when file size is large
-                # fo = jldopen(fopath, true, true, true, IOStream)
-                fo = jldopen(fopath, "w")
+                fo = jldopen(fopath, true, true, true, IOStream)
+                # fo = jldopen(fopath, "w")
             end
 
             !haskey(fo, g1) && JLD2.Group(fo, g1)

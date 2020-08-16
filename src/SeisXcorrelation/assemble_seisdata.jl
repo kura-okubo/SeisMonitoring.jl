@@ -87,7 +87,7 @@ function assemble_seisdata(
     datafraction_total = get_noisedatafraction(S1_sync[1].x, zerosignal_minpts=100, eps_α=1e-6)
 
     if  datafraction_total < data_contents_fraction
-        println("debug: data containts $(datafraction_total) is less than data_contents_fraction.")
+        println("$(netstachan)-$(starttime)-$(endtime): data containts $(datafraction_total) is less than data_contents_fraction.")
         return nothing
     end
 
