@@ -23,7 +23,7 @@ function map_compute_cc(F::Tuple, key_station_pair::String, InputDict::OrderedDi
 
     netstachan1, netstachan2 = split(key_station_pair, "-")
     FFT1_Dict, FFT2_Dict = F
-    (isempty(FFT1_Dict) || isempty(FFT2_Dict)) && return # return if FFT_Dict is empty
+    (isempty(FFT1_Dict) || isempty(FFT2_Dict)) && return 0;# return if FFT_Dict is empty
 
     # NOTE:Format of dictionary key in FFT_1 and FFT_2 is: join([netstachan, string(starttime), string(endtime)], "__")
     # e.g. BP.LCCB.40.SP1__2015-01-01T00:00:00__2015-01-02T00:00:00
