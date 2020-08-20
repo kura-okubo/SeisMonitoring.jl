@@ -25,8 +25,8 @@ function map_seisxcorrelation(key_station_pair::String, InputDict::OrderedDict)
     fi = jldopen(InputDict["cc_absolute_RawData_path"], "r")
     fo = nothing
 
-    starts  = InputDict["starts"]
-    ends    = InputDict["ends"]
+    starts  = InputDict["starts_chunk"]
+    ends    = InputDict["ends_chunk"]
 
     # all_stationchannels = get_stationchanname(StationPairDict[key_station_pair])
     sta1, sta2 = split(key_station_pair, "-")

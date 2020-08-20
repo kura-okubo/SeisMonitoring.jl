@@ -33,16 +33,15 @@ To avoid that, please set close enough between `cc_time_unit` (unit of target wi
 Good example: save the data chunk every day, and assemble the data into one day or harf a day.
 """
 function assemble_seisdata(
-    netstachan::String,
-    fidir::String,
+    netstachan::AbstractString,
+    fileio,
     starttime::DateTime,
     endtime::DateTime;
     data_contents_fraction::Float64 = 0.8,
 )
 
     net, sta, loc, chan = split(netstachan, ".")
-    #filtering file target
-    files_all = readdir(fidir)
+    files_all = keys(fileio[joinpath("Waveforms", join([net, sta], "."))])
     files_station = filter(x -> occursin(netstachan, x), files_all)
     files_target = findall_target(files_station, starttime, endtime)
 
@@ -54,8 +53,7 @@ function assemble_seisdata(
     # read and merge seischannel
     S1 = SeisData(); removal_fraction_all = Float64[]
     for file in files_target
-        # Stemp = fileio[joinpath("Waveforms", join([net, sta], "."), file)]
-        Stemp = rseis(joinpath(fidir, file))[1]
+        Stemp = fileio[joinpath("Waveforms", join([net, sta], "."), file)]
         haskey(Stemp.misc, "removal_fraction") && push!(removal_fraction_all, Stemp.misc["removal_fraction"])
         taper!(Stemp)
         S1 += Stemp

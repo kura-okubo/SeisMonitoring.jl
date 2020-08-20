@@ -10,6 +10,16 @@ include("map_seisdownload.jl")
 """
 function seisdownload(InputDict_origin::OrderedDict)
 
+	#===================================================================#
+	#NOTE: Exit if nprocs is larger than 64 to avoid following issues:
+	# 1. massive HTTP request causing degradation of data server.
+	# 2. massive File I/O
+	#===================================================================#
+
+	if nprocs() > 64
+		error("nprocs $(nprocs()) should be less than 64 to avoid massive HTTP request and FIle I/O.")
+	end
+
 	# parse input dictionary
 	InputDict = parse_inputdict(InputDict_origin)
 

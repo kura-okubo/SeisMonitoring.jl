@@ -5,24 +5,40 @@ scan stations saved in SeisMointoring.jl jld2 file.
 """
 function scan_stations(finame::String)
 
-    fi = jldopen(finame, "r")
-    StationDict = OrderedDict{String, Array{String, 1}}()
-    for key in keys(fi["Waveforms"])
+    # fi = jldopen(finame, "r")
+    # StationDict = OrderedDict{String, Array{String, 1}}()
+    # for key in keys(fi["Waveforms"])
+	#
+    #     if !haskey(StationDict, key)
+    #         StationDict[key] = Array{String, 1}(undef, 0)
+    #     end
+	#
+    #     filenames = keys(fi[joinpath("Waveforms", key)])
+	#
+    #     for fname in filenames
+    #         netstachan = split(fname, "__")[1]
+    #         if  netstachan ∉ StationDict[key]
+    #             push!(StationDict[key], netstachan)
+    #         end
+    #     end
+    # end
+	paths = readdir(finame)
+	StationDict = OrderedDict{String, Array{String, 1}}()
+	all_stations = String[]
 
-        if !haskey(StationDict, key)
-            StationDict[key] = Array{String, 1}(undef, 0)
-        end
+	for path in paths
+		netstachan = split(path, "__")[1]
+		key = join(split(netstachan, ".")[1:2], ".")
+	    if !haskey(StationDict, key)
+	        StationDict[key] = Array{String, 1}(undef, 0)
+	    end
+		if  netstachan ∉ StationDict[key]
+			push!(StationDict[key], netstachan)
+			push!(all_stations, netstachan)
+		end
+	end
 
-        filenames = keys(fi[joinpath("Waveforms", key)])
-
-        for fname in filenames
-            netstachan = split(fname, "__")[1]
-            if  netstachan ∉ StationDict[key]
-                push!(StationDict[key], netstachan)
-            end
-        end
-    end
-    return StationDict
+    return StationDict, all_stations
 end
 
 # finame = "RawData.jld2"
@@ -51,6 +67,9 @@ function get_stationpairs(StationDict::OrderedDict, cc_normalization::String="cr
 
 	# StationPairDict = OrderedDict{String, Array{String, 1}}()
 	StationPairs = String[]
+
+	netstachan1_filtered = String[]
+	netstachan2_filtered = String[]
 
     for i = 1:Nstation
 
@@ -95,12 +114,15 @@ function get_stationpairs(StationDict::OrderedDict, cc_normalization::String="cr
 						channelkey = join([netstachan1, netstachan2], "-")
 						# push!(StationPairDict[pairkey], join([netstachan1, netstachan2], "-"))
 						push!(StationPairs, channelkey)
+						push!(netstachan1_filtered, netstachan1)
+						push!(netstachan2_filtered, netstachan2)
                     end
                 end
             end
         end
     end
-    return StationPairs
+	# return StationPairs
+	return netstachan1_filtered, netstachan2_filtered, StationPairs
 end
 #
 # cc_normalization = "deconvolution" #"cross-correlation"

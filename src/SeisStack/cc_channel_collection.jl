@@ -20,7 +20,8 @@ function get_collect_station_pairdict(ccdir::String)
     for cc_path in cc_paths
         split(cc_path, ".")[end] != "jld2" && continue
         fname = splitdir(cc_path)[2][1:end-5]
-        stachan1, stachan2 = split(fname, "-")
+        stachanpair, _, _ = split(fname, "__")
+        stachan1, stachan2 = split(stachanpair, "-")
         net1, sta1, loc1, cha1 = split(stachan1, ".")
         net2, sta2, loc2, cha2 = split(stachan2, ".")
         nochan_stationpair = joinpath("$(net1).$(sta1)-$(net2).$(sta2)-$(cha1[end])$(cha2[end])")

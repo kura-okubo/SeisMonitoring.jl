@@ -14,8 +14,20 @@ function map_seisstack(fipath, stackmode::String, InputDict::OrderedDict)
     # evaluate if we need to read and append reference
     IsReadReference = (stackmode=="shorttime")
 
-    # open FileIO of cross-correlation
-    fi = jldopen(fipath, "r")
+    # NOTE: To avoid massive access to shared storage, copy jld2 file to /tmp.
+    if InputDict["use_local_tmpdir"]
+        local_tmp_dir = "/tmp" # default local tmp directory
+        finame = splitdir(fipath)[2]
+        fipath_tmp = joinpath(local_tmp_dir, finame)
+        cp(fipath, fipath_tmp)
+        fi = jldopen(fipath_tmp, "r")
+    else
+        fi = jldopen(fipath, "r")
+    end
+
+
+    # open FileIO of cross-correlation from local directory
+    # fi = jldopen(fipath, "r")
 
     # open output file
     if stackmode=="reference"
@@ -198,6 +210,7 @@ function map_seisstack(fipath, stackmode::String, InputDict::OrderedDict)
     # end
 
     close(fi)
+    InputDict["use_local_tmpdir"] && rm(fipath_tmp) # remove copied local file
     !isnothing(fo) && JLD2.close(fo)
 
     println("debug: map $(fipath) is done with assemble:$(t_assemblecc), stack:$(t_stack), seismeasurement:$(t_seismeasurement)[s].")

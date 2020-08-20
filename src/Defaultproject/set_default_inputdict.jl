@@ -66,9 +66,11 @@ InputDict=OrderedDict(
         "cc_taper_αmax"         => ("0.25", Float64, "Advanced: Highest tapering fraction for frequency adaptive tapering."),
         "cc_medianmute_α"       => ("5.0", Float64, "Advanced: Threshold factor of median mute within cc_time_unit. NCF is removed if maximum(abs.(corr[:,i])) > cc_medianmute_α * median(maximum(abs.(corr)), dims=1)"),
         "IsPreStack"            => ("true", Bool, "Advanced: Pre-stacking corrdata within each cc_time_unit when assembling the corrdata for the sake of saving memory use."),
+        "timechunk_increment"   => ("1", Int, "Advanced: Number of time chunk increment for parallelization: large number is more efficient, but increase memory use."),
 
         #===SeisStack===#
         "stack_RawData_dir"     => ("default", String, "\"default\" or absolute/relative path to cc directory. \"default\" links to project OUTPUT/cc."),
+        "use_local_tmpdir"      => ("true", Bool, "True if using local /tmp diretory. Please set true when running in cluster to avoid massive file I/O."),
         "stack_method"          => ("linear", String, "stacking method: linear, selective, robust, pws, robustpws are available"),
         "collect_stationpairs"  => ("true", Bool, "true if correct station pairs. Stacking without this process does not work."),
         "compute_reference"     => ("true", Bool, "true if compute reference stack for longterm stack."),

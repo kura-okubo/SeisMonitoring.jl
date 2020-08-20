@@ -20,6 +20,7 @@ function map_removeEQ(station::String, InputDict::OrderedDict)
 
     for fikey in keys(fi["Waveforms/$(station)"])
 
+		bt_1, bt_2, btsta_1, bt_3 = zeros(4)
         #read SeisChannel data
         S1_raw = fi["Waveforms/$(station)/$(fikey)"]
         S1 = deepcopy(S1_raw)
@@ -82,11 +83,14 @@ function map_removeEQ(station::String, InputDict::OrderedDict)
 
 		#DEBUG: to avoid too much memory allocation, save each seischannel into seisio file
 
-		temppath = joinpath(InputDict["tmpdir"], fikey * ".jld2")
+		# temppath = joinpath(InputDict["tmpdir"], fikey * ".jld2")
+		temppath = joinpath(InputDict["tmpdir"], fikey * ".seisio")
 
-		jldopen(temppath, "w") do fo
-			fo["S"] = S1
-		end
+		wseis(temppath, S1)
+
+		# jldopen(temppath, "w") do fo
+			# fo["S"] = S1
+		# end
     end
 
     JLD2.close(fi)

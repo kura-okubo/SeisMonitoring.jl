@@ -7,11 +7,22 @@ remove transient signals using STA/LTA and Kurtosis
 """
 function seisremoveeq(InputDict_origin::OrderedDict)
 
+	#===================================================================#
+	#NOTE: Exit if nprocs is larger than 64 to avoid following issues:
+	# 1. massive HTTP request causing degradation of data server.
+	# 2. massive File I/O
+	#===================================================================#
+
+	if nprocs() > 64
+		error("nprocs $(nprocs()) should be less than 64 to avoid massive FIle I/O.")
+	end
+
     InputDict = parse_inputdict(InputDict_origin)
 
     project_outputdir = abspath(InputDict["project_outputdir"])
     InputDict["fodir"] = joinpath(project_outputdir, "seismicdata")
-    tmpdir = joinpath(project_outputdir, "seismicdata", "seisremoveeq_tmp")
+	# tmpdir = joinpath(project_outputdir, "seismicdata", "seisremoveeq_tmp")
+	tmpdir = joinpath(project_outputdir, "seismicdata", "seisremoveeq")
     InputDict["tmpdir"] = tmpdir
 
     if ispath(tmpdir)
@@ -43,12 +54,12 @@ function seisremoveeq(InputDict_origin::OrderedDict)
     println("-------START Converting--------")
 
 	# t_convert = @elapsed convert_tmpfile_seisremoveeq(InputDict)
-	t_convert = @elapsed convert_tmpfile(InputDict, "seisremoveeq")
-
+	# t_convert = @elapsed convert_tmpfile(InputDict, "seisremoveeq")
+	t_convert = 0.0
     mean_kurtosis_cputime = mean((x->x[1]).(bt_time))
     mean_stalta_cputime   = mean((x->x[2]).(bt_time))
 
-	rm(tmpdir, recursive=true, force=true)
+	# rm(tmpdir, recursive=true, force=true)
 
     printstyled("---Summary---\n"; color = :cyan, bold = true)
     println("time for mean kurtosis cputime  =$(mean_kurtosis_cputime)[s]")
