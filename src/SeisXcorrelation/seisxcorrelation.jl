@@ -94,7 +94,8 @@ function seisxcorrelation(InputDict_origin::OrderedDict)
             # FFT_2 = FFT_1[collect(keys(FFT_1))[1]]
             # println(FFT_2)
 
-            memory_use=sizeof(FFTs)/1e9 #[GB]
+            # memory_use=sizeof(FFTs)/1e9 #[GB]
+            memory_use=Base.summarysize(FFTs)/1e9
             println("debug: memory_use: $(memory_use) GB.")
             memory_use > InputDict["MAX_MEM_USE"] && @error("Memory use during FFT exceeds MAX_MEM_USE ($(memory_use)GB is used). Please decrease timechunk_increment.")
             # pmap((x, y) -> f_debug2(x, y),map((x, y) -> (FFT_Dict[x], FFT_Dict[y]), netstachan1_list, netstachan2_list),

@@ -54,9 +54,9 @@ function map_compute_cc(F::Tuple, key_station_pair::String, InputDict::OrderedDi
         FFT2 = FFT2_Dict[FFT2_key]
 
         #DEBUG:
-        id1 = FFT1.name*"-"*FFT1.id
-        id2 = FFT2.name*"-"*FFT2.id
-        println("$(id1)__$(id2) should be in $(foname).")
+        # id1 = FFT1.name*"-"*FFT1.id
+        # id2 = FFT2.name*"-"*FFT2.id
+        # println("$(id1)__$(id2) should be in $(foname).")
 
         # Apply spectral normalization
         if InputDict["cc_normalization"] == "coherence"
