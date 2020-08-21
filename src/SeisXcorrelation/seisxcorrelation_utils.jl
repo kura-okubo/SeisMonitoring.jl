@@ -204,6 +204,25 @@ end
 remove_medianmute(C::CorrData, inds) = (return C.t[inds])
 
 
+"""
+    get_chunk_fi_stationdict(rawdata_path_all::Array{String, 1}, st::DateTime, et::DateTime)
+return stationdict to copy data from shared storage to local tmp directory.
+"""
+function get_chunk_fi_stationdict(rawdata_path_all::Array{String, 1}, st::DateTime, et::DateTime)
+
+	chunk_fi_stationdict = Dict{String,Array{String,1}}()
+	for rawdata_path in rawdata_path_all
+		finame = splitdir(rawdata_path)[2]
+		netstachan, fist_str, fiet_str, _ = split(finame, "__")
+		fist, fiet = DateTime.([fist_str, fiet_str])
+		if (st<=fist&&fiet<=et) || (fist<st&&fiet>st) || (fist<et&&fiet>et)
+			#add this file into list
+			!haskey(chunk_fi_stationdict, netstachan) && (chunk_fi_stationdict[netstachan] = String[])
+			push!(chunk_fi_stationdict[netstachan], finame)
+		end
+	end
+	return chunk_fi_stationdict
+end
 # key = "BP.CCRB-BP.EADB"
 # all_stationchannels = get_stationchanname(StationPairDict[key])
 

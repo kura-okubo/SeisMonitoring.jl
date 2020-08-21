@@ -19,6 +19,22 @@ function map_compute_fft(netstachan::String, InputDict::OrderedDict)
     starts  = InputDict["starts_chunk"]
     ends    = InputDict["ends_chunk"]
 
+    # NOTE: To avoid massive access to shared storage, copy files to /tmp.
+    if InputDict["use_local_tmpdir"]
+        local_tmp_dir = "/tmp" # default local tmp directory
+        # finame = splitdir(fipath)[2]
+        tmpstationlist = InputDict["chunk_fi_stationdict"][netstachan]
+        for tmpstation in tmpstationlist
+            cp(joinpath(InputDict["cc_absolute_RawData_path"], tmpstation)
+                , joinpath(local_tmp_dir, tmpstation))
+        end
+        # fipath_tmp = joinpath(local_tmp_dir, finame)
+        # cp(fipath, fipath_tmp)
+        fidir = local_tmp_dir
+    else
+        fidir = InputDict["cc_absolute_RawData_path"]
+    end
+
     println("start fft processing $(netstachan).")
 
     t_assemble, t_fft = zeros(2)
@@ -39,7 +55,7 @@ function map_compute_fft(netstachan::String, InputDict::OrderedDict)
         # t_assemble += @elapsed S1 = assemble_seisdata_seisio(stationchannel, fi, starttime, endtime,
         #                             data_contents_fraction=InputDict["data_contents_fraction"])
 
-        t_assemble += @elapsed S1 = assemble_seisdata(netstachan, InputDict["cc_absolute_RawData_path"],
+        t_assemble += @elapsed S1 = assemble_seisdata(netstachan, fidir,
                                 starttime, endtime, data_contents_fraction=InputDict["data_contents_fraction"])
 
         isnothing(S1) && continue;
@@ -64,6 +80,13 @@ function map_compute_fft(netstachan::String, InputDict::OrderedDict)
         #8. add to FFTDict
         key_FFTDict = join([netstachan, string(starttime), string(endtime)], "__") #BP.LCCB.40.SP1__2015-01-01T00:00:00__2015-01-02T00:00:00
         !isempty(FFT1) && (FFTDict[key_FFTDict] = FFT1)
+    end
+
+    if InputDict["use_local_tmpdir"]
+        tmpstationlist = InputDict["chunk_fi_stationdict"][netstachan]
+        for tmpstation in tmpstationlist
+            rm(joinpath(local_tmp_dir, tmpstation))
+        end
     end
 
     return (netstachan, FFTDict, t_assemble, t_fft)

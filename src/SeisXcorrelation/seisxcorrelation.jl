@@ -65,6 +65,10 @@ function seisxcorrelation(InputDict_origin::OrderedDict)
 
     t_assemble_all, t_fft_all, t_corr_all = zeros(3)
 
+    if InputDict["use_local_tmpdir"]
+        rawdata_path_all = SeisIO.ls(InputDict["cc_absolute_RawData_path"])
+    end
+
     for timechunkid in Iterators.partition(1:length(InputDict["starts"]), InputDict["timechunk_increment"])
     # for timechunkid in Iterators.partition(1:length(InputDict["starts"]), 10)
 
@@ -72,13 +76,20 @@ function seisxcorrelation(InputDict_origin::OrderedDict)
         InputDict["ends_chunk"] = InputDict["ends"][timechunkid]
         println("time chunk $(u2d(InputDict["starts_chunk"][1]))-$(u2d(InputDict["ends_chunk"][end]))")
         # 1. compute FFT and store data into FFTDict
+
+        if InputDict["use_local_tmpdir"]
+            # make chunk_fi_stationdict to copy data to local tmp directory
+            InputDict["chunk_fi_stationdict"] = get_chunk_fi_stationdict(rawdata_path_all,
+                                                    u2d(InputDict["starts_chunk"][1]), u2d(InputDict["ends_chunk"][end]))
+        end
+
         let FFTs, FFT_Dict
 
             A = pmap(x -> map_compute_fft(x, InputDict), all_stations) # store FFTs in memory and deallocate after map_compute_correlation().
             stations    = (x->x[1]).(A)
             FFTs        = (x->x[2]).(A)
-            t_assemble_all  += sum((x->x[3]).(A))
-            t_fft_all       += sum((x->x[4]).(A))
+            t_assemble_all  += mean((x->x[3]).(A))
+            t_fft_all       += mean((x->x[4]).(A))
             #
             # println(stations)
             # println(typeof(FFTs))
@@ -104,7 +115,7 @@ function seisxcorrelation(InputDict_origin::OrderedDict)
             B = pmap((x, y) -> map_compute_cc(x, y, InputDict),
                                             map((x, y) -> (FFT_Dict[x], FFT_Dict[y]), netstachan1_list, netstachan2_list),
                                             StationPairs)
-            t_corr_all += sum((x->x[1]).(B))
+            t_corr_all += mean((x->x[1]).(B))
 
         end
 
@@ -121,9 +132,9 @@ function seisxcorrelation(InputDict_origin::OrderedDict)
     # mean_xcorr_cputime      = mean((x->x[3]).(bt_time))
 
     printstyled("---Summary---\n"; color = :cyan, bold = true)
-    println("Total time for assemble cputime     =$(t_assemble_all)[s]")
-    println("Total time for fft cputime          =$(t_fft_all)[s]")
-    println("Total time for cross-correlation cputime = $(t_corr_all)[s]")
+    println("mean time for assemble cputime  =$(t_assemble_all)[s]")
+    println("mean time for fft cputime       =$(t_fft_all)[s]")
+    println("mean time for cc  cputime       =$(t_corr_all)[s]")
     # println("time for mean assemble cputime     =$(mean_assemble_cputime)[s]")
     # println("time for mean fft cputime          =$(mean_fft_cputime)[s]")
     # println("time for mean cross-correlation cputime = $(mean_xcorr_cputime)[s]")
