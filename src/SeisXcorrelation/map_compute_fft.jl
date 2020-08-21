@@ -23,7 +23,8 @@ function map_compute_fft(netstachan::String, InputDict::OrderedDict)
     if InputDict["use_local_tmpdir"]
         local_tmp_dir = "/tmp" # default local tmp directory
         # finame = splitdir(fipath)[2]
-        tmpstationlist = InputDict["chunk_fi_stationdict"][netstachan]
+        chunk_fi_stationdict = InputDict["chunk_fi_stationdict"]
+        tmpstationlist = chunk_fi_stationdict[netstachan]
         for tmpstation in tmpstationlist
             cp(joinpath(InputDict["cc_absolute_RawData_path"], tmpstation)
                 , joinpath(local_tmp_dir, tmpstation))

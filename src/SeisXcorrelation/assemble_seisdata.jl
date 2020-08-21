@@ -53,7 +53,7 @@ function assemble_seisdata(
 
     # read and merge seischannel
     S1 = SeisData(); removal_fraction_all = Float64[]
-    for file in files_target
+    bt_1 = @elapsed for file in files_target
         # Stemp = fileio[joinpath("Waveforms", join([net, sta], "."), file)]
         Stemp = rseis(joinpath(fidir, file))[1]
         haskey(Stemp.misc, "removal_fraction") && push!(removal_fraction_all, Stemp.misc["removal_fraction"])
@@ -92,7 +92,7 @@ function assemble_seisdata(
         println("$(netstachan)-$(starttime)-$(endtime): data containts $(datafraction_total) is less than data_contents_fraction.")
         return nothing
     end
-
+    println("t_assemble: $(bt_1) at $(netstachan)-$(starttime)-$(endtime)")
     return S1_sync[1]
 end
 
