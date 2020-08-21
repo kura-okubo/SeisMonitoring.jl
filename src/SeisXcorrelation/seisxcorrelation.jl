@@ -121,7 +121,6 @@ function seisxcorrelation(InputDict_origin::OrderedDict)
     # mean_xcorr_cputime      = mean((x->x[3]).(bt_time))
 
     printstyled("---Summary---\n"; color = :cyan, bold = true)
-    println("Total time for cross-correlation   =$(t_removeeq)[s]")
     println("Total time for assemble cputime     =$(t_assemble_all)[s]")
     println("Total time for fft cputime          =$(t_fft_all)[s]")
     println("Total time for cross-correlation cputime = $(t_corr_all)[s]")
