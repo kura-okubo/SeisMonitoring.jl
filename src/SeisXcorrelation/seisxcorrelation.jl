@@ -65,8 +65,8 @@ function seisxcorrelation(InputDict_origin::OrderedDict)
 
     t_assemble_all, t_fft_all, t_corr_all = zeros(3)
 
-    # for timechunkid in Iterators.partition(1:length(InputDict["starts"]), InputDict["timechunk_increment"])
-    for timechunkid in Iterators.partition(1:length(InputDict["starts"]), 10)
+    for timechunkid in Iterators.partition(1:length(InputDict["starts"]), InputDict["timechunk_increment"])
+    # for timechunkid in Iterators.partition(1:length(InputDict["starts"]), 10)
 
         InputDict["starts_chunk"] = InputDict["starts"][timechunkid]
         InputDict["ends_chunk"] = InputDict["ends"][timechunkid]
