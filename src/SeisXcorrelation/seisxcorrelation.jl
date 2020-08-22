@@ -69,6 +69,23 @@ function seisxcorrelation(InputDict_origin::OrderedDict)
         rawdata_path_all = SeisIO.ls(InputDict["cc_absolute_RawData_path"])
     end
 
+    # precompile_map_compute_fft(rawdata_path_all, all_stations, InputDict) # precompile map_fft to minimize asynchronous JIT compiling when using pmap.
+
+    #NOTE:
+    # Specify WorkerPool to avoid the following issue on redundant precompile through chunk loop:
+    # e.g. Given 100 cores as workers, and parallelize 10 stations for fft:
+    #
+    # - first chunk: worker 1,2 ... 10 precompiled
+    # - second chunk: worker 1,2, ..., 9, 11, taking precompile time for worker 11
+    # - third chunk: worker 1,2, ..., 9, 12, taking precompile time for worker 12
+    # - fourth chunk: worker 1,2, ..., 9, 13, taking precompile time for worker 13
+
+    N_workpool_fft = min(length(all_stations)+1, nworkers()+1)
+    map_compute_fft_workerpool = WorkerPool(collect(2:N_workpool_fft))
+
+    N_workpool_cc = min(length(StationPairs)+1, nworkers()+1)
+    map_compute_cc_workerpool = WorkerPool(collect(2:N_workpool_cc))
+
     for timechunkid in Iterators.partition(1:length(InputDict["starts"]), InputDict["timechunk_increment"])
     # for timechunkid in Iterators.partition(1:length(InputDict["starts"]), 10)
 
@@ -85,7 +102,7 @@ function seisxcorrelation(InputDict_origin::OrderedDict)
 
         let FFTs, FFT_Dict
 
-            A = pmap(x -> map_compute_fft(x, InputDict), all_stations) # store FFTs in memory and deallocate after map_compute_correlation().
+            A = pmap(x -> map_compute_fft(x, InputDict), map_compute_fft_workerpool, all_stations) # store FFTs in memory and deallocate after map_compute_correlation().
             stations    = (x->x[1]).(A)
             FFTs        = (x->x[2]).(A)
             t_assemble_all  += mean((x->x[3]).(A))
@@ -114,7 +131,9 @@ function seisxcorrelation(InputDict_origin::OrderedDict)
             #NOTE: using map() function to move each pair of FFTData from host to workers.
             B = pmap((x, y) -> map_compute_cc(x, y, InputDict),
                                             map((x, y) -> (FFT_Dict[x], FFT_Dict[y]), netstachan1_list, netstachan2_list),
-                                            StationPairs)
+                                                map_compute_cc_workerpool,
+                                                StationPairs)
+
             t_corr_all += mean((x->x[1]).(B))
 
         end

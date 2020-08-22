@@ -223,6 +223,54 @@ function get_chunk_fi_stationdict(rawdata_path_all::Array{String, 1}, st::DateTi
 	end
 	return chunk_fi_stationdict
 end
+
+# """
+#     precompile_map_compute_fft(all_stations::Array{String,1}, InputDict::Dict)
+# Call `map_compute_fft()` in all workers to precompile.
+#
+# # NOTE
+#
+# The number of required workers for `compute_fft` is generally smaller than that of `compute_cc`.
+# For example, `N_station` requires `N_station` workers for fft and `N_station*(N_station-1)` for cross-correlation pair.
+# When using large number of cores as workers to parallelize `compute_cc` processes,
+# the number of workers is too much for `compute_fft` process.
+#
+# This causes an issue such that the asyncronous call of `compute_fft` randomly increases precompile time.
+#
+# e.g. Given 100 cores as workers, and parallelize 10 stations for fft:
+#
+# - first chunk: worker 1,2 ... 10 precompiled
+# - second chunk: worker 1,2, ..., 9, 11, taking precompile time for worker 11
+# - third chunk: worker 1,2, ..., 9, 12, taking precompile time for worker 12
+# - fourth chunk: worker 1,2, ..., 9, 13, taking precompile time for worker 13
+#
+# This function calls `compute_fft` in the beginning to avoid the redundant precompiling.
+#
+# """
+# function precompile_map_compute_fft(rawdata_path_all::Array{String,1}, all_stations::Array{String,1}, InputDict::OrderedDict)
+#
+# 	println("---start precompile map_compute_fft---")
+#
+# 	# # processing short time chunk
+# 	# InputDict["starts_chunk"] = InputDict["starts"][1:3]
+# 	# InputDict["ends_chunk"] = InputDict["ends"][1:3]
+# 	#
+# 	# # make pseudo station name list to allocate compute_fft to all workers
+# 	# k = ceil(Int, nworkers()/length(all_stations))
+# 	# precompile_stationlist = repeat(all_stations, outer=k)
+# 	# println("debug: length precompile_stationlist = $(length(precompile_stationlist[1:nworkers()])).")
+# 	#
+# 	# if InputDict["use_local_tmpdir"]
+# 	# 	# make chunk_fi_stationdict to copy data to local tmp directory
+# 	# 	InputDict["chunk_fi_stationdict"] = get_chunk_fi_stationdict(rawdata_path_all,
+# 	# 											u2d(InputDict["starts_chunk"][1]), u2d(InputDict["ends_chunk"][end]))
+# 	# end
+# 	#
+# 	# t_precompilefft = @elapsed pmap(x -> map_compute_fft(x, InputDict, precompile_mode=true), precompile_stationlist[1:nworkers()])
+#
+# 	println("---precompile map_compute_fft done with $(t_precompilefft)[s]---")
+#
+# end
 # key = "BP.CCRB-BP.EADB"
 # all_stationchannels = get_stationchanname(StationPairDict[key])
 
