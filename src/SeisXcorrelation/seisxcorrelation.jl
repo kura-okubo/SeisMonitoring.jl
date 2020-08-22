@@ -63,7 +63,9 @@ function seisxcorrelation(InputDict_origin::OrderedDict)
         println("should be $(id1)__$(id2)")
     end
 
-    t_assemble_all, t_fft_all, t_corr_all = zeros(3)
+    t_assemble_all = []
+    t_fft_all = []
+    t_corr_all = []
 
     if InputDict["use_local_tmpdir"]
         rawdata_path_all = SeisIO.ls(InputDict["cc_absolute_RawData_path"])
@@ -91,7 +93,7 @@ function seisxcorrelation(InputDict_origin::OrderedDict)
 
         InputDict["starts_chunk"] = InputDict["starts"][timechunkid]
         InputDict["ends_chunk"] = InputDict["ends"][timechunkid]
-        println("time chunk $(u2d(InputDict["starts_chunk"][1]))-$(u2d(InputDict["ends_chunk"][end]))")
+        println("$(now()): time chunk $(u2d(InputDict["starts_chunk"][1]))-$(u2d(InputDict["ends_chunk"][end]))")
         # 1. compute FFT and store data into FFTDict
 
         if InputDict["use_local_tmpdir"]
@@ -105,8 +107,8 @@ function seisxcorrelation(InputDict_origin::OrderedDict)
             A = pmap(x -> map_compute_fft(x, InputDict), map_compute_fft_workerpool, all_stations) # store FFTs in memory and deallocate after map_compute_correlation().
             stations    = (x->x[1]).(A)
             FFTs        = (x->x[2]).(A)
-            t_assemble_all  += mean((x->x[3]).(A))
-            t_fft_all       += mean((x->x[4]).(A))
+            push!(t_assemble_all, mean((x->x[3]).(A)))
+            push!(t_fft_all, mean((x->x[4]).(A)))
             #
             # println(stations)
             # println(typeof(FFTs))
@@ -134,7 +136,7 @@ function seisxcorrelation(InputDict_origin::OrderedDict)
                                             map((k, l) -> (FFT_Dict[k], FFT_Dict[l]), netstachan1_list, netstachan2_list),
                                                 StationPairs)
 
-            t_corr_all += mean((x->x[1]).(B))
+            push!(t_corr_all, mean((x->x[1]).(B)))
 
         end
 
@@ -149,11 +151,15 @@ function seisxcorrelation(InputDict_origin::OrderedDict)
     # mean_assemble_cputime   = mean((x->x[1]).(bt_time))
     # mean_fft_cputime        = mean((x->x[2]).(bt_time))
     # mean_xcorr_cputime      = mean((x->x[3]).(bt_time))
+    !isempty(t_assemble_all) ? (median_assemble_all = median(t_assemble_all)) : (median_assemble_all=0)
+    !isempty(t_fft_all)      ? (median_fft_all = median(t_fft_all)) : (median_fft_all=0)
+    !isempty(t_corr_all)     ? (median_corr_all = median(t_corr_all)) : (median_corr_all=0)
+
 
     printstyled("---Summary---\n"; color = :cyan, bold = true)
-    println("mean time for assemble cputime  =$(t_assemble_all)[s]")
-    println("mean time for fft cputime       =$(t_fft_all)[s]")
-    println("mean time for cc  cputime       =$(t_corr_all)[s]")
+    println("median time for assemble cputime  =$(median_assemble_all)[s]")
+    println("median time for fft cputime       =$(median_fft_all)[s]")
+    println("median time for cc  cputime       =$(median_corr_all)[s]")
     # println("time for mean assemble cputime     =$(mean_assemble_cputime)[s]")
     # println("time for mean fft cputime          =$(mean_fft_cputime)[s]")
     # println("time for mean cross-correlation cputime = $(mean_xcorr_cputime)[s]")

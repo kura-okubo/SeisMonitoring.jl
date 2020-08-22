@@ -19,7 +19,7 @@ Compute cross-correlation save data in jld2 file with CorrData format.
 """
 function map_compute_cc(F::Tuple, key_station_pair::String, InputDict::OrderedDict)
 
-    println("start correlation processing $(key_station_pair)")
+    # println("start correlation processing $(key_station_pair)")
 
     netstachan1, netstachan2 = split(key_station_pair, "-")
     FFT1_Dict, FFT2_Dict = F

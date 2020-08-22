@@ -40,7 +40,7 @@ function map_compute_fft(netstachan::String, InputDict::OrderedDict)
         fidir = InputDict["cc_absolute_RawData_path"]
     end
 
-    println("start fft processing $(netstachan).")
+    # println("start fft processing $(netstachan).")
 
     t_assemble, t_fft = zeros(2)
 
