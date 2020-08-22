@@ -130,8 +130,8 @@ function seisxcorrelation(InputDict_origin::OrderedDict)
             #                                 StationPairs)
             #NOTE: using map() function to move each pair of FFTData from host to workers.
             B = pmap((x, y) -> map_compute_cc(x, y, InputDict),
-                                            map((x, y) -> (FFT_Dict[x], FFT_Dict[y]), netstachan1_list, netstachan2_list),
-                                                map_compute_cc_workerpool,
+                                            map_compute_cc_workerpool,
+                                            map((k, l) -> (FFT_Dict[k], FFT_Dict[l]), netstachan1_list, netstachan2_list),
                                                 StationPairs)
 
             t_corr_all += mean((x->x[1]).(B))
