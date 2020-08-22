@@ -88,8 +88,13 @@ function seisxcorrelation(InputDict_origin::OrderedDict)
     N_workpool_cc = min(length(StationPairs)+1, nworkers()+1)
     map_compute_cc_workerpool = WorkerPool(collect(2:N_workpool_cc))
 
+    # output timechunk cpu time
+    fi_chunkcpu = Base.open(joinpath(project_outputdir, "timechunk_cputime.txt"), "w")
+
     for timechunkid in Iterators.partition(1:length(InputDict["starts"]), InputDict["timechunk_increment"])
     # for timechunkid in Iterators.partition(1:length(InputDict["starts"]), 10)
+
+        ct_1 = now()
 
         InputDict["starts_chunk"] = InputDict["starts"][timechunkid]
         InputDict["ends_chunk"] = InputDict["ends"][timechunkid]
@@ -140,7 +145,14 @@ function seisxcorrelation(InputDict_origin::OrderedDict)
 
         end
 
+        ct_2 = now()
+        ct_elapse = ct_2-ct_1
+
+        Base.write(fi_chunkcpu, "$(ct_elapse.value)\n")
+
     end
+
+    Base.close(fi_chunkcpu)
     # Parallelize with stationpairs
     # t_removeeq = @elapsed bt_time = pmap(x->map_seisxcorrelation(x, InputDict),
     #                                             StationPairs)
