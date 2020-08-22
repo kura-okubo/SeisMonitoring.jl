@@ -109,7 +109,7 @@ function seisxcorrelation(InputDict_origin::OrderedDict)
 
         let FFTs, FFT_Dict
 
-            A = pmap(x -> map_compute_fft(x, InputDict), map_compute_fft_workerpool, all_stations) # store FFTs in memory and deallocate after map_compute_correlation().
+            ta_1 = @elapsed A = pmap(x -> map_compute_fft(x, InputDict), map_compute_fft_workerpool, all_stations) # store FFTs in memory and deallocate after map_compute_correlation().
             stations    = (x->x[1]).(A)
             FFTs        = (x->x[2]).(A)
             push!(t_assemble_all, mean((x->x[3]).(A)))
@@ -136,13 +136,13 @@ function seisxcorrelation(InputDict_origin::OrderedDict)
             # pmap((x, y) -> f_debug2(x, y),map((x, y) -> (FFT_Dict[x], FFT_Dict[y]), netstachan1_list, netstachan2_list),
             #                                 StationPairs)
             #NOTE: using map() function to move each pair of FFTData from host to workers.
-            B = pmap((x, y) -> map_compute_cc(x, y, InputDict),
+            ta_2 = @elapsed B = pmap((x, y) -> map_compute_cc(x, y, InputDict),
                                             map_compute_cc_workerpool,
                                             map((k, l) -> (FFT_Dict[k], FFT_Dict[l]), netstachan1_list, netstachan2_list),
                                                 StationPairs)
 
             push!(t_corr_all, mean((x->x[1]).(B)))
-
+            println("time for map_fft, map_cc = $(ta_1), $(ta_2) [s]")
         end
 
         ct_2 = now()
