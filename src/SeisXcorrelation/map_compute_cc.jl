@@ -114,11 +114,11 @@ function map_compute_cc(F::Tuple, key_station_pair::String, InputDict::OrderedDi
             !haskey(fo, groupname) && (fo[groupname] = CD)
         end
     end
-    
+
     tt2 = now()
     ct_elapse = tt2-tt1
-    println("mapped cc lapse time: $(ct_elapse.value)[s]")
-    println("$(now()):$(key_station_pair) t_freqdecomp, t_medianmuteandoutput, xcorr = $(bt_1), $(bt_2), $(t_xcorr)") 
+    println("mapped cc lapse time: $(ct_elapse.value/1e3)[s]")
+    println("$(now()):$(key_station_pair) t_freqdecomp, t_medianmuteandoutput, xcorr = $(bt_1), $(bt_2), $(t_xcorr)")
 
     !isnothing(fo) && JLD2.close(fo)
     return t_xcorr
