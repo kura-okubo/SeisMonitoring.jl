@@ -19,7 +19,10 @@ Compute cross-correlation save data in jld2 file with CorrData format.
 """
 function map_compute_cc(F::Tuple, key_station_pair::String, InputDict::OrderedDict)
 
+    memory_use_mapfft = Base.summarysize(F)/1e9
     # println("start correlation processing $(key_station_pair)")
+    println("$(key_station_pair): $(memory_use_mapfft) [GB]")
+    tt1 = now()
 
     netstachan1, netstachan2 = split(key_station_pair, "-")
     FFT1_Dict, FFT2_Dict = F
@@ -35,6 +38,9 @@ function map_compute_cc(F::Tuple, key_station_pair::String, InputDict::OrderedDi
 
     foname = "$(key_station_pair)__$(u2d(InputDict["starts_chunk"][1]))__$(u2d(InputDict["ends_chunk"][end])).jld2"
     fo = nothing
+
+    bt_1 = 0
+    bt_2 = 0
 
     for tid in 1:length(starts)
         starttime, endtime = u2d.([starts[tid], ends[tid]])
@@ -75,12 +81,12 @@ function map_compute_cc(F::Tuple, key_station_pair::String, InputDict::OrderedDi
         C.misc["ccfrac_within_cc_time_unit"] = get_cc_contents_fraction(C,starttime,endtime)
 
         #9. Apply frequency decomposion of cross-correlation function
-        C_all, freqband = compute_frequency_decomposition(C, InputDict["freqency_band"],
+        bt_1 = @elapsed C_all, freqband = compute_frequency_decomposition(C, InputDict["freqency_band"],
                                             cc_bpfilt_method=InputDict["cc_bpfilt_method"],
                                             α0=InputDict["cc_taper_α0"], αmax=InputDict["cc_taper_αmax"])
 
         #10. Save corr-data
-        for (ic, CD) in enumerate(C_all)
+        bt_2 = @elapsed for (ic, CD) in enumerate(C_all)
 
             # mute ccs outlier using median of maximum amplitude
             cc_medianmute!(CD, InputDict["cc_medianmute_α"])
@@ -108,6 +114,11 @@ function map_compute_cc(F::Tuple, key_station_pair::String, InputDict::OrderedDi
             !haskey(fo, groupname) && (fo[groupname] = CD)
         end
     end
+    
+    tt2 = now()
+    ct_elapse = tt2-tt1
+    println("mapped cc lapse time: $(ct_elapse.value)[s]")
+    println("$(now()):$(key_station_pair) t_freqdecomp, t_medianmuteandoutput, xcorr = $(bt_1), $(bt_2), $(t_xcorr)") 
 
     !isnothing(fo) && JLD2.close(fo)
     return t_xcorr
