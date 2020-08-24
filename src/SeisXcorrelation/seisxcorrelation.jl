@@ -106,7 +106,7 @@ function seisxcorrelation(InputDict_origin::OrderedDict)
             push!(t_assemble_all, mean((x->x[3]).(A)))
             push!(t_fft_all, mean((x->x[4]).(A)))
 
-            FFT_Dict = Dict{String,Dict}()
+            FFT_Dict = Dict{String,Dict{String, FFTData}}()
 
             for (i, station) in enumerate(stations)
                 FFT_Dict[station] = FFTs[i]
@@ -118,10 +118,15 @@ function seisxcorrelation(InputDict_origin::OrderedDict)
             memory_use > InputDict["MAX_MEM_USE"] && @error("Memory use during FFT exceeds MAX_MEM_USE ($(memory_use)GB is used). Please decrease timechunk_increment.")
 
             #NOTE: using map() function to move each pair of FFTData from host to workers.
-            ta_2 = @elapsed B = pmap((x, y) -> map_compute_cc(x, y, InputDict),
+            # ta_2 = @elapsed B = pmap((x, y) -> map_compute_cc(x, y, InputDict),
+            #                                 map_compute_cc_workerpool,
+            #                                 map((k, l) -> (FFT_Dict[k], FFT_Dict[l]), netstachan1_list, netstachan2_list),
+            #                                     StationPairs_chunk)
+            ta_2 = @elapsed B = pmap((fft1, fft2, pair) -> map_compute_cc(fft1, fft2, pair, InputDict),
                                             map_compute_cc_workerpool,
-                                            map((k, l) -> (FFT_Dict[k], FFT_Dict[l]), netstachan1_list, netstachan2_list),
-                                                StationPairs_chunk)
+                                            map(k -> FFT_Dict[k], netstachan1_list),
+                                            map(l -> FFT_Dict[l], netstachan2_list),
+                                            StationPairs_chunk)
 
             push!(t_corr_all, mean((x->x[1]).(B)))
             println("time for map_fft, map_cc = $(ta_1), $(ta_2) [s]")
