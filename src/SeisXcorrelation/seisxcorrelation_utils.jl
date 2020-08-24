@@ -45,9 +45,94 @@ end
 # StationDict = scan_stations(finame)
 #
 
+#
+# """
+#     get_stationpairs(StationDict::Dict, cc_normalization::String="cross-correlation", pairs_option::Array{String, 1}=["all"])
+#
+# get stations pairs to compute cross-correlations.
+#
+# # Argument
+# - `StationDict::`: Station dictionary made by `scan_stations()`
+# - `cc_normalization::String`: cross-correlation normalization method ("none", "coherence", "deconvolution")
+# - `pairs_option`: combination of components (e.g. ["XX", "YY", "ZZ"] or ["all"])
+#
+# # Return
+# - `StationPairDict::Dict` Station pair dictionary containing all station and channel pairs to be computed.
+# """
+# function get_stationpairs(StationDict::OrderedDict, cc_normalization::String="cross-correlation",
+# 	pairs_option::Array{SubString{String},1}=["all"], chanpair_type::Array{SubString{String},1}=["all"])
+#
+#     stations = collect(keys(StationDict))
+#     Nstation = length(stations)
+#
+# 	# StationPairDict = OrderedDict{String, Array{String, 1}}()
+# 	StationPairs = String[]
+#
+# 	netstachan1_filtered = String[]
+# 	netstachan2_filtered = String[]
+#
+#     for i = 1:Nstation
+#
+# 		if lowercase(cc_normalization) == "deconvolution"
+# 			# compute all station pairs as deconvolution process is asymmetric.
+# 			jinit = 1
+#
+#         elseif lowercase(cc_normalization) == "none" || lowercase(cc_normalization) == "coherence"
+#             # pairwise only upper triangle of pairs
+#             jinit = i
+#         else
+#             @error("unknown cc_normalization method: $(cc_normalization)")
+#         end
+#
+#         for j = jinit:Nstation
+#
+#             sta1 = stations[i]
+#             sta2 = stations[j]
+#
+#             # pairkey = join([sta1, sta2], "-")
+#
+#             # if !haskey(StationPairDict, pairkey)
+# 			#
+#             #     StationPairDict[pairkey] = Array{String, 1}(undef, 0)
+#             # end
+#
+#             # evaluate components
+#
+#             netstachan1_all = StationDict[sta1]
+#             netstachan2_all = StationDict[sta2]
+#
+#             for netstachan1 in netstachan1_all
+#                 for netstachan2 in netstachan2_all
+#
+#                     #netstachan1 and netstachan2 are e.g. "BP.CCRB..BP1" and "BP.EADB..BP2"
+#                     #parse components and push it into pairdict
+#                     paircomp= netstachan1[end]*netstachan2[end]
+# 					ct = get_chanpairtype(string.([netstachan1, netstachan2]))
+#                     if (paircomp ∈ pairs_option || "all" ∈ pairs_option) && (ct ∈ chanpair_type || "all" ∈ chanpair_type)
+#                         # pairs_option can be either "XX, YY, ZZ, XY..." or "all"
+#                         # this pair is added to StationPairDict
+# 						channelkey = join([netstachan1, netstachan2], "-")
+# 						# push!(StationPairDict[pairkey], join([netstachan1, netstachan2], "-"))
+# 						push!(StationPairs, channelkey)
+# 						push!(netstachan1_filtered, netstachan1)
+# 						push!(netstachan2_filtered, netstachan2)
+#                     end
+#                 end
+#             end
+#         end
+#     end
+# 	# return StationPairs
+# 	return netstachan1_filtered, netstachan2_filtered, StationPairs
+# end
+#
+# cc_normalization = "deconvolution" #"cross-correlation"
+# pairs_option = String["all"]
+# get_stationpairs(StationDict, cc_normalization, pairs_option)
+#
+
 
 """
-    get_stationpairs(StationDict::Dict, cc_normalization::String="cross-correlation", pairs_option::Array{String, 1}=["all"])
+    get_stationpairs_chunk(all_stations_chunk::Array{String,1}, cc_normalization::String="cross-correlation", pairs_option::Array{String, 1}=["all"])
 
 get stations pairs to compute cross-correlations.
 
@@ -59,8 +144,22 @@ get stations pairs to compute cross-correlations.
 # Return
 - `StationPairDict::Dict` Station pair dictionary containing all station and channel pairs to be computed.
 """
-function get_stationpairs(StationDict::OrderedDict, cc_normalization::String="cross-correlation",
+function get_stationpairs_chunk(all_stations_chunk::Array{String,1}, cc_normalization::String="cross-correlation",
 	pairs_option::Array{SubString{String},1}=["all"], chanpair_type::Array{SubString{String},1}=["all"])
+
+	#1. make StationDict
+	StationDict = OrderedDict{String, Array{String, 1}}()
+	all_stations = String[]
+
+	for netstachan in all_stations_chunk
+		key = join(split(netstachan, ".")[1:2], ".")
+		if !haskey(StationDict, key)
+			StationDict[key] = Array{String, 1}(undef, 0)
+		end
+		if  netstachan ∉ StationDict[key]
+			push!(StationDict[key], netstachan)
+		end
+	end
 
     stations = collect(keys(StationDict))
     Nstation = length(stations)
@@ -89,13 +188,6 @@ function get_stationpairs(StationDict::OrderedDict, cc_normalization::String="cr
             sta1 = stations[i]
             sta2 = stations[j]
 
-            # pairkey = join([sta1, sta2], "-")
-
-            # if !haskey(StationPairDict, pairkey)
-			#
-            #     StationPairDict[pairkey] = Array{String, 1}(undef, 0)
-            # end
-
             # evaluate components
 
             netstachan1_all = StationDict[sta1]
@@ -112,7 +204,6 @@ function get_stationpairs(StationDict::OrderedDict, cc_normalization::String="cr
                         # pairs_option can be either "XX, YY, ZZ, XY..." or "all"
                         # this pair is added to StationPairDict
 						channelkey = join([netstachan1, netstachan2], "-")
-						# push!(StationPairDict[pairkey], join([netstachan1, netstachan2], "-"))
 						push!(StationPairs, channelkey)
 						push!(netstachan1_filtered, netstachan1)
 						push!(netstachan2_filtered, netstachan2)
@@ -124,11 +215,7 @@ function get_stationpairs(StationDict::OrderedDict, cc_normalization::String="cr
 	# return StationPairs
 	return netstachan1_filtered, netstachan2_filtered, StationPairs
 end
-#
-# cc_normalization = "deconvolution" #"cross-correlation"
-# pairs_option = String["all"]
-# get_stationpairs(StationDict, cc_normalization, pairs_option)
-#
+
 
 function get_cc_time_windows(cc_time_unit::Int64, fs::Float64, starttime::DateTime, endtime::DateTime)
 
