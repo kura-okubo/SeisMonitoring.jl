@@ -95,8 +95,8 @@ function seisxcorrelation(InputDict_origin::OrderedDict)
         map_compute_fft_workerpool = WorkerPool(collect(2:N_workpool_fft))
 
         N_workpool_cc = min(length(StationPairs_chunk)+1, nworkers()+1)
-        map_compute_cc_workerpool = WorkerPool(collect(2:N_workpool_cc))
-
+        # map_compute_cc_workerpool = WorkerPool(collect(2:N_workpool_cc))
+        map_compute_cc_workerpool = CachingPool(collect(2:N_workpool_cc))
 
         let FFTs, FFT_Dict
 
@@ -136,11 +136,13 @@ function seisxcorrelation(InputDict_origin::OrderedDict)
             #DEBUG: Using remote_do
 
             # s = remotecall_fetch(f_test, wp, a)
-            ta_4 = @elapsed @sync for (i, key_station_pair) in enumerate(StationPairs_chunk)
-                # s = remotecall_fetch(f_test, wp, a[i])
-                remote_do((fft1, fft2, pair) -> map_compute_cc(fft1, fft2, pair, InputDict), map_compute_cc_workerpool,
-                                FFT_Dict[netstachan1_list[i]], FFT_Dict[netstachan2_list[i]], key_station_pair)
-            end
+            # ta_4 = @elapsed @sync for (i, key_station_pair) in enumerate(StationPairs_chunk)
+            #     # s = remotecall_fetch(f_test, wp, a[i])
+            #     remote_do((fft1, fft2, pair) -> map_compute_cc(fft1, fft2, pair, InputDict), map_compute_cc_workerpool,
+            #                     FFT_Dict[netstachan1_list[i]], FFT_Dict[netstachan2_list[i]], key_station_pair)
+            # end
+            @show typeof(FFT_Dict)
+            ta_5 = @elapsed B = pmap(x -> map_compute_cc(x, FFT_Dict InputDict), map_compute_cc_workerpool, StationPairs_chunk)
 
             # push!(t_corr_all, mean((x->x[1]).(B)))
             push!(t_corr_all, 0) #DEBUG
