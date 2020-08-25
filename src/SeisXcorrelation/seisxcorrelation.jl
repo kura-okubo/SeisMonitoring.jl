@@ -142,7 +142,7 @@ function seisxcorrelation(InputDict_origin::OrderedDict)
             #                     FFT_Dict[netstachan1_list[i]], FFT_Dict[netstachan2_list[i]], key_station_pair)
             # end
             @show typeof(FFT_Dict)
-            ta_5 = @elapsed B = pmap(x -> map_compute_cc(x, FFT_Dict InputDict), map_compute_cc_workerpool, StationPairs_chunk)
+            ta_5 = @elapsed B = pmap(x -> map_compute_cc(x, FFT_Dict, InputDict), map_compute_cc_workerpool, StationPairs_chunk)
 
             # push!(t_corr_all, mean((x->x[1]).(B)))
             push!(t_corr_all, 0) #DEBUG
