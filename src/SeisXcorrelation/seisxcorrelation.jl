@@ -138,7 +138,7 @@ function seisxcorrelation(InputDict_origin::OrderedDict)
             # s = remotecall_fetch(f_test, wp, a)
             ta_4 = @elapsed @sync for (i, key_station_pair) in enumerate(StationPairs_chunk)
                 # s = remotecall_fetch(f_test, wp, a[i])
-                remote_do(map_compute_cc(fft1, fft2, pair, InputDict), map_compute_cc_workerpool,
+                remote_do((fft1, fft2, pair) -> map_compute_cc(fft1, fft2, pair, InputDict), map_compute_cc_workerpool,
                                 FFT_Dict[netstachan1_list[i]], FFT_Dict[netstachan2_list[i]], key_station_pair)
             end
 
