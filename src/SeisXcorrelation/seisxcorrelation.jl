@@ -131,7 +131,7 @@ function seisxcorrelation(InputDict_origin::OrderedDict)
             #                                 map_compute_cc_workerpool,
             #                                 FFT1_dict, FFT2_dict, StationPairs_chunk)
             ta_2 = 0 #DEBUG
-            ta_3 = @elapsed C = pmap(x -> pmaptest_1(x, InputDict), map_compute_cc_workerpool, StationPairs_chunk)
+            ta_3 = @elapsed C = pmap((x, y) -> pmaptest_1(x, y, InputDict), map_compute_cc_workerpool, StationPairs_chunk, FFT_Dict)
 
             # push!(t_corr_all, mean((x->x[1]).(B)))
             push!(t_corr_all, 0) #DEBUG

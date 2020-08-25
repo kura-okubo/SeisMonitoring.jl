@@ -129,7 +129,8 @@ end
 
 
 
-function pmaptest_1(key_station_pair::String,  InputDict::OrderedDict)
+function pmaptest_1(key_station_pair::String, FFT_Dict::Dict{String,Dict{String, FFTData}}, InputDict::OrderedDict)
+    println(length(FFT_Dict))
     return key_station_pair
 end
 
