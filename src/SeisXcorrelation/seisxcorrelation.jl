@@ -127,12 +127,15 @@ function seisxcorrelation(InputDict_origin::OrderedDict)
             tm2 = @elapsed FFT2_dict = map(l -> FFT_Dict[l], netstachan2_list)
             println("$(now()): tmap1, tmap2 = $(tm1), $(tm2)[s]")
 
-            ta_2 = @elapsed B = pmap((fft1, fft2, pair) -> map_compute_cc(fft1, fft2, pair, InputDict),
-                                            map_compute_cc_workerpool,
-                                            FFT1_dict, FFT2_dict, StationPairs_chunk)
+            # ta_2 = @elapsed B = pmap((fft1, fft2, pair) -> map_compute_cc(fft1, fft2, pair, InputDict),
+            #                                 map_compute_cc_workerpool,
+            #                                 FFT1_dict, FFT2_dict, StationPairs_chunk)
+            ta_2 = 0 #DEBUG
+            ta_3 = @elapsed C = pmap(x -> pmaptest_1(x), map_compute_cc_workerpool, StationPairs_chunk)
 
-            push!(t_corr_all, mean((x->x[1]).(B)))
-            println("time for map_fft, map_cc = $(ta_1), $(ta_2) [s]")
+            # push!(t_corr_all, mean((x->x[1]).(B)))
+            push!(t_corr_all, 0) #DEBUG
+            println("time for map_fft, map_cc, testpmap = $(ta_1), $(ta_2), $(ta_3) [s]")
         end
 
         ct_2 = now()
