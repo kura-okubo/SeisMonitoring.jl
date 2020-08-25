@@ -146,7 +146,7 @@ function seisxcorrelation(InputDict_origin::OrderedDict)
 
             # push!(t_corr_all, mean((x->x[1]).(B)))
             push!(t_corr_all, 0) #DEBUG
-            println("time for map_fft, map_cc, testpmap = $(ta_1), $(ta_2), $(ta_4) [s]")
+            println("time for map_fft, map_cc, testpmap = $(ta_1), $(ta_2), $(ta_5) [s]")
         end
 
         ct_2 = now()
