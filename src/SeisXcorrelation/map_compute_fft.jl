@@ -16,6 +16,8 @@ Compute FFT and return FFTData.
 """
 function map_compute_fft(netstachan::String, InputDict::OrderedDict)
 
+    tt1 = now()
+
     starts  = InputDict["starts_chunk"]
     ends    = InputDict["ends_chunk"]
 
@@ -93,6 +95,10 @@ function map_compute_fft(netstachan::String, InputDict::OrderedDict)
             rm(joinpath(local_tmp_dir, tmpstation))
         end
     end
+
+    tt2 = now()
+    ct_elapse = tt2-tt1
+    println("mapped fft lapse time: $(ct_elapse.value/1e3)[s]")
 
     return (netstachan, FFTDict, t_assemble, t_fft)
 

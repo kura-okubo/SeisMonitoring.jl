@@ -129,7 +129,7 @@ end
 
 
 
-function pmaptest_1(key_station_pair::String)
+function pmaptest_1(key_station_pair::String,  InputDict::OrderedDict)
     return key_station_pair
 end
 
