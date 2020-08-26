@@ -139,9 +139,9 @@ function seisxcorrelation(InputDict_origin::OrderedDict)
             #                                 map((k, l) -> (FFT_Dict[k], FFT_Dict[l]), netstachan1_list, netstachan2_list),
             #                                     StationPairs_chunk)
 
-            tm1 = @elapsed FFT1_dict = map(k -> FFT_Dict[k], netstachan1_list)
-            tm2 = @elapsed FFT2_dict = map(l -> FFT_Dict[l], netstachan2_list)
-            println("$(now()): tmap1, tmap2 = $(tm1), $(tm2)[s]")
+            # tm1 = @elapsed FFT1_dict = map(k -> FFT_Dict[k], netstachan1_list)
+            # tm2 = @elapsed FFT2_dict = map(l -> FFT_Dict[l], netstachan2_list)
+            # println("$(now()): tmap1, tmap2 = $(tm1), $(tm2)[s]")
 
             # ta_2 = @elapsed B = pmap((fft1, fft2, pair) -> map_compute_cc(fft1, fft2, pair, InputDict),
             #                                 map_compute_cc_workerpool,
