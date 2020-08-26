@@ -22,13 +22,13 @@ function map_compute_cc(key_station_pair::String, FFT_Dict::Dict{String,Dict{Str
 
     memory_use_mapfft = Base.summarysize(FFT_Dict)/1e9
     # println("start correlation processing $(key_station_pair)")
-    println("$(now()): $(key_station_pair): $(memory_use_mapfft) [GB]")
+    println("$(now()): $(key_station_pair): thread id=$(Threads.threadid()): $(memory_use_mapfft) [GB]")
     tt1 = now()
 
     netstachan1, netstachan2 = split(key_station_pair, "-")
     FFT1_Dict = FFT_Dict[netstachan1]
     FFT2_Dict = FFT_Dict[netstachan2]
-    
+
     # FFT1_Dict, FFT2_Dict = F
     (isempty(FFT1_Dict) || isempty(FFT2_Dict)) && return 0;# return if FFT_Dict is empty
 
