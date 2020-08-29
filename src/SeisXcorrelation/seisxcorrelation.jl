@@ -91,22 +91,22 @@ function seisxcorrelation(InputDict_origin::OrderedDict)
         # - third chunk: worker 1,2, ..., 9, 12, taking precompile time for worker 12
         # - fourth chunk: worker 1,2, ..., 9, 13, taking precompile time for worker 13
 
-        # N_workpool_fft = min(length(all_stations_chunk)+1, nworkers()+1)
-        # map_compute_fft_workerpool = WorkerPool(collect(2:N_workpool_fft))
+        N_workpool_fft = min(length(all_stations_chunk)+1, nworkers()+1)
+        map_compute_fft_workerpool = WorkerPool(collect(2:N_workpool_fft))
 
-        # N_workpool_cc = min(length(StationPairs_chunk)+1, nworkers()+1)
-        # map_compute_cc_workerpool = WorkerPool(collect(2:N_workpool_cc))
+        N_workpool_cc = min(length(StationPairs_chunk)+1, nworkers()+1)
+        map_compute_cc_workerpool = WorkerPool(collect(2:N_workpool_cc))
         # map_compute_cc_workerpool = CachingPool(collect(2:N_workpool_cc))
 
         let FFTs, FFT_Dict
 
             # ta_1 = @elapsed A = pmap(x -> map_compute_fft(x, InputDict), map_compute_fft_workerpool, all_stations_chunk) # store FFTs in memory and deallocate after map_compute_correlation().
-            # A = Array{Dict{String, FFTData}}(undef, 0)
-            Nstation_chunk = length(all_stations_chunk)
-            stations = Array{String, 1}(undef, Nstation_chunk)
-            FFTs     = Array{Dict{String, FFTData}, 1}(undef, Nstation_chunk)
-            t_assemble_temp = zeros(Nstation_chunk)
-            t_fft_temp = zeros(Nstation_chunk)
+            # # A = Array{Dict{String, FFTData}}(undef, 0)
+            # Nstation_chunk = length(all_stations_chunk)
+            # stations = Array{String, 1}(undef, Nstation_chunk)
+            # FFTs     = Array{Dict{String, FFTData}, 1}(undef, Nstation_chunk)
+            # t_assemble_temp = zeros(Nstation_chunk)
+            # t_fft_temp = zeros(Nstation_chunk)
 
             # NOTE: Threads parallelization is unstable with push!().
             # ta_1 = @elapsed Threads.@threads for station_chunk in all_stations_chunk
@@ -117,17 +117,15 @@ function seisxcorrelation(InputDict_origin::OrderedDict)
             #     push!(t_fft_temp, t_fft)
             # end
 
-            ta_1 = @elapsed Threads.@threads for i in 1:Nstation_chunk
-                stations[i], FFTs[i], t_assemble_temp[i], t_fft_temp[i] = map_compute_fft(all_stations_chunk[i], InputDict)
-            end
+            # ta_1 = @elapsed Threads.@threads for i in 1:Nstation_chunk
+            #     stations[i], FFTs[i], t_assemble_temp[i], t_fft_temp[i] = map_compute_fft(all_stations_chunk[i], InputDict)
+            # end
 
-
-            # stations    = (x->x[1]).(A)
-            # FFTs        = (x->x[2]).(A)
-            # push!(t_assemble_all, mean((x->x[3]).(A)))
-            # push!(t_fft_all, mean((x->x[4]).(A)))
-            push!(t_assemble_all, mean(t_assemble_temp))
-            push!(t_fft_all, mean(t_fft_temp))
+            ta_1 = @elapsed A = pmap(x -> map_compute_fft(x, InputDict), map_compute_fft_workerpool, all_stations_chunk) # store FFTs in memory and deallocate after map_compute_correlation().
+            stations    = (x->x[1]).(A)
+            FFTs        = (x->x[2]).(A)
+            push!(t_assemble_all, mean((x->x[3]).(A)))
+            push!(t_fft_all, mean((x->x[4]).(A)))
 
             FFT_Dict = Dict{String,Dict{String, FFTData}}()
 
@@ -135,16 +133,31 @@ function seisxcorrelation(InputDict_origin::OrderedDict)
                 FFT_Dict[station] = FFTs[i]
             end
 
+            # stations    = (x->x[1]).(A)
+            # FFTs        = (x->x[2]).(A)
+            # push!(t_assemble_all, mean((x->x[3]).(A)))
+            # push!(t_fft_all, mean((x->x[4]).(A)))
+            # push!(t_assemble_all, mean(t_assemble_temp))
+            # push!(t_fft_all, mean(t_fft_temp))
+            #
+            # FFT_Dict = Dict{String,Dict{String, FFTData}}()
+            #
+            # for (i, station) in enumerate(stations)
+            #     FFT_Dict[station] = FFTs[i]
+            # end
+
             # memory_use=sizeof(FFTs)/1e9 #[GB]
             memory_use=Base.summarysize(FFTs)/1e9
             println("debug: memory_use: $(memory_use) GB.")
             memory_use > InputDict["MAX_MEM_USE"] && @error("Memory use during FFT exceeds MAX_MEM_USE ($(memory_use)GB is used). Please decrease timechunk_increment.")
 
             #NOTE: using map() function to move each pair of FFTData from host to workers.
-            # ta_2 = @elapsed B = pmap((x, y) -> map_compute_cc(x, y, InputDict),
-            #                                 map_compute_cc_workerpool,
-            #                                 map((k, l) -> (FFT_Dict[k], FFT_Dict[l]), netstachan1_list, netstachan2_list),
-            #                                     StationPairs_chunk)
+            ta_2 = @elapsed B = pmap((x, y) -> map_compute_cc(x, y, InputDict),
+                                            map_compute_cc_workerpool,
+                                            map((k, l) -> (FFT_Dict[k], FFT_Dict[l]), netstachan1_list, netstachan2_list),
+                                                StationPairs_chunk)
+
+            push!(t_corr_all, mean((x->x[1]).(B)))
 
             # tm1 = @elapsed FFT1_dict = map(k -> FFT_Dict[k], netstachan1_list)
             # tm2 = @elapsed FFT2_dict = map(l -> FFT_Dict[l], netstachan2_list)
@@ -153,7 +166,7 @@ function seisxcorrelation(InputDict_origin::OrderedDict)
             # ta_2 = @elapsed B = pmap((fft1, fft2, pair) -> map_compute_cc(fft1, fft2, pair, InputDict),
             #                                 map_compute_cc_workerpool,
             #                                 FFT1_dict, FFT2_dict, StationPairs_chunk)
-            ta_2 = 0 #DEBUG
+            # ta_2 = 0 #DEBUG
             # ta_3 = @elapsed C = pmap((x, y) -> pmaptest_1(x, y, InputDict), map_compute_cc_workerpool, StationPairs_chunk, FFT_Dict)
 
             #DEBUG: Using remote_do
@@ -167,17 +180,17 @@ function seisxcorrelation(InputDict_origin::OrderedDict)
             # @show typeof(FFT_Dict)
             # ta_5 = @elapsed B = pmap(x -> map_compute_cc(x, FFT_Dict, InputDict), map_compute_cc_workerpool, StationPairs_chunk) #NOTE: VERY SLOW.
 
-            ta_6 = @elapsed Threads.@threads for key_station_pair in StationPairs_chunk
-                # println((i, key_station_pair))
-                # FFT_Dict1 = FFT_Dict[netstachan1_list[i]]
-                # FFT_Dict2 = FFT_Dict[netstachan2_list[i]]
-                # map_compute_cc(FFT_Dict1, FFT_Dict2, key_station_pair, InputDict)
-                map_compute_cc(key_station_pair, FFT_Dict, InputDict)
-            end
+            # ta_6 = @elapsed Threads.@threads for key_station_pair in StationPairs_chunk
+            #     # println((i, key_station_pair))
+            #     # FFT_Dict1 = FFT_Dict[netstachan1_list[i]]
+            #     # FFT_Dict2 = FFT_Dict[netstachan2_list[i]]
+            #     # map_compute_cc(FFT_Dict1, FFT_Dict2, key_station_pair, InputDict)
+            #     map_compute_cc(key_station_pair, FFT_Dict, InputDict)
+            # end
 
             # push!(t_corr_all, mean((x->x[1]).(B)))
-            push!(t_corr_all, 0) #DEBUG
-            println("time for map_fft, map_cc, testpmap = $(ta_1), $(ta_2), $(ta_6) [s]")
+            # push!(t_corr_all, 0) #DEBUG
+            println("time for map_fft, map_cc, testpmap = $(ta_1), $(ta_2) [s]")
         end
 
         ct_2 = now()
