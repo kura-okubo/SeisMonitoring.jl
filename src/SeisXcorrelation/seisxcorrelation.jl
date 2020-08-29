@@ -101,19 +101,26 @@ function seisxcorrelation(InputDict_origin::OrderedDict)
         let FFTs, FFT_Dict
 
             # ta_1 = @elapsed A = pmap(x -> map_compute_fft(x, InputDict), map_compute_fft_workerpool, all_stations_chunk) # store FFTs in memory and deallocate after map_compute_correlation().
-            A = Array{Dict{String, FFTData}}(undef, 0)
-            stations = String[]
-            FFTs     = Dict{String, FFTData}[]
-            t_assemble_temp = []
-            t_fft_temp = []
+            # A = Array{Dict{String, FFTData}}(undef, 0)
+            Nstation_chunk = length(all_stations_chunk)
+            stations = Array{String, 1}(undef, Nstation_chunk)
+            FFTs     = Array{Dict{String, FFTData}, 1}(undef, Nstation_chunk)
+            t_assemble_temp = zeros(Nstation_chunk)
+            t_fft_temp = zeros(Nstation_chunk)
 
-            ta_1 = @elapsed Threads.@threads for station_chunk in all_stations_chunk
-                netstachan_tmp, F, t_assemble, t_fft = map_compute_fft(station_chunk, InputDict)
-                push!(stations, netstachan_tmp)
-                push!(FFTs, F)
-                push!(t_assemble_temp, t_assemble)
-                push!(t_fft_temp, t_fft)
+            # NOTE: Threads parallelization is unstable with push!().
+            # ta_1 = @elapsed Threads.@threads for station_chunk in all_stations_chunk
+            #     netstachan_tmp, F, t_assemble, t_fft = map_compute_fft(station_chunk, InputDict)
+            #     push!(stations, netstachan_tmp)
+            #     push!(FFTs, F)
+            #     push!(t_assemble_temp, t_assemble)
+            #     push!(t_fft_temp, t_fft)
+            # end
+
+            ta_1 = @elapsed Threads.@threads for (i, station_chunk) in enumerate(all_stations_chunk)
+                stations[i], FFTs[i], t_assemble_temp[i], t_fft_temp[i] = map_compute_fft(station_chunk, InputDict)
             end
+
 
             # stations    = (x->x[1]).(A)
             # FFTs        = (x->x[2]).(A)
