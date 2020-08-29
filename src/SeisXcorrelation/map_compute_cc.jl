@@ -41,7 +41,15 @@ function map_compute_cc(key_station_pair::String, FFT_Dict::Dict{String,Dict{Str
     t_xcorr = 0
 
     foname = "$(key_station_pair)__$(u2d(InputDict["starts_chunk"][1]))__$(u2d(InputDict["ends_chunk"][end])).jld2"
-    fo = nothing
+    # fo = nothing
+    # open output file
+    fopath = joinpath(InputDict["fodir"], foname)
+    #remove existing cc file
+    ispath(fopath) && rm(fopath)
+    # fo = jldopen(fopath, "w")
+    # DEBUG: random save error when file size is large
+    fo = jldopen(fopath, true, true, true, IOStream)
+    # fo = jldopen(fopath, "w")
 
     bt_1 = 0
     bt_2 = 0
@@ -103,16 +111,16 @@ function map_compute_cc(key_station_pair::String, FFT_Dict::Dict{String,Dict{Str
             g2 = join([string(freqband[ic][1]), string(freqband[ic][2])], "-") #0.1-0.2
             groupname = joinpath(g1, g2)
             # create JLD2.Group
-            if isnothing(fo)
-                # open output file
-                fopath = joinpath(InputDict["fodir"], foname)
-                #remove existing cc file
-                ispath(fopath) && rm(fopath)
-                # fo = jldopen(fopath, "w")
-                # DEBUG: random save error when file size is large
-                fo = jldopen(fopath, true, true, true, IOStream)
-                # fo = jldopen(fopath, "w")
-            end
+            # if isnothing(fo)
+            #     # open output file
+            #     fopath = joinpath(InputDict["fodir"], foname)
+            #     #remove existing cc file
+            #     ispath(fopath) && rm(fopath)
+            #     # fo = jldopen(fopath, "w")
+            #     # DEBUG: random save error when file size is large
+            #     fo = jldopen(fopath, true, true, true, IOStream)
+            #     # fo = jldopen(fopath, "w")
+            # end
 
             !haskey(fo, g1) && JLD2.Group(fo, g1)
             !haskey(fo, groupname) && (fo[groupname] = CD)
@@ -124,7 +132,9 @@ function map_compute_cc(key_station_pair::String, FFT_Dict::Dict{String,Dict{Str
     println("mapped cc lapse time: $(ct_elapse.value/1e3)[s]")
     println("$(now()):$(key_station_pair) t_freqdecomp, t_medianmuteandoutput, xcorr = $(bt_1), $(bt_2), $(t_xcorr)")
 
-    !isnothing(fo) && JLD2.close(fo)
+    # !isnothing(fo) && JLD2.close(fo)
+    JLD2.close(fo)
+
     return t_xcorr
 
 end
