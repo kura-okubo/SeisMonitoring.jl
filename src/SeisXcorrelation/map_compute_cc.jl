@@ -26,8 +26,8 @@ function map_compute_cc(key_station_pair::String, FFT_Dict::Dict{String,Dict{Str
     tt1 = now()
 
     netstachan1, netstachan2 = split(key_station_pair, "-")
-    FFT1_Dict = FFT_Dict[netstachan1]
-    FFT2_Dict = FFT_Dict[netstachan2]
+    haskey(FFT_Dict, netstachan1) ? (FFT1_Dict = FFT_Dict[netstachan1]) : return 0;
+    haskey(FFT_Dict, netstachan2) ? (FFT2_Dict = FFT_Dict[netstachan2]) : return 0;
 
     # FFT1_Dict, FFT2_Dict = F
     (isempty(FFT1_Dict) || isempty(FFT2_Dict)) && return 0;# return if FFT_Dict is empty
