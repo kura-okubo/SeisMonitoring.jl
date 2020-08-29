@@ -117,8 +117,8 @@ function seisxcorrelation(InputDict_origin::OrderedDict)
             #     push!(t_fft_temp, t_fft)
             # end
 
-            ta_1 = @elapsed Threads.@threads for (i, station_chunk) in enumerate(all_stations_chunk)
-                stations[i], FFTs[i], t_assemble_temp[i], t_fft_temp[i] = map_compute_fft(station_chunk, InputDict)
+            ta_1 = @elapsed Threads.@threads for i in 1:Nstation_chunk
+                stations[i], FFTs[i], t_assemble_temp[i], t_fft_temp[i] = map_compute_fft(all_stations_chunk[i], InputDict)
             end
 
 
