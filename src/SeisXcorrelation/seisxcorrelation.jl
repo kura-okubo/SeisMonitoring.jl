@@ -164,7 +164,7 @@ function seisxcorrelation(InputDict_origin::OrderedDict)
             #     remote_do((fft1, fft2, pair) -> map_compute_cc(fft1, fft2, pair, InputDict), map_compute_cc_workerpool,
             #                     FFT_Dict[netstachan1_list[i]], FFT_Dict[netstachan2_list[i]], key_station_pair)
             # end
-            @show typeof(FFT_Dict)
+            # @show typeof(FFT_Dict)
             # ta_5 = @elapsed B = pmap(x -> map_compute_cc(x, FFT_Dict, InputDict), map_compute_cc_workerpool, StationPairs_chunk) #NOTE: VERY SLOW.
 
             ta_6 = @elapsed Threads.@threads for key_station_pair in StationPairs_chunk

@@ -98,7 +98,7 @@ function map_compute_fft(netstachan::String, InputDict::OrderedDict)
 
     tt2 = now()
     ct_elapse = tt2-tt1
-    println("mapped fft lapse time: $(ct_elapse.value/1e3)[s]")
+    # println("mapped fft lapse time: $(ct_elapse.value/1e3)[s]")
 
     return (netstachan, FFTDict, t_assemble, t_fft)
 
