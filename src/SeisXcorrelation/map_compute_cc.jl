@@ -17,17 +17,18 @@ Compute cross-correlation save data in jld2 file with CorrData format.
 
 #
 """
-# function map_compute_cc(FFT1_Dict::Dict{String, FFTData}, FFT2_Dict::Dict{String, FFTData}, key_station_pair::String, InputDict::OrderedDict)
-function map_compute_cc(key_station_pair::String, FFT_Dict::Dict{String,Dict{String, FFTData}}, InputDict::OrderedDict)
+function map_compute_cc(FFT1_Dict::Dict{String, FFTData}, FFT2_Dict::Dict{String, FFTData}, key_station_pair::String, InputDict::OrderedDict)
+# function map_compute_cc(key_station_pair::String, FFT_Dict::Dict{String,Dict{String, FFTData}}, InputDict::OrderedDict)
 
-    memory_use_mapfft = Base.summarysize(FFT_Dict)/1e9
+    # memory_use_mapfft = Base.summarysize(FFT_Dict)/1e9
+    memory_use_mapfft = 2*Base.summarysize(FFT1_Dict)/1e9
     # println("start correlation processing $(key_station_pair)")
     println("$(now()): $(key_station_pair): thread id=$(Threads.threadid()): $(memory_use_mapfft) [GB]")
     tt1 = now()
 
     netstachan1, netstachan2 = split(key_station_pair, "-")
-    haskey(FFT_Dict, netstachan1) ? (FFT1_Dict = FFT_Dict[netstachan1]) : return 0;
-    haskey(FFT_Dict, netstachan2) ? (FFT2_Dict = FFT_Dict[netstachan2]) : return 0;
+    # haskey(FFT_Dict, netstachan1) ? (FFT1_Dict = FFT_Dict[netstachan1]) : return 0;
+    # haskey(FFT_Dict, netstachan2) ? (FFT2_Dict = FFT_Dict[netstachan2]) : return 0;
 
     # FFT1_Dict, FFT2_Dict = F
     (isempty(FFT1_Dict) || isempty(FFT2_Dict)) && return 0;# return if FFT_Dict is empty
