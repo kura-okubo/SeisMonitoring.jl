@@ -68,6 +68,7 @@ function smplot_pdfdvv(statsfile::String, fodir::String, starttime::DateTime, en
             "T" => DateTime[], #DateTime
             "dvv_mean" => Union{Float64, Missing}[],
             "dvv_median" => Union{Float64, Missing}[],
+            "dvvbins" => dvvbins,
             "pdfdvv" => Array{Union{Float64, Missing}, 2}(undef, number_of_dvvbins, 0),
             "count_pairs" => Int[],
         )

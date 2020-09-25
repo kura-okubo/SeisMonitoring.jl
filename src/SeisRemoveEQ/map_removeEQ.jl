@@ -74,19 +74,28 @@ function map_removeEQ(station::String, InputDict::OrderedDict)
             S1.misc["stalta_trace"] = S1.misc["stalta"]
             delete!(S1.misc, "kurtosis")
             delete!(S1.misc, "stalta")
+			# NOTE: misc cannot saved with seisio native binary, so save with JLD2.
+			fopath = joinpath(InputDict["tmpdir"], fikey * ".jld2")
+			fo = jldopen(fopath, true, true, true, IOStream)
+			fo["S"] = S1
+			JLD2.close(fo)
         else
             # don't keep those traces to reduce data size
             delete!(S1.misc, "kurtosis")
             delete!(S1.misc, "stalta")
             delete!(S1.misc, "noisesignal")
+
+			# write with native format for next process
+			temppath = joinpath(InputDict["tmpdir"], fikey * ".seisio")
+			wseis(temppath, S1)
         end
 
 		#DEBUG: to avoid too much memory allocation, save each seischannel into seisio file
 
-		# temppath = joinpath(InputDict["tmpdir"], fikey * ".jld2")
-		temppath = joinpath(InputDict["tmpdir"], fikey * ".seisio")
-
-		wseis(temppath, S1)
+		# # temppath = joinpath(InputDict["tmpdir"], fikey * ".jld2")
+		# temppath = joinpath(InputDict["tmpdir"], fikey * ".seisio")
+		#
+		# wseis(temppath, S1)
 
 		# jldopen(temppath, "w") do fo
 			# fo["S"] = S1
