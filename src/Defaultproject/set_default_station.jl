@@ -64,7 +64,7 @@ function set_default_station(fopath::String)
         "NCEDC" => NCEDC_srcchunk
     )
 
-    CSV.write(fopath[1:end-4]*".csv", NCEDC_srcchunk)
+    CSV.write(fopath[1:end-5]*".csv", NCEDC_srcchunk)
     jldopen(fopath, "w") do f
         for key in keys(RequestStations)
             f[key] = RequestStations[key]
