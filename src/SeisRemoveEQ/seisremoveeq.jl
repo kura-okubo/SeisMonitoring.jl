@@ -25,13 +25,13 @@ function seisremoveeq(InputDict_origin::OrderedDict)
 	tmpdir = joinpath(project_outputdir, "seismicdata", "seisremoveeq")
     InputDict["tmpdir"] = tmpdir
 
-    if ispath(tmpdir)
-        rm(tmpdir, recursive = true)
-    end
-    mkdir(tmpdir)
+    # if ispath(tmpdir)
+    #     rm(tmpdir, recursive = true)
+    # end
+    !ispath(tmpdir) && mkdir(tmpdir)
 
     if lowercase(InputDict["RawData_path"]) == "default"
-        InputDict["RawData_path"] = joinpath(InputDict["fodir"], "RawData.jld2")
+        InputDict["RawData_path"] = joinpath(InputDict["fodir"], "rawseismicdata")
     end
 
     println("***************************************")
@@ -40,16 +40,18 @@ function seisremoveeq(InputDict_origin::OrderedDict)
     println("IsWhitening        = $(InputDict["IsWhitening"])")
     println("***************************************\n")
 
-	#DEBUG: fi cannot be passed to pmap function due to parallel read issue. please reload in the pmap function
-    ispath(InputDict["RawData_path"]) ? (fi = jldopen(InputDict["RawData_path"], "r")) : error("$(InputDict["RawData_path"]) is not found.")
-    !haskey(fi, "Waveforms") && error("$(InputDict["RawData_path"]) does not have Waveforms group. Please check the waveform data format in JLD2.")
-	stations = keys(fi["Waveforms"])
- 	JLD2.close(fi)
+	# DEBUG: fi cannot be passed to pmap function due to parallel read issue. please reload in the pmap function
+    # ispath(InputDict["RawData_path"]) ? (fi = jldopen(InputDict["RawData_path"], "r")) : error("$(InputDict["RawData_path"]) is not found.")
+    # !haskey(fi, "Waveforms") && error("$(InputDict["RawData_path"]) does not have Waveforms group. Please check the waveform data format in JLD2.")
+	# stations = keys(fi["Waveforms"])
+ 	# JLD2.close(fi)
 
-    # parallelize with keys in Rawdata.jld2 i.e. stations
+    # parallelize with each seismic data files
+	rawdata_path_all = SeisIO.ls(InputDict["RawData_path"])
+
     println("-------START Removing EQ--------")
 
-    t_removeeq = @elapsed bt_time = pmap(x -> map_removeEQ(x, InputDict),stations)
+    t_removeeq = @elapsed bt_time = pmap(x -> map_removeEQ(x, InputDict), rawdata_path_all)
 
     println("-------START Converting--------")
 

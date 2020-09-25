@@ -105,10 +105,22 @@ function map_seisdownload_NOISE(startid, InputDict::OrderedDict; testdownload::B
 			#DEBUG: to avoid too much memory allocation, save each seischannel into seisio file
 
 			for j = 1:Stemp.n
-				if Stemp.misc[j]["dlerror"] == 0 && !isempty(Stemp[j].t)
+				if Stemp[j].misc["dlerror"] == 0 && !isempty(Stemp[j].t)
 					Stemp[j].misc["data_fraction"] = get_noisedatafraction(Stemp[j].x, zerosignal_minpts=100, eps_α=1e-6)
-					fname_out = join([Stemp[j].id, string(stsync), string(etsync), src], "__")*".dat"
-					wseis(joinpath(InputDict["tmpdir"], fname_out), Stemp[j])
+					# fname_out = join([Stemp[j].id, string(stsync), string(etsync), src], "__")*".seisio"
+					# make filename
+					# skip if S.t is empty
+					(isempty(Stemp[j]) || isempty(Stemp[j].t)) && continue;
+					s_str = string(u2d(Stemp[j].t[1,2]*1e-6))[1:19]
+					# compute end time:
+					et = Stemp[j].t[1,2]*1e-6 + (Stemp[j].t[end,1]-1)/Stemp[j].fs
+					e_str=string(u2d(et))[1:19]
+					# split network, station, location and channel
+					net, sta, loc, cha = split(Stemp[j].id, ".")
+					groupname = joinpath("Waveforms", join([net, sta], "."))
+					varname	  = join([net, sta, loc, cha], ".")*"__"*s_str*"__"*e_str*"__"*lowercase(cha)
+
+					wseis(joinpath(InputDict["tmpdir"], varname*".seisio"), Stemp[j])
 				end
 			end
 

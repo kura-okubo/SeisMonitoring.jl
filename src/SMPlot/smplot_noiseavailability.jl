@@ -1,6 +1,6 @@
 using VegaLite, FileIO, CSV
 """
-    smplot_noiseavailability(filename::String,fodir::String,
+    smplot_noiseavailability(fidir::String,fodir::String,
                             starttime::DateTime,
                             endtime::DateTime;
                             network::Union{String, AbstractArray}=["all"],
@@ -10,7 +10,7 @@ using VegaLite, FileIO, CSV
 Plot noise data fraction as data abvailability with Lasagna plot style.
 
 # Argument
-- `filename::String`: absolute/relative path to seismicdata jld2 file with SeisMonitoring.jl format.
+- `fidir::String`: absolute/relative path to seismicdata with seisio format.
 - `fodir::String`: figure and csv output directory.
 - `starttime::DateTime`: starttime to be plotted.
 - `endtime::DateTime`: endtime to be plotted.
@@ -21,7 +21,7 @@ Plot noise data fraction as data abvailability with Lasagna plot style.
 - `figsize::Tuple=(1200, 800)`: figure size to be plotted.
 - `fmt::String="png"`: figure format to be plotted.
 """
-function smplot_noiseavailability(filename::String,fodir::String,
+function smplot_noiseavailability(fidir::String,fodir::String,
     starttime::DateTime,
     endtime::DateTime;
     network::Union{String, AbstractArray}=["all"],
@@ -35,7 +35,7 @@ function smplot_noiseavailability(filename::String,fodir::String,
     typeof(network) == String && (network = [network])
 
     PlotDict=Dict(
-    "filename" => filename,
+    "fidir" => fidir,
     "fodir" => fodir,
     "starttime" => starttime,
     "endtime" => endtime,
@@ -49,10 +49,12 @@ function smplot_noiseavailability(filename::String,fodir::String,
     println("network      = $(network)")
     println("***************************************\n")
 
-    ispath(PlotDict["filename"]) ? (fi = jldopen(PlotDict["filename"], "r")) : error("$(PlotDict["filename"]) is not found.")
-    !haskey(fi, "Waveforms") && error("$(PlotDict["filename"]) does not have Waveforms group. Please check the waveform data format in JLD2.")
-    stations = keys(fi["Waveforms"])
-    JLD2.close(fi)
+    # ispath(PlotDict["fidir"]) ? (fi = jldopen(PlotDict["fidir"], "r")) : error("$(PlotDict["fidir"]) is not found.")
+    # !haskey(fi, "Waveforms") && error("$(PlotDict["fidir"]) does not have Waveforms group. Please check the waveform data format in JLD2.")
+    # stations = keys(fi["Waveforms"])
+    # JLD2.close(fi)
+    stations = SeisIO.ls(PlotDict["fidir"])
+    filter!(x->split(x, ".")[end] == "seisio", stations)
 
     # filter the network
     "all" ∉ network && filter!(x -> split(x, ".")[1] ∈ network, stations)
@@ -65,7 +67,7 @@ function smplot_noiseavailability(filename::String,fodir::String,
     df_all = DataFrame(station=String[], date = String[], data_fraction=Float64[])
 
     for df in df_mapped
-        append!(df_all, df);
+        !isnothing(df) && append!(df_all, df);
     end
 
     # parse time to vegalite time format
@@ -110,26 +112,34 @@ map_getnoisedatafraction(station::String, InputDict::Dict)
 
 Return DataFrame containing stationchannel, date and noise data fraction.
 """
-function map_getnoisedatafraction(station::String, PlotDict::Dict)
+function map_getnoisedatafraction(stationpath::String, PlotDict::Dict)
 
-    println("start process on $(station)")
+    fidir, fikey = splitdir(stationpath)
+
+	# process only .seisio file
+	if split(fikey, ".")[end] != "seisio"
+		return nothing
+	end
+
+    println("start process on $(fikey)")
 
     df_station = DataFrame(station=String[], date = String[], data_fraction=Float64[])
 
-    fi = jldopen(PlotDict["filename"], "r")
+    # fi = jldopen(PlotDict["filename"], "r")
 
-    for fikey in keys(fi["Waveforms/$(station)"])
-        file_st, file_et = DateTime.(split(fikey, "__")[2:3])
-        if !(PlotDict["starttime"] >= file_et || PlotDict["endtime"] <= file_st)
-            # this file has overlap with the target timewindow [starttime, endtime]
-            S1 = fi["Waveforms/$(station)/$(fikey)"]
-            centraltime = string(u2d((d2u(file_st) + d2u(file_et))/2))
-            data_fraction = S1.misc["data_fraction"]
-            push!(df_station, (S1.id, centraltime, data_fraction))
-        end
+    # for fikey in keys(fi["Waveforms/$(station)"])
+    file_st, file_et = DateTime.(split(fikey, "__")[2:3])
+    if !(PlotDict["starttime"] >= file_et || PlotDict["endtime"] <= file_st)
+        # this file has overlap with the target timewindow [starttime, endtime]
+		# S1 = fi["Waveforms/$(station)/$(fikey)"]
+		S1 = rseis(stationpath)[1]
+        centraltime = string(u2d((d2u(file_st) + d2u(file_et))/2))
+        data_fraction = S1.misc["data_fraction"]
+        push!(df_station, (S1.id, centraltime, data_fraction))
     end
+    # end
 
-    JLD2.close(fi)
+    # JLD2.close(fi)
 
     # println(df_station)
 

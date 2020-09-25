@@ -1,11 +1,11 @@
-using SeisIO, SeisNoise, Dates, DSP, Statistics, StatsBase, LinearAlgebra, ColorSchemes, JLD2, Plots
+using SeisIO, SeisNoise, Dates, DSP, Statistics, StatsBase, LinearAlgebra, ColorSchemes, JLD2, Plots, DataFrames, CSV
 using SeisMonitoring: assemble_seisdata, smooth_withfiltfilt
 """
     compute_psdpdf(S::SeisChannel, starttime::DateTime, endtime::DateTime)
 
 Return mean and probablistic density function of seismic noise periodgram.
 """
-function compute_psdpdf(S::SeisChannel, figname::String, segments_length::Real;
+function compute_psdpdf(S::SeisChannel, fodir::String, segments_length::Real;
         figsize=(1200, 800), fmt::String="png", xlims=(0.01, 5.0), ylims=(-200, -80), clims=(0.0, 0.3))
 
     println("-------Plot Periodogram--------")
@@ -46,7 +46,9 @@ function compute_psdpdf(S::SeisChannel, figname::String, segments_length::Real;
     title!("$(S.id) $(s_str) - $(e_str)")
     xlabel!("Frequency [Hz]")
     ylabel!("Power[10log10 (m**2/sec**2/Hz)][dB]")
-    savefig(p1, "periodogram_$(figname).$(fmt)")
+
+    !ispath(fodir) && mkdir(fodir)
+    savefig(p1, fodir*"/periodogram__$(S.id)__$(s_str)__$(e_str).$(fmt)")
 
     # compute probability density function of power spectral density (PDFPSD)
     # following McNamara and Buland (2004), using 1-db binned  between -200:-80 db histogram to obtain pdf.
@@ -88,20 +90,24 @@ function compute_psdpdf(S::SeisChannel, figname::String, segments_length::Real;
     title!("$(S.id) $(s_str) - $(e_str)")
     xlabel!("Frequency [Hz]")
     ylabel!("Power[10log10 (m**2/sec**2/Hz)][dB]")
-    savefig("pdfpsd_$(figname).$(fmt)")
+    savefig(fodir*"/pdfpsd__$(S.id)__$(s_str)__$(e_str).$(fmt)")
+
+    println("smplot_ppsd is successfully done.")
+
+
 end
 
 
 """
-    smplot_pdfpsd(filename::String, figname::String, station::String, starttime::DateTime,
+    smplot_pdfpsd(fidir::String, fodir::String, station::String, starttime::DateTime,
         endtime::DateTime; segments_length::Real=3600, figsize=(1200, 800), xlims = (0.01, 5.0),
         ylims = (-200, -80), clims = (0.0, 0.3), fmt = "png")
 
 Plot the probability density function of power spectral density (PSDPDF) following McNamara and Buland (2004).
 
 # Argument
--`filename::String`: absolute/relative path to SeisMonitoring.jl format data. (e.g. "OUTPUT/RawData.jld2")
--`figname::String`: figure names. (e.g. "fig1" produces "periodgram_fig1.fmt" and "pdfpsd_fig1.fmt")
+-`fidir::String`: absolute/relative path to SeisMonitoring.jl format data. (e.g. "OUTPUT/RawData.jld2")
+-`fodir::String`: figure names. (e.g. "fig1" produces "periodgram_fig1.fmt" and "pdfpsd_fig1.fmt")
 -`channel::String`: station, channel name (e.g. BP.CCRB..BP1)
 -`starttime::DateTime`: start time of continuous data.
 -`endtime::DateTime`: end time of continuous data.
@@ -114,15 +120,15 @@ Plot the probability density function of power spectral density (PSDPDF) followi
 -`clims = (0.0, 0.3)`: color range of pdfpsd.
 -`fmt = "png"`: figure format
 """
-function smplot_pdfpsd(filename::String, figname::String, channel::String, starttime::DateTime,
+function smplot_pdfpsd(fidir::String, fodir::String, channel::String, starttime::DateTime,
     endtime::DateTime, segments_length::Real=3600; figsize=(1200, 800), xlims = (0.01, 5.0),
     ylims = (-200, -80), clims = (0.0, 0.3), fmt = "png")
 
-    fi = jldopen(filename, "r")
-    S1 = assemble_seisdata(channel, fi, starttime, endtime, data_contents_fraction=0.0)
+    # fi = jldopen(fidir, "r")
+    S1 = assemble_seisdata(channel, fidir, starttime, endtime, data_contents_fraction=0.0)
 
-    compute_psdpdf(S1, figname, segments_length, figsize=figsize, fmt=fmt, xlims=xlims, ylims=ylims, clims=clims)
-    close(fi)
+    compute_psdpdf(S1, fodir, segments_length, figsize=figsize, fmt=fmt, xlims=xlims, ylims=ylims, clims=clims)
+    # close(fi)
 end
 
 #===NOTE: if the pdlx.jld2 is missing, run the script below to make colorschemes from (r,g,b) text file===#

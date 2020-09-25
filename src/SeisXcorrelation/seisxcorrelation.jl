@@ -57,7 +57,8 @@ function seisxcorrelation(InputDict_origin::OrderedDict)
     t_corr_all = []
 
     rawdata_path_all = SeisIO.ls(InputDict["cc_absolute_RawData_path"])
-
+    filter!(x->split(x, ".")[end] == "seisio", rawdata_path_all)
+    
     # output timechunk cpu time
     fi_chunkcpu = Base.open(joinpath(project_outputdir, "timechunk_cputime.txt"), "w")
 
