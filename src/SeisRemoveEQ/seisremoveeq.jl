@@ -47,8 +47,17 @@ function seisremoveeq(InputDict_origin::OrderedDict)
  	# JLD2.close(fi)
 
     # parallelize with each seismic data files
-	rawdata_path_all = SeisIO.ls(InputDict["RawData_path"])
-
+	# rawdata_path_all = SeisIO.ls(InputDict["RawData_path"])
+	# NOTE: updated for hierarchical directory tree 2020.10.04
+	rawdata_path_all = []
+	for (root, dirs, files) in walkdir(InputDict["RawData_path"])
+       for file in files
+		   fi = joinpath(root, file)
+		   (split(fi, ".")[end] == "seisio") && push!(rawdata_path_all, fi)# filter if it is .seisio
+       end
+    end
+	# println(rawdata_path_all)
+	
     println("-------START Removing EQ--------")
 
     t_removeeq = @elapsed bt_time = pmap(x -> map_removeEQ(x, InputDict), rawdata_path_all)

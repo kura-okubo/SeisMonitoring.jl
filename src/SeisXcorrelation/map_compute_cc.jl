@@ -49,7 +49,9 @@ function map_compute_cc(FFT1_Dict::Dict{String, FFTData}, FFT2_Dict::Dict{String
     ispath(fopath) && rm(fopath)
     # fo = jldopen(fopath, "w")
     # DEBUG: random save error when file size is large
-    fo = jldopen(fopath, true, true, true, IOStream)
+    # fo = jldopen(fopath, true, true, true, IOStream)
+    fo = jldopen(fopath, "w", iotype=IOStream)
+
     # fo = jldopen(fopath, "w")
 
     bt_1 = 0

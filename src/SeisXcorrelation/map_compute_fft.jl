@@ -23,7 +23,8 @@ function map_compute_fft(netstachan::String, InputDict::OrderedDict)
 
     # NOTE: To avoid massive access to shared storage, copy files to /tmp.
     if InputDict["use_local_tmpdir"]
-        local_tmp_dir = "/tmp" # default local tmp directory
+        # local_tmp_dir = "/tmp" # default local tmp directory
+        local_tmp_dir = "/Volumes/Kurama_20190821/kurama/research/SeisMonitoring_update/v1.1/BP_v21_OUTPUT/tmp" # DEBUG: debug tmp dir
         # finame = splitdir(fipath)[2]
         chunk_fi_stationdict = InputDict["chunk_fi_stationdict"]
 
@@ -32,8 +33,16 @@ function map_compute_fft(netstachan::String, InputDict::OrderedDict)
 
         tmpstationlist = chunk_fi_stationdict[netstachan]
         for tmpstation in tmpstationlist
-            cp(joinpath(InputDict["cc_absolute_RawData_path"], tmpstation)
-                , joinpath(local_tmp_dir, tmpstation))
+            # NOTE:make hierarchical directory 2020.10.04
+    		dir1 = joinpath(local_tmp_dir, netstachan) #ex. BP.LCCB..BP1
+    		!isdir(dir1) && mkdir(dir1)
+    		ts_year = split(split(tmpstation, "__")[2], "-")[1]# start year
+    		dir2 = joinpath(dir1, ts_year) #ex. 2014
+    		!isdir(dir2) && mkdir(dir2)
+            cp(joinpath(InputDict["cc_absolute_RawData_path"], netstachan, ts_year, tmpstation)
+                , joinpath(dir2, tmpstation))
+            # cp(joinpath(InputDict["cc_absolute_RawData_path"], tmpstation)
+            #     , joinpath(local_tmp_dir, tmpstation))
         end
         # fipath_tmp = joinpath(local_tmp_dir, finame)
         # cp(fipath, fipath_tmp)
@@ -90,10 +99,11 @@ function map_compute_fft(netstachan::String, InputDict::OrderedDict)
     end
 
     if InputDict["use_local_tmpdir"]
-        tmpstationlist = InputDict["chunk_fi_stationdict"][netstachan]
-        for tmpstation in tmpstationlist
-            rm(joinpath(local_tmp_dir, tmpstation))
-        end
+        # tmpstationlist = InputDict["chunk_fi_stationdict"][netstachan]
+        # for tmpstation in tmpstationlist
+        #     rm(joinpath(local_tmp_dir, tmpstation))
+        # end
+        rm(joinpath(local_tmp_dir, netstachan), recursive=true)
     end
 
     tt2 = now()

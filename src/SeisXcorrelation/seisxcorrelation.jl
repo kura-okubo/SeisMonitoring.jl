@@ -52,13 +52,20 @@ function seisxcorrelation(InputDict_origin::OrderedDict)
 
     # compute time chunk to be parallelized
 
-    t_assemble_all = []
-    t_fft_all = []
-    t_corr_all = []
+    t_assemble_all = Float64[]
+    t_fft_all = Float64[]
+    t_corr_all = Float64[]
 
-    rawdata_path_all = SeisIO.ls(InputDict["cc_absolute_RawData_path"])
-    filter!(x->split(x, ".")[end] == "seisio", rawdata_path_all)
-    
+    # rawdata_path_all = SeisIO.ls(InputDict["cc_absolute_RawData_path"])
+    # filter!(x->split(x, ".")[end] == "seisio", rawdata_path_all)
+    rawdata_path_all = String[]
+	for (root, dirs, files) in walkdir(InputDict["cc_absolute_RawData_path"])
+       for file in files
+		   fi = joinpath(root, file)
+		   (split(fi, ".")[end] == "seisio") && push!(rawdata_path_all, fi)# filter if it is .seisio
+       end
+    end
+
     # output timechunk cpu time
     fi_chunkcpu = Base.open(joinpath(project_outputdir, "timechunk_cputime.txt"), "w")
 
@@ -83,6 +90,7 @@ function seisxcorrelation(InputDict_origin::OrderedDict)
 
         @show all_stations_chunk
         @show length(StationPairs_chunk)
+        isempty(all_stations_chunk) && continue # skip loop if station chunk is empty.
         #NOTE:
         # Specify WorkerPool to avoid the following issue on redundant precompile through chunk loop:
         # e.g. Given 100 cores as workers, and parallelize 10 stations for fft:
@@ -199,7 +207,7 @@ function seisxcorrelation(InputDict_origin::OrderedDict)
         ct_2 = now()
         ct_elapse = ct_2-ct_1
 
-        Base.write(fi_chunkcpu, "$(ct_elapse.value)\n")
+        Base.write(fi_chunkcpu, "$(ct_elapse.value/1e3)\n")
 
     end
 

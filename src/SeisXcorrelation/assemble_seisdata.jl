@@ -42,8 +42,18 @@ function assemble_seisdata(
 
     net, sta, loc, chan = split(netstachan, ".")
     #filtering file target
-    files_all = readdir(fidir)
-    files_station = filter(x -> occursin(netstachan, x), files_all)
+    # files_all = readdir(fidir)
+    # NOTE: updated for hierarchical directory tree 2020.10.04
+    files_all = String[]
+    for (root, dirs, files) in walkdir(fidir)
+       for file in files
+           fi = joinpath(root, file)
+           (split(fi, ".")[end] == "seisio") && push!(files_all, fi)# filter if it is .seisio
+       end
+    end
+    # println(rawdata_path_all)
+
+    files_station = filter(x -> occursin(netstachan, splitdir(x)[2]), files_all)
     files_target = findall_target(files_station, starttime, endtime)
 
     if isempty(files_target)
@@ -55,7 +65,8 @@ function assemble_seisdata(
     S1 = SeisData(); removal_fraction_all = Float64[]
     bt_1 = @elapsed for file in files_target
         # Stemp = fileio[joinpath("Waveforms", join([net, sta], "."), file)]
-        Stemp = rseis(joinpath(fidir, file))[1]
+        # Stemp = rseis(joinpath(fidir, file))[1]
+        Stemp = rseis(file)[1]
         haskey(Stemp.misc, "removal_fraction") && push!(removal_fraction_all, Stemp.misc["removal_fraction"])
         taper!(Stemp)
         S1 += Stemp
@@ -104,7 +115,7 @@ function findall_target(
 
     files_target = []
     for file in files_station
-        file_st, file_et = DateTime.(split(file, "__")[2:3])
+        file_st, file_et = DateTime.(split(splitdir(file)[2], "__")[2:3])
         if !(starttime >= file_et || endtime <= file_st)
             # this file has overlap with target timewindow
             push!(files_target, file)

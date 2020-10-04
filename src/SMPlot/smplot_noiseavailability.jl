@@ -53,11 +53,18 @@ function smplot_noiseavailability(fidir::String,fodir::String,
     # !haskey(fi, "Waveforms") && error("$(PlotDict["fidir"]) does not have Waveforms group. Please check the waveform data format in JLD2.")
     # stations = keys(fi["Waveforms"])
     # JLD2.close(fi)
-    stations = SeisIO.ls(PlotDict["fidir"])
-    filter!(x->split(x, ".")[end] == "seisio", stations)
+    # stations = SeisIO.ls(PlotDict["fidir"])
+    # filter!(x->split(x, ".")[end] == "seisio", stations)
+	stations = String[]
+	for (root, dirs, files) in walkdir(PlotDict["fidir"])
+       for file in files
+		   fi = joinpath(root, file)
+		   (split(fi, ".")[end] == "seisio") && push!(stations, fi)# filter if it is .seisio
+       end
+    end
 
     # filter the network
-    "all" ∉ network && filter!(x -> split(x, ".")[1] ∈ network, stations)
+    "all" ∉ network && filter!(x -> split(splitdir(x)[2], ".")[1] ∈ network, stations)
 
     # parallelize with keys in Rawdata.jld2 i.e. stations
     println("-------START Getting Noise Data Fraction--------")

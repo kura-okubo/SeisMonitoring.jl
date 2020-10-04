@@ -93,8 +93,19 @@ function map_removeEQ(stationpath::String, InputDict::OrderedDict)
         delete!(S1.misc, "noisesignal")
 
 		# write with native format for next process
-		temppath = joinpath(InputDict["tmpdir"], fikey)
-		wseis(temppath, S1)
+
+		# make hierarchical directory
+		netstachan = split(fikey, "__")[1]
+		dir1 = joinpath(InputDict["tmpdir"], netstachan) #ex. BP.LCCB..BP1
+		!isdir(dir1) && mkdir(dir1)
+		ts_year = split(split(fikey, "__")[2], "-")[1]# start year
+		dir2 = joinpath(dir1, ts_year) #ex. 2014
+		!isdir(dir2) && mkdir(dir2)
+		# dump file
+		wseis(joinpath(dir2, fikey), S1)
+
+		# temppath = joinpath(InputDict["tmpdir"], fikey)
+		# wseis(temppath, S1)
     end
 
 	#DEBUG: to avoid too much memory allocation, save each seischannel into seisio file
