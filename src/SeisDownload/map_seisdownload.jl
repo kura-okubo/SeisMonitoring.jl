@@ -122,10 +122,14 @@ function map_seisdownload_NOISE(startid, InputDict::OrderedDict; testdownload::B
 
 					# make hierarchical directory
 					dir1 = joinpath(InputDict["tmpdir"], join([net, sta, loc, cha], ".")) #ex. BP.LCCB..BP1
-					!isdir(dir1) && mkdir(dir1)
 					ts_year = split(split(varname, "__")[2], "-")[1]# start year
 					dir2 = joinpath(dir1, ts_year) #ex. 2014
-					!isdir(dir2) && mkdir(dir2)
+					# NOTE: to avoid collision in mkdir during parallelization, use try catch
+					try
+						!isdir(dir1) && mkdir(dir1)
+						!isdir(dir2) && mkdir(dir2)
+					catch
+					end
 					# dump file
 					wseis(joinpath(dir2, varname*".seisio"), Stemp[j])
 				end

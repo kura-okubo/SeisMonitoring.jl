@@ -97,10 +97,13 @@ function map_removeEQ(stationpath::String, InputDict::OrderedDict)
 		# make hierarchical directory
 		netstachan = split(fikey, "__")[1]
 		dir1 = joinpath(InputDict["tmpdir"], netstachan) #ex. BP.LCCB..BP1
-		!isdir(dir1) && mkdir(dir1)
 		ts_year = split(split(fikey, "__")[2], "-")[1]# start year
 		dir2 = joinpath(dir1, ts_year) #ex. 2014
-		!isdir(dir2) && mkdir(dir2)
+		try
+			!isdir(dir1) && mkdir(dir1)
+			!isdir(dir2) && mkdir(dir2)
+		catch
+		end
 		# dump file
 		wseis(joinpath(dir2, fikey), S1)
 
