@@ -263,7 +263,7 @@ end
 
 #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++#
 """
-    cc_medianmute(C::CorrData, cc_medianmute_max::Float64 = 10.0)
+    cc_medianmute(C::CorrData, cc_medianmute_max::Float64 = 10.0, cc_medianmute_min::Float64 = 0.0)
 
 Mute cross-correlation function whose maximum amplitude is more than
 `cc_medianmute_max*median(maximum(abs.(cross-correlation functions)))`
