@@ -104,7 +104,7 @@ function map_compute_cc(FFT1_Dict::Dict{String, FFTData}, FFT2_Dict::Dict{String
         bt_2 = @elapsed for (ic, CD) in enumerate(C_all)
 
             # mute ccs outlier using median of maximum amplitude
-            cc_medianmute!(CD, InputDict["cc_medianmute_α"])
+            cc_medianmute!(CD, InputDict["cc_medianmute_max"], InputDict["cc_medianmute_min"])
             # continue again if xcorr is empty
             isempty(CD.corr) && continue
 

@@ -11,7 +11,7 @@ Plot CorrData within the requested start and endtime.
 """
 function smplot_corrdata(filename::String, fodir::String, starttime::Union{String, DateTime}, endtime::Union{String, DateTime};
                 channelpair::AbstractArray=["all"], dpi::Int=100, plotmaxlag::Float64=0.0,
-                cc_medianmute_α::Float64=2.0, MAX_MEM_USE::AbstractFloat=4.0)
+                cc_medianmute_max::Float64=2.0, cc_medianmute_min::Float64=0.0, MAX_MEM_USE::AbstractFloat=4.0)
 
     ispath(filename) ? fi = jldopen(filename, "r") : error("$(filename) not found.")
     typeof(starttime) == String && (starttime = DateTime(starttime))
@@ -62,7 +62,7 @@ function smplot_corrdata(filename::String, fodir::String, starttime::Union{Strin
                                                 MAX_MEM_USE=MAX_MEM_USE, min_cc_datafraction=0.0)
 
             # C1 = C_all[freqkey]
-            cc_medianmute!(C1, cc_medianmute_α)
+            cc_medianmute!(C1, cc_medianmute_max, cc_medianmute_min)
 
             # modify plot maxlag
             if isempty(C1.t)

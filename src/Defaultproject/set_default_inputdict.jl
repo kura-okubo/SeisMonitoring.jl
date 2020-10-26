@@ -64,7 +64,8 @@ InputDict=OrderedDict(
         "cc_bpfilt_method"      => ("ButterWorth", String, "Frequency decomposition method. \"Butterworth\" or \"Wavelet\"."),
         "cc_taper_α0"           => ("0.1", Float64, "Advanced: Lowest tapering fraction for frequency adaptive tapering."),
         "cc_taper_αmax"         => ("0.25", Float64, "Advanced: Highest tapering fraction for frequency adaptive tapering."),
-        "cc_medianmute_α"       => ("5.0", Float64, "Advanced: Threshold factor of median mute within cc_time_unit. NCF is removed if maximum(abs.(corr[:,i])) > cc_medianmute_α * median(maximum(abs.(corr)), dims=1)"),
+        "cc_medianmute_max"     => ("5.0", Float64, "Advanced: Threshold factor of median mute within cc_time_unit. NCF is removed if maximum(abs.(corr[:,i])) > cc_medianmute_max * median(maximum(abs.(corr)), dims=1)"),
+        "cc_medianmute_min"     => ("0.1", Float64, "Advanced: Threshold factor of median mute within cc_time_unit. NCF is removed if maximum(abs.(corr[:,i])) < cc_medianmute_min * median(maximum(abs.(corr)), dims=1)"),
         "IsPreStack"            => ("true", Bool, "Advanced: Pre-stacking corrdata within each cc_time_unit when assembling the corrdata for the sake of saving memory use."),
         "timechunk_increment"   => ("1", Int, "Advanced: Number of time chunk increment for parallelization: large number is more efficient, but increase memory use."),
 
