@@ -1,3 +1,6 @@
+#include("bandpass_chebyshev2.jl")
+
+
 """
     compute_frequency_decomposition(C::CorrData, freqency_band::Array{Float64,1}; cc_bpfilt_method::String="Butterworth",
                                  dj::Float64 = 1 / 12, α0::AbstractFloat = 0.0, αmax::AbstractFloat = 0.25)
@@ -87,6 +90,18 @@ function compute_frequency_decomposition(
          Ctemp.misc["freq_decomposition_method"] = cc_bpfilt_method
          push!(C_all, Ctemp)
       end
+
+   #-----------------------------------------------------#
+   # elseif lowercase(cc_bpfilt_method) == "chebychev2"
+   #    for fb in freqband
+   #       freqmin, freqmax = fb
+   #       # apply bandpass filter
+   #       Ctemp = bandpass_chebyshev(C_broadband, freqmin, freqmax, corners = 4)
+   #       # apply frequenc_dependent tapering
+   #       taper_for_freqdecomposition!(Ctemp, freqency_band, α0, αmax)
+   #       Ctemp.misc["freq_decomposition_method"] = cc_bpfilt_method
+   #       push!(C_all, Ctemp)
+   #    end
 
    else
       error("cc_bpfilt_method $(cc_bpfilt_method) is not available. use ButterWorth or Wavelet")
