@@ -23,8 +23,8 @@ function map_compute_fft(netstachan::String, InputDict::OrderedDict)
 
     # NOTE: To avoid massive access to shared storage, copy files to /tmp.
     if InputDict["use_local_tmpdir"]
-        # local_tmp_dir = "/tmp" # default local tmp directory
-        local_tmp_dir = "/Volumes/Kurama_20190821/kurama/research/SeisMonitoring_update/v1.1/BP_v21_OUTPUT/tmp" # DEBUG: debug tmp dir
+        local_tmp_dir = "/tmp" # default local tmp directory
+        # local_tmp_dir = "/Volumes/Kurama_20190821/kurama/research/SeisMonitoring_update/v1.1/BP_v21_OUTPUT/tmp" # DEBUG: debug tmp dir
         # finame = splitdir(fipath)[2]
         chunk_fi_stationdict = InputDict["chunk_fi_stationdict"]
 
