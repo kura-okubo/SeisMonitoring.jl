@@ -23,7 +23,9 @@ function map_compute_fft(netstachan::String, InputDict::OrderedDict)
 
     # NOTE: To avoid massive access to shared storage, copy files to /tmp.
     if InputDict["use_local_tmpdir"]
-        local_tmp_dir = "/tmp/seisdata_tmp" #NOTE: make a directory to avoid permission error in /tmp
+        tmp_stamp=netstachan*"--"*srting(starts)*"--"*srting(ends)
+        local_tmp_dir = "/tmp/seisdata_tmp/$(tmp_stamp)" #NOTE: make a directory to avoid permission error in /tmp
+
         mkpath(local_tmp_dir)
         # local_tmp_dir = "/tmp" # default local tmp directory
         # local_tmp_dir = "/Volumes/Kurama_20190821/kurama/research/SeisMonitoring_update/v1.1/BP_v21_OUTPUT/tmp" # DEBUG: debug tmp dir
@@ -37,10 +39,12 @@ function map_compute_fft(netstachan::String, InputDict::OrderedDict)
         for tmpstation in tmpstationlist
             # NOTE:make hierarchical directory 2020.10.04
     		dir1 = joinpath(local_tmp_dir, netstachan) #ex. BP.LCCB..BP1
-    		!isdir(dir1) && mkdir(dir1)
+    		# !isdir(dir1) && mkdir(dir1)
+            mkpath(dir1)
     		ts_year = split(split(tmpstation, "__")[2], "-")[1]# start year
     		dir2 = joinpath(dir1, ts_year) #ex. 2014
-    		!isdir(dir2) && mkdir(dir2)
+    		#!isdir(dir2) && mkdir(dir2)
+            mkpath(dir2)
             cp(joinpath(InputDict["cc_absolute_RawData_path"], netstachan, ts_year, tmpstation)
                 , joinpath(dir2, tmpstation))
             # cp(joinpath(InputDict["cc_absolute_RawData_path"], tmpstation)
@@ -105,7 +109,8 @@ function map_compute_fft(netstachan::String, InputDict::OrderedDict)
         # for tmpstation in tmpstationlist
         #     rm(joinpath(local_tmp_dir, tmpstation))
         # end
-        rm(joinpath(local_tmp_dir, netstachan), recursive=true)
+        # rm(joinpath(local_tmp_dir, netstachan), recursive=true)
+        rm(local_tmp_dir, recursive=true)
     end
 
     tt2 = now()
