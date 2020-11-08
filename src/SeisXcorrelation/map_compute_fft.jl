@@ -23,7 +23,7 @@ function map_compute_fft(netstachan::String, InputDict::OrderedDict)
 
     # NOTE: To avoid massive access to shared storage, copy files to /tmp.
     if InputDict["use_local_tmpdir"]
-        tmp_stamp=netstachan*"--"*srting(starts)*"--"*srting(ends)
+        tmp_stamp=netstachan*"--"*string(starts)*"--"*string(ends)
         local_tmp_dir = "/tmp/seisdata_tmp/$(tmp_stamp)" #NOTE: make a directory to avoid permission error in /tmp
 
         mkpath(local_tmp_dir)
