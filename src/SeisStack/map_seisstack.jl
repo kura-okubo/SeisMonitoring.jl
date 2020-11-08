@@ -128,7 +128,9 @@ function map_seisstack(fipath, stackmode::String, InputDict::OrderedDict)
             remove_nanandzerocol!(C)  # remove column which has NaN or all zero
             (isempty(C.corr) || isempty(C.t)) && continue  # this does not have cc trace within the time window.
             # apply median mute
-            cc_medianmute!(C, InputDict["cc_medianmute_α"])
+            # cc_medianmute!(C, InputDict["cc_medianmute_α"])
+            cc_medianmute!(C, InputDict["cc_medianmute_max"], InputDict["cc_medianmute_min"])
+
             (isempty(C.corr) || isempty(C.t)) && continue  # this does not have cc trace within the time window.
 
             # slice coda window and zero padding before stack if true
