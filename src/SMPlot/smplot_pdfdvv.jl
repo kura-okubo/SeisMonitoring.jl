@@ -24,7 +24,7 @@ function smplot_pdfdvv(statsfile::String, fodir::String, starttime::DateTime, en
     fmt="png")
 
     #1. read dvvfile
-    df = CSV.read(statsfile)
+    df = CSV.read(statsfile, DataFrame)
 
     stbins = range(d2u(starttime), stop = (d2u(endtime)-time_bin_length), step = time_bin_length)
     etbins = stbins .+ time_bin_length

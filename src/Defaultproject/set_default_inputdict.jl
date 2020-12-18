@@ -99,18 +99,23 @@ InputDict=OrderedDict(
         "coda_energy_threshold" => ("-1.0", Float64, "Deprecated: Advanced: Threshold for attenuation decay."),
 
         "IsAlternateRefChannel" => ("true", Bool, "Advanced: Allow for using alternative station channel for reference. (e.g. BP.LCCB..BP1-BP.MMNB..BP1 is used as reference for BP.LCCB..SP1-BP.MMNB..SP1)"),
-
+        "keep_corrtrace"        => ("false", Bool, "Advanced: Keep corr trace in CorrData if true. (require the strage to save corrs.)"),
         #SeisMeasurement
-        "measurement_method"    => ("compute_dvvdqq", String, "Stretching method for measuring dv/v and dQ^{-1}. \"stretching\",\"mwcs\",\"wcc\",\"dtw\",\"dualstretching\" "),
-        "dvv_stretching_range"  => ("0.02", Float64, "Advanced: dvv stretching trial range for dvv (+- abs(dvv_stretching_range))."),
-        "dvv_stretching_Ntrial" => ("101", Int, "Advanced: dvv stretching trial number for dvv."),
-        "dQc_stretching_range"  => ("0.004", Float64, "Advanced: dual stretching trial range for dQc (+- abs(dvv_stretching_range))."),
-        "dQc_stretching_Ntrial" => ("51", Int, "Advanced: dual stretching trial number for dQc."),
-        "dAA_stretching_range"  => ("0.05", Float64, "Advanced: dual stretching trial range for dAA (+- abs(dvv_stretching_range))."),
-        "dAA_stretching_Ntrial" => ("51", Int, "Advanced: dual stretching trial number for dAA."),
-        "geometricalspreading_α"=> ("0.5", Float64, "Advanced: Geometrical spreading coefficient."),
-        "smoothing_window_len"  => ("10.0", Float64, "Advanced: [s] smoothing time window length to measure coda Q change."),
-        "stretch_distmethod"    => ("euclidean", String, "Distance method used for stretching method. \"euclidean\" or \"mahalanobis\""),
-        "stretch_debugplot"     => ("true", Bool, "Advanced: plot debug figures for stretching method (this option increases stacking cpu time)"),
+        "measurement_method"    => ("mwcs", String, "Stretching method for measuring dv/v and dQ^{-1}. \"stretching\",\"mwcs\",\"wcc\",\"dtw\",\"dualstretching\" "),
+        "mwcs_window_length"    => ("6.0", Float64, "[s] The moving window length"),
+        "mwcs_window_step"      => ("3.0", Float64, "[s] The step to jump for the moving window."),
+        "mwcs_smoothing_half_win" => ("5", Int, "MWCS smoothing half windown length."),
+
+        # "measurement_method"    => ("compute_dvvdqq", String, "Stretching method for measuring dv/v and dQ^{-1}. \"stretching\",\"mwcs\",\"wcc\",\"dtw\",\"dualstretching\" "),
+        # "dvv_stretching_range"  => ("0.02", Float64, "Advanced: dvv stretching trial range for dvv (+- abs(dvv_stretching_range))."),
+        # "dvv_stretching_Ntrial" => ("101", Int, "Advanced: dvv stretching trial number for dvv."),
+        # "dQc_stretching_range"  => ("0.004", Float64, "Advanced: dual stretching trial range for dQc (+- abs(dvv_stretching_range))."),
+        # "dQc_stretching_Ntrial" => ("51", Int, "Advanced: dual stretching trial number for dQc."),
+        # "dAA_stretching_range"  => ("0.05", Float64, "Advanced: dual stretching trial range for dAA (+- abs(dvv_stretching_range))."),
+        # "dAA_stretching_Ntrial" => ("51", Int, "Advanced: dual stretching trial number for dAA."),
+        # "geometricalspreading_α"=> ("0.5", Float64, "Advanced: Geometrical spreading coefficient."),
+        # "smoothing_window_len"  => ("10.0", Float64, "Advanced: [s] smoothing time window length to measure coda Q change."),
+        # "stretch_distmethod"    => ("euclidean", String, "Distance method used for stretching method. \"euclidean\" or \"mahalanobis\""),
+        # "stretch_debugplot"     => ("true", Bool, "Advanced: plot debug figures for stretching method (this option increases stacking cpu time)"),
 
 )

@@ -189,6 +189,9 @@ function map_seisstack(fipath, stackmode::String, InputDict::OrderedDict)
             # compute dv/v and dQinv
             stackmode=="shorttime" && (t_seismeasurement += @elapsed seismeasurement!(C, InputDict))
 
+            # Remove C.corr if InputDict["keep_corr"] == false to save storage
+            !InputDict["keep_corrtrace"] && (C.corr = zeros(1,1))
+
             # create JLD2.Group
             if isnothing(fo)
                 # DEBUG: random save error when file size is large

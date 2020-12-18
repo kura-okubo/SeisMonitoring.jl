@@ -29,11 +29,22 @@ function seismeasurement!(C::CorrData, InputDict::OrderedDict)
 
     figdir = InputDict["stretch_debugplot"] ? joinpath(abspath(InputDict["project_outputdir"]), "plots/stack") : ""
 
+	fc = (C.freqmin+C.freqmax)/2.0
+	isempty(C.misc["coda_window"]) && return nothing # if coda window is empty, don't perform coda Q measurement
+
     if lowercase(measurement_method) == "stretching"
-        @warn("measurement_method:$(measurement_method) is under developping. skip seismeasurement.")
+		MeasurementDict = seisdvv_stretching(ref, cur, C.misc["timelag"], fc, C.misc["coda_window"],
+		                        coda_smooth_window=InputDict["smoothing_window_len"],
+		                        figdir=figdir,
+		                        figname=C.name*"--"*string(C.misc["stack_centraltime"])*"--"*join([C.freqmin, C.freqmax], "-"),
+		                        fillbox=C.misc["fillbox"])
 
     elseif lowercase(measurement_method) == "mwcs"
-        @warn("measurement_method:$(measurement_method) is under developping. skip seismeasurement.")
+
+		MeasurementDict = seisdvv_mwcs(ref,cur,C.freqmin,C.freqmax,C.fs,-C.maxlag,
+								InputDict["mwcs_window_length"], InputDict["mwcs_window_step"],
+								InputDict["mwcs_smoothing_half_win"],
+								C.dist*1e3, InputDict["background_vel"])
 
     elseif lowercase(measurement_method) == "wcc"
         @warn("measurement_method:$(measurement_method) is under developping. skip seismeasurement.")
@@ -65,11 +76,6 @@ function seismeasurement!(C::CorrData, InputDict::OrderedDict)
                                 fillbox =C.misc["fillbox"])
 
     elseif lowercase(measurement_method) == "compute_dvvdqq"
-
-        fc = (C.freqmin+C.freqmax)/2.0
-
-		isempty(C.misc["coda_window"]) && return nothing # if coda window is empty, don't perform coda Q measurement
-
 
 		MeasurementDict = compute_dvvdqq(ref, cur, C.misc["timelag"], fc, C.misc["coda_window"],
 		                        geometrical_spreading_α=InputDict["geometricalspreading_α"],
