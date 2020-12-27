@@ -190,7 +190,13 @@ function map_seisstack(fipath, stackmode::String, InputDict::OrderedDict)
             stackmode=="shorttime" && (t_seismeasurement += @elapsed seismeasurement!(C, InputDict))
 
             # Remove C.corr if InputDict["keep_corr"] == false to save storage
-            !InputDict["keep_corrtrace"] && (C.corr = zeros(1,1))
+            C_dump = deepcopy(C)
+            if stackmode=="shorttime" && !InputDict["keep_corrtrace"]
+                C_dump.corr = zeros(1,1)
+                C_dump.misc["coda_window"] = []
+                C_dump.misc["timelag"] = []
+                C_dump.misc["reference"] = []
+            end
 
             # create JLD2.Group
             if isnothing(fo)
@@ -207,7 +213,7 @@ function map_seisstack(fipath, stackmode::String, InputDict::OrderedDict)
             # create JLD2.Group
             # !haskey(fo, stachanpair) && JLD2.Group(fo, stachanpair)
             !haskey(fo, g1) && JLD2.Group(fo, g1)
-            !haskey(fo, groupname) && (fo[groupname] = C)
+            !haskey(fo, groupname) && (fo[groupname] = C_dump)
         end
     end
 

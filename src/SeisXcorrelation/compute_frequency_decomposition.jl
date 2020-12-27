@@ -127,7 +127,12 @@ function taper_for_freqdecomposition!(C::CorrData, freqency_band::Array{Float64,
 
    T, N = size(C.corr)
    #adaptive taper percentage due to stronger edge effect at high frequency
-   max_percentage = ((αmax-α0)/(freqency_band[end]-freqency_band[2]))*(C.freqmax-freqency_band[2]) + α0
+   if length(freqency_band) == 2
+      max_percentage = α0
+   else
+      max_percentage = ((αmax-α0)/(freqency_band[end]-freqency_band[2]))*(C.freqmax-freqency_band[2]) + α0
+   end
+
    taperwindow = zeros(T)
    margin = round(Int, 0.5*max_percentage*T)
    tukeywindow = DSP.tukey(T-2*margin, 0.1)

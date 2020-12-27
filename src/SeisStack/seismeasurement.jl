@@ -1,5 +1,7 @@
 include("SeisMeasurement/dualstretching.jl")
 include("SeisMeasurement/compute_dvvdqq.jl")
+include("SeisMeasurement/seisdvv_mwcs.jl")
+include("SeisMeasurement/seisdvv_stretching.jl")
 
 """
     seismeasurement!(C::CorrData, InputDict::OrderedDict)
@@ -33,11 +35,10 @@ function seismeasurement!(C::CorrData, InputDict::OrderedDict)
 	isempty(C.misc["coda_window"]) && return nothing # if coda window is empty, don't perform coda Q measurement
 
     if lowercase(measurement_method) == "stretching"
-		MeasurementDict = seisdvv_stretching(ref, cur, C.misc["timelag"], fc, C.misc["coda_window"],
-		                        coda_smooth_window=InputDict["smoothing_window_len"],
-		                        figdir=figdir,
-		                        figname=C.name*"--"*string(C.misc["stack_centraltime"])*"--"*join([C.freqmin, C.freqmax], "-"),
-		                        fillbox=C.misc["fillbox"])
+		MeasurementDict = seisdvv_stretching(ref, cur, C.misc["timelag"], C.misc["coda_window"],
+								C.freqmin,C.freqmax,
+								dvmin=-InputDict["dvv_stretching_range"],　dvmax=InputDict["dvv_stretching_range"],
+								ntrial_v=InputDict["dvv_stretching_Ntrial"])
 
     elseif lowercase(measurement_method) == "mwcs"
 

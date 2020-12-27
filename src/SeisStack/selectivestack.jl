@@ -32,8 +32,16 @@ function selectivestack!(C::CorrData, stackmode::String; dist_threshold::Abstrac
 		# compute Pearson's correlation coefficient
 		T, N = size(C.corr)
 		refmatrix = Array{Float32, 2}(undef, T, N) # make refmatrix to use colwise()
+		# println(C.misc["reference"])
 		for i=1:N
-			refmatrix[:, i] = C.misc["reference"]
+			# DEBUG:
+			try
+				refmatrix[:, i] = C.misc["reference"]
+			catch y
+				println(C)
+				println(C.misc["reference"])
+				println(y)
+			end
 		end
 		r = Distances.colwise(disttype(), C.corr, refmatrix)
 		# inds = findall(x -> x > dist_threshold, r) # find all traces which are closer than dist_threshold

@@ -23,11 +23,21 @@ function seisdvv_mwcs(ref::AbstractArray,cur::AbstractArray,fmin::Float64,
     # https://nextjournal.com/jtbryan/comparing-approaches-to-measuring-seismic-
     # phase-variations-in-the-time-frequency-and-wavelet-domains?token=SH2k5KRceh9VFTZmLFG5yJ
 
+    # NOTE: Since if the correlation coefficient between ref and cur trace is not enough,
+    # it causes error due to bad fitting using glm.
+    if cor(ref, cur) < 0.0
+        # skip this pair without appending anything
+        return MeasurementDict
+    end
+
     t_axis_mwcs, dt_mwcs, error_mwcs, mcoh_mwcs = SeisDvv.mwcs(ref, cur, fmin,
             fmax, fs, tmin, window_length, window_step, smoothing_half_win);
 
+    # NOTE: As experiment, dtt_width is defined as a factor of "mwcs_window_length"
+    # NOTE: As experiment, fix max_dt at 1.0 [s].
+    dtt_width = 6 * window_length
     dvv_mwcs, dvv_err_mwcs, int_mwcs, int_err_mwcs, dvv0_mwcs, dvv0_err_mwcs = SeisDvv.mwcs_dvv(t_axis_mwcs,
-     dt_mwcs, error_mwcs, mcoh_mwcs, "dynamic", dist, dtt_v, 0.0, dtt_width, "both", max_dt=0.0);
+     dt_mwcs, error_mwcs, mcoh_mwcs, "dynamic", dist, dtt_v, 0.0, dtt_width, "both", max_dt=1.0);
      #DEBUG: max_dt is uncertain as findall(x -> abs.(x) .>= max_dt,time_axis) l 244 can be findall(x -> abs.(x) .>= max_dt, dt)
 
     MeasurementDict["t_axis_mwcs"]  = t_axis_mwcs

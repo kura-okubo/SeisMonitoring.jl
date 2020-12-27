@@ -105,6 +105,10 @@ InputDict=OrderedDict(
         "mwcs_window_length"    => ("6.0", Float64, "[s] The moving window length"),
         "mwcs_window_step"      => ("3.0", Float64, "[s] The step to jump for the moving window."),
         "mwcs_smoothing_half_win" => ("5", Int, "MWCS smoothing half windown length."),
+        "codaslice_debugplot"    => ("false", Bool, "If plot debug figures for coda slicing."),
+        "stretch_debugplot"     => ("false", Bool, "If plot debug figures for streching."),
+        "dvv_stretching_range"  => ("0.02", Float64, "Advanced: dvv stretching trial range for dvv (+- abs(dvv_stretching_range))."),
+        "dvv_stretching_Ntrial" => ("201", Int, "Advanced: dvv stretching trial number for dvv."),
 
         # "measurement_method"    => ("compute_dvvdqq", String, "Stretching method for measuring dv/v and dQ^{-1}. \"stretching\",\"mwcs\",\"wcc\",\"dtw\",\"dualstretching\" "),
         # "dvv_stretching_range"  => ("0.02", Float64, "Advanced: dvv stretching trial range for dvv (+- abs(dvv_stretching_range))."),
