@@ -25,7 +25,9 @@ export
 
     #stats command
     smstats_read,
-    smstats_read_computedvvdqq
+    smstats_read_computedvvdqq,
+    smstats_read_mwcs,
+    smstats_read_stretching
 
 # NOTE: Do not change the order of include.
 include("SeisDownload/seisdownload.jl")
@@ -66,5 +68,7 @@ include("SMPlot/smplot_ppsd.jl")
 include("SMPlot/smplot_pdfdvv.jl")
 include("SMStats/smstats_read.jl")
 include("SMStats/smstats_read_computedvvdqq.jl")
+include("SMStats/smstats_read_stretching.jl")
+include("SMStats/smstats_read_mwcs.jl")
 
 end # module
