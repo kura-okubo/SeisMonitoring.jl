@@ -49,7 +49,7 @@ collect corrdata into a jld2 file with respect stationpairkeys.
 """
 function map_collect_stationpairs(station_pairkey::String, cc_outdir::String, station_pairdict::Dict)
 
-    fo = jldopen(joinpath(cc_outdir, station_pairkey*".jld2"), "w")
+    fo = jldopen(joinpath(cc_outdir, station_pairkey*".jld2"), "w", iotype=IOStream)
 
     cc_paths = station_pairdict[station_pairkey] # cc jld2 files to be collected
 
