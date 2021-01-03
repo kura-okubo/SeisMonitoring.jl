@@ -47,6 +47,11 @@ function map_seisdownload_NOISE(startid, InputDict::OrderedDict; testdownload::B
 
     for src in keys(request_src_chanks)
         #---download data---#
+		if src=="IRISDMC"
+			reqsrc="IRIS"
+		else
+			reqsrc=src
+		end
 
 		requeststrs = get_requeststr(request_src_chanks[src], InputDict["numstationperrequest"])
 
@@ -62,14 +67,14 @@ function map_seisdownload_NOISE(startid, InputDict::OrderedDict; testdownload::B
 
 			if InputDict["IsLocationBox"]
 		        ex = :(get_data($(method), $(requeststr), s=$(starttime), t=$(dltime), reg=$(InputDict["reg"]),
-				 v=$(0), src=$(src), xf=$(stationxml_path), unscale=$(InputDict["get_data_opt"][1]),
+				 v=$(0), src=$(reqsrc), xf=$(stationxml_path), unscale=$(InputDict["get_data_opt"][1]),
 				  demean=$(InputDict["get_data_opt"][2]), detrend=$(InputDict["get_data_opt"][3]),taper=$(InputDict["get_data_opt"][4]),
 				  ungap=$(InputDict["get_data_opt"][5]), rr=$(InputDict["IsResponseRemove"])))
 
 		        t_dl = @elapsed Stemp = check_and_get_data(ex, requeststr)
 			else
 				ex = :(get_data($(method), $(requeststr), s=$(starttime), t=$(dltime),
-				 v=$(0), src=$(src), xf=$(stationxml_path),unscale=$(InputDict["get_data_opt"][1]),
+				 v=$(0), src=$(reqsrc), xf=$(stationxml_path),unscale=$(InputDict["get_data_opt"][1]),
 				  demean=$(InputDict["get_data_opt"][2]), detrend=$(InputDict["get_data_opt"][3]),taper=$(InputDict["get_data_opt"][4]),
 				  ungap=$(InputDict["get_data_opt"][5]), rr=$(InputDict["IsResponseRemove"])))
 
