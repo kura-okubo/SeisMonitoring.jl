@@ -17,7 +17,7 @@ dvv history database.
 
 """
 function smplot_pdfdvv(statsfile::String, fodir::String, starttime::DateTime, endtime::DateTime, time_bin_length::Real;
-    cc_threshold::Float64=0.6, network_option=["all"], compontents_option::AbstractArray=["all"],
+    cc_threshold::Float64=0.6, network_option=["all"], compontents_option::AbstractArray=["all"], dvv_method::String="stretching",
     plotmean::Bool=true, plotmedian::Bool=true, plotmode::Bool=true,
     plot_maxdvv::Float64=0.05, number_of_dvvbins::Int = 30, minimum_paircount::Int=1, plottimeunit::String="day",
     figsize = (1200, 600), clims=(0.0, 0.3), xlims = [], ylims = (-0.03, 0.03), xrotation::Real=-45,
@@ -58,7 +58,11 @@ function smplot_pdfdvv(statsfile::String, fodir::String, starttime::DateTime, en
         df_filtered = filter(:components => x -> (x ∈ compontents_option || "all" ∈ compontents_option) , df_filtered)
 
         # filtering with cc_threshold
-        df_filtered = filter(:cc_dvv => x -> (x >= cc_threshold) , df_filtered)
+        if lowercase(dvv_method)=="stretching"
+            df_filtered = filter(:cc_ts => x -> (x >= cc_threshold) , df_filtered)
+        else
+            df_filtered = filter(:cc_dvv => x -> (x >= cc_threshold) , df_filtered)
+        end
 
         dvvbins = range(-plot_maxdvv, stop=plot_maxdvv, length=number_of_dvvbins+1)
 
@@ -85,7 +89,12 @@ function smplot_pdfdvv(statsfile::String, fodir::String, starttime::DateTime, en
 
             df_binned = filter(:date => x -> (stbin <= x < etbin) , df_filtered)
             # println(df_binned)
-            dvv_all = df_binned.dvv
+
+            if lowercase(dvv_method)=="stretching"
+                dvv_all = df_binned.dvv_ts ./100
+            else
+                dvv_all = df_binned.dvv
+            end
 
             paircount = length(dvv_all)
 

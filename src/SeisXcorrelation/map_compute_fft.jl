@@ -92,7 +92,7 @@ function map_compute_fft(netstachan::String, InputDict::OrderedDict)
         taper!(R1)
 
         # #5. apply one-bit normalization if true
-        # InputDict["IsOnebit"] && onebit!(R1)
+        InputDict["IsOnebit"] && onebit!(R1)
         #NOTE: Future work; We can make an option here to move RawData to GPU:
         #e.g. if ["GPU"]; R1 |> GPU; end
         #6. compute fft
