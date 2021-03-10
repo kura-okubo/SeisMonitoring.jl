@@ -30,10 +30,10 @@ function seisdvv_stretching(ref::AbstractArray,cur::AbstractArray, time::Abstrac
 
     MeasurementDict["dvv_ts"]     = dvv_ts
     MeasurementDict["cc_ts"]      = cc_ts
-    # MeasurementDict["cdp_Ts"]   = error_mwcs
-    # MeasurementDict["eps_ts"]   = eps_ts
+    MeasurementDict["cdp_Ts"]   = error_mwcs
+    MeasurementDict["eps_ts"]   = eps_ts
     MeasurementDict["err_ts"]     = err_ts
-    # MeasurementDict["allC_ts"] = dvv_err_mwcs
+    MeasurementDict["allC_ts"] = dvv_err_mwcs
 
     return MeasurementDict
 end
