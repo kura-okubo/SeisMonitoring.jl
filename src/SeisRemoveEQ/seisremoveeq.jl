@@ -7,15 +7,16 @@ remove transient signals using STA/LTA and Kurtosis
 """
 function seisremoveeq(InputDict_origin::OrderedDict)
 
-	#===================================================================#
-	#NOTE: Exit if nprocs is larger than 64 to avoid following issues:
-	# 1. massive HTTP request causing degradation of data server.
-	# 2. massive File I/O
-	#===================================================================#
-
-	if nprocs() > 64
-		error("nprocs $(nprocs()) should be less than 64 to avoid massive FIle I/O.")
-	end
+	# #===================================================================#
+	# #NOTE: Exit if nprocs is larger than 64 to avoid following issues:
+	# # 1. massive HTTP request causing degradation of data server.
+	# # 2. massive File I/O
+	# Updated: this is resolved by saving seischannel files in SeisIO native format.
+	# #===================================================================#
+	#
+	# if nprocs() > 64
+	# 	error("nprocs $(nprocs()) should be less than 64 to avoid massive FIle I/O.")
+	# end
 
     InputDict = parse_inputdict(InputDict_origin)
 
@@ -57,7 +58,7 @@ function seisremoveeq(InputDict_origin::OrderedDict)
        end
     end
 	# println(rawdata_path_all)
-	
+
     println("-------START Removing EQ--------")
 
     t_removeeq = @elapsed bt_time = pmap(x -> map_removeEQ(x, InputDict), rawdata_path_all)
