@@ -156,19 +156,30 @@ function map_seisstack(fipath, stackmode::String, InputDict::OrderedDict)
                 figdir = InputDict["codaslice_debugplot"] ? joinpath(abspath(InputDict["project_outputdir"]), "plots/stack") : ""
                 fm = (freqmin+freqmax)/2
                 debugplot_xlims_range = min(InputDict["max_coda_length"], 0.7*InputDict["max_coda_length"]/fm)
-                coda_window, timelag, fillbox, _ = mwcc_slice_codawindow(
-                                                C,InputDict["background_vel"],
+
+                # coda_window, timelag, fillbox, _ = mwcc_slice_codawindow(
+                #                                 C,InputDict["background_vel"],
+                #                                 InputDict["min_ballistic_twin"],
+                #                                 InputDict["max_coda_length"],
+                #                                 mwcc_threshold=InputDict["mwcc_threshold"],
+                #                                 coda_init_factor=1.0, # fixed for the moment
+                #                                 mwcc_len_α=InputDict["mwcc_len_α"],
+                #                                 min_codalength_α=InputDict["min_codalength_α"],
+                #                                 debugplot=InputDict["codaslice_debugplot"],
+                #                                 foname=stachanpair*"_$(freqkey)Hz_codaslicedebug",
+                #                                 fodir=figdir,
+                #                                 xlims=(-debugplot_xlims_range, debugplot_xlims_range))
+
+                coda_window, timelag, fillbox, _ = const_slice_codawindow(
+                                                C, InputDict["background_vel"],
                                                 InputDict["min_ballistic_twin"],
                                                 InputDict["max_coda_length"],
-                                                mwcc_threshold=InputDict["mwcc_threshold"],
-                                                coda_init_factor=1.0, # fixed for the moment
-                                                mwcc_len_α=InputDict["mwcc_len_α"],
-                                                min_codalength_α=InputDict["min_codalength_α"],
-                                                debugplot=InputDict["codaslice_debugplot"],
+                                		        coda_init_factor=InputDict["coda_init_factor"],
+                                                coda_minlen_factor=InputDict["coda_minlen_factor"],
+                                		        debugplot=InputDict["codaslice_debugplot"],
                                                 foname=stachanpair*"_$(freqkey)Hz_codaslicedebug",
                                                 fodir=figdir,
                                                 xlims=(-debugplot_xlims_range, debugplot_xlims_range))
-
 
         		C.misc["coda_window"] = coda_window
         		C.misc["timelag"] = timelag

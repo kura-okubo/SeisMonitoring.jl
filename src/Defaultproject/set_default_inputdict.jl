@@ -91,8 +91,10 @@ InputDict=OrderedDict(
         "max_coda_length"       => ("60.0", Float64, "[s] Maximum coda window length."),
         "mwcc_threshold"        => ("0.5", Float64, " mwcc slice coda threshold."),
         "mwcc_len_α"            => ("3.0", Float64, "moving window size factor (size = (mwcc_len_α/fm)*fs [point])."),
-        "min_codalength_α"       => ("1.0", Float64, "Threshold of minimum codawindow length: min_codalength = min_codalength_α*mwcc window length."),
-        "codaslice_debugplot"    => ("false", Bool, "If plot debug figures for coda slicing."),
+        "min_codalength_α"      => ("1.0", Float64, "Threshold of minimum codawindow length: min_codalength = min_codalength_α*mwcc window length."),
+        "coda_init_factor"      => ("2.0", Float64, "[s] Coda window starts from coda_init_factor*dist/vel."),
+        "coda_minlen_factor"    => ("5.0", Float64, "[s] Minimumlength is determined by this factor * (1/fm, period of cc) * fs points."),
+        "codaslice_debugplot"   => ("false", Bool, "If plot debug figures for coda slicing."),
 
         "nondim_max_coda_length"=> ("30.0", Float64, "Deprecated: nondimensional maximum coda window length"),
         "nondim_codamaxlag"     => ("60.0", Float64, "Deprecated: coda max lag where kinetic energy is evaluated."),
