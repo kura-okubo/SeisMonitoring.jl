@@ -51,7 +51,8 @@ include("Utils/remove_nanandzerocol.jl") # used at seisstack
 # include("Utils/slice_codawindow.jl") # used at seisstack
 # include("Utils/energybased_slice_codawindow.jl") # used at seisstack
 # include("Utils/log10_slice_codawindow.jl") # used at seisstack
-include("Utils/mwcc_slice_codawindow.jl") # used at seisstack
+# include("Utils/mwcc_slice_codawindow.jl") # used at seisstack
+include("Utils/const_slice_codawindow.jl") # used at seisstack
 include("Utils/convert_tmpfile.jl") # used at seisdownload and seisremoveeq
 include("Utils/get_noisedatafraction.jl") # used at seisdownload, seisremoveeq and seisxcorrelation
 include("Utils/split_cc.jl") # used at slice_coda_window, seismeasurement
