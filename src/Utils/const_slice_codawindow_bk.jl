@@ -20,8 +20,7 @@ function const_slice_codawindow(
 		min_ballistic_twin::Real, 	# explicit ballistic time window (see doc)
 		max_coda_length::Real; 		# maximum coda window length [s]
 		coda_init_factor::Real=2.0, # coda window starts from coda_init_factor*dist/vel
-		coda_minlen_factor::Real=5.0, # minimumlength is determined by this factor * (1/fm, period of cc) * fs points.
-		zeropad::Bool=false			# zero padding outside of coda window using tukey window
+		coda_minlen_factor::Real=5.0 # minimumlength is determined by this factor * (1/fm, period of cc) * fs points.
 		)
 
 	# central index (zero time lag)
@@ -110,20 +109,6 @@ function const_slice_codawindow(
 		coda_window_all = coda_window
 	end
 
-	# zero padding outside of coda window if zeropad == true
-	if zeropad
-		coda_neg_id = minimum(coda_window_all):min(ba_window_neg, minbal_window_neg)
-		coda_pos_id = max(ba_window_pos,minbal_window_pos):maximum(coda_window_all)
-		# apply tukey window within the coda window
-		tneg = DSP.tukey(length(coda_neg_id), 0.02) # As we don't apply Fourier transform on coda, using small alpha.
-		tpos = DSP.tukey(length(coda_pos_id), 0.02)
-		for i = 1:size(A, 2)
-			A[filter(x -> !(x in coda_window), 1:Ntimelag), i] .= 0.0
-			A[coda_neg_id,i] .*= tneg
-			A[coda_pos_id,i] .*= tpos
-		end
-	end
-
 	# NOTE: fill_box will be deprecated due to the change of coda definision.
 	fill_box = [timelag[minimum(coda_window_all)], timelag[min(ba_window_neg,minbal_window_neg)],
 				timelag[max(ba_window_pos,minbal_window_pos)], timelag[maximum(coda_window_all)]]
@@ -139,7 +124,6 @@ function const_slice_codawindow(
 		max_coda_length::Real; # maximum coda window length [s]
 		coda_init_factor::Real=3.0, # coda window starts from coda_init_factor*dist/vel
 		coda_minlen_factor::Real=5.0, # minimum coda length defined as min_codalength_α * mwcc_len
-		zeropad::Bool=false,   # zero padding outside of coda window using tukey window
 		debugplot::Bool=false, # plot debug figures
 		foname::String="", # figure name for debug plot
 		fodir::String="",
@@ -150,7 +134,7 @@ function const_slice_codawindow(
 	coda_window, timelag, fillbox, CodaSliceDict = const_slice_codawindow(
 	C.corr, C.maxlag, (C.freqmax+C.freqmin)/2.0, C.fs, C.dist*1e3, background_vel,
 	min_ballistic_twin, max_coda_length, coda_init_factor=coda_init_factor,
-	coda_minlen_factor=coda_minlen_factor, zeropad=zeropad)
+	coda_minlen_factor=coda_minlen_factor)
 
 	# debug plot is available only with corr data.
 	if debugplot
@@ -172,7 +156,7 @@ function const_slice_codawindow(
 
 	return (coda_window, timelag, fillbox, CodaSliceDict)
 end
-
+#
 # #
 # # Test script
 # #1. Cross-correlation
@@ -188,7 +172,7 @@ end
 #
 # background_vel=1000
 # min_ballistic_twin=1.0
-# coda_init_factor=1.0
+# coda_init_factor=2.0
 # max_coda_length=40.0
 # coda_minlen_factor = 5.0
 #
@@ -200,7 +184,7 @@ end
 #
 # coda_window, timelag, fillbox, CodaSliceDict = const_slice_codawindow(C,background_vel, min_ballistic_twin, max_coda_length,
 # 		coda_init_factor=coda_init_factor, coda_minlen_factor=coda_minlen_factor,
-# 		debugplot=true, foname=foname, fodir=fodir, xlims=xlims, zeropad=true)
+# 		debugplot=true, foname=foname, fodir=fodir, xlims=xlims)
 # close(fi)
 # #2. Auto-correlation
 # finame = "./cc_data/BP.SCYB.40.SP1-BP.SCYB.40.SP1__2013-10-25T00:00:00__2013-10-30T00:00:00.jld2"
@@ -227,4 +211,4 @@ end
 #
 # coda_window, timelag, fillbox, CodaSliceDict = const_slice_codawindow(C,background_vel, min_ballistic_twin, max_coda_length,
 # 		coda_init_factor=coda_init_factor, coda_minlen_factor=coda_minlen_factor,
-# 		debugplot=true, foname=foname, fodir=fodir, xlims=xlims, zeropad=true)
+# 		debugplot=true, foname=foname, fodir=fodir, xlims=xlims)

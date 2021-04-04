@@ -79,6 +79,9 @@ function seismeasurement!(C::CorrData, InputDict::OrderedDict)
     elseif lowercase(measurement_method) == "compute_dvvdqq"
 
 		MeasurementDict = compute_dvvdqq(ref, cur, C.misc["timelag"], fc, C.misc["coda_window"],
+								dvmin=-InputDict["dvv_stretching_range"],
+								dvmax=InputDict["dvv_stretching_range"],
+								ntrial_v=InputDict["dvv_stretching_Ntrial"],
 		                        geometrical_spreading_α=InputDict["geometricalspreading_α"],
 		                        coda_smooth_window=InputDict["smoothing_window_len"],
 		                        figdir=figdir,

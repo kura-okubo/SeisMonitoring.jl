@@ -176,6 +176,7 @@ function map_seisstack(fipath, stackmode::String, InputDict::OrderedDict)
                                                 InputDict["max_coda_length"],
                                 		        coda_init_factor=InputDict["coda_init_factor"],
                                                 coda_minlen_factor=InputDict["coda_minlen_factor"],
+                                                zeropad=InputDict["IsZeropadBeforeStack"],
                                 		        debugplot=InputDict["codaslice_debugplot"],
                                                 foname=stachanpair*"_$(freqkey)Hz_codaslicedebug",
                                                 fodir=figdir,
