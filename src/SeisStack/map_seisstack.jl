@@ -192,6 +192,8 @@ function map_seisstack(fipath, stackmode::String, InputDict::OrderedDict)
             (isempty(C.corr) || isempty(C.t)) && continue  # this does not have cc trace within the time window.
             remove_nanandzerocol!(C)  # remove column which has NaN or all zero
             (isempty(C.corr) || isempty(C.t)) && continue  # this does not have cc trace within the time window.
+            # check if signal is all zero; which is identified by absolute threshold "MINIMUM_EPS" in seisstack.jl
+            (maximum(abs.(C.corr)) < MINIMUM_EPS) && continue
 
             # append metadata
             C.misc["stack_starttime"] = starttime

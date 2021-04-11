@@ -2,6 +2,8 @@ include("map_seisstack.jl")
 include("cc_channel_collection.jl")
 include("seisstack_utils.jl")
 
+const MINIMUM_EPS = 1e-20  # absolute threshold of signal amplitude used to find all zero CCF
+
 """
     seisstack(InputDict::Dict)
 
