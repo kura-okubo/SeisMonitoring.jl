@@ -44,8 +44,9 @@ function seismeasurement!(C::CorrData, InputDict::OrderedDict)
 
 		MeasurementDict = seisdvv_mwcs(ref,cur,C.freqmin,C.freqmax,C.fs,-C.maxlag,
 								InputDict["mwcs_window_length"], InputDict["mwcs_window_step"],
-								InputDict["mwcs_smoothing_half_win"],
-								C.dist*1e3, InputDict["background_vel"])
+								InputDict["mwcs_smoothing_half_win"], InputDict["coda_init_factor"], InputDict["max_coda_length"],
+								InputDict["min_ballistic_twin"], C.dist*1e3, InputDict["background_vel"])
+
 
     elseif lowercase(measurement_method) == "wcc"
         @warn("measurement_method:$(measurement_method) is under developping. skip seismeasurement.")

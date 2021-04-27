@@ -14,7 +14,7 @@ using SeisMonitoring: smooth_withfiltfilt
 function seisdvv_mwcs(ref::AbstractArray,cur::AbstractArray,fmin::Float64,
                    fmax::Float64,fs::Float64,tmin::Float64,
                    window_length::Float64,window_step::Float64,
-                   smoothing_half_win::Int,
+                   smoothing_half_win::Int, coda_init_factor::Real, max_coda_length::Real, min_ballistic_twin::Real,
                    dist::Float64, dtt_v::Float64)
 
     MeasurementDict = Dict()
@@ -35,9 +35,17 @@ function seisdvv_mwcs(ref::AbstractArray,cur::AbstractArray,fmin::Float64,
 
     # NOTE: As experiment, dtt_width is defined as a factor of "mwcs_window_length"
     # NOTE: As experiment, fix max_dt at 1.0 [s].
-    dtt_width = 6 * window_length
+    # dtt_width = 6 * window_length
+    # dvv_mwcs, dvv_err_mwcs, int_mwcs, int_err_mwcs, dvv0_mwcs, dvv0_err_mwcs = SeisDvv.mwcs_dvv(t_axis_mwcs,
+    #  dt_mwcs, error_mwcs, mcoh_mwcs, "dynamic", dist, dtt_v, 0.0, dtt_width, "both", max_dt=1.0);
+
+    dtt_minlag = max(min_ballistic_twin, coda_init_factor * dist / dtt_v) #[s]
+    dtt_width = max_coda_length - dtt_minlag
+    # dtt_width has been sure to have enough lenght as slice_codawindow() already rejects it if it's too small.
+
     dvv_mwcs, dvv_err_mwcs, int_mwcs, int_err_mwcs, dvv0_mwcs, dvv0_err_mwcs = SeisDvv.mwcs_dvv(t_axis_mwcs,
-     dt_mwcs, error_mwcs, mcoh_mwcs, "dynamic", dist, dtt_v, 0.0, dtt_width, "both", max_dt=1.0);
+        dt_mwcs, error_mwcs, mcoh_mwcs, "static", dist, dtt_v, dtt_minlag, dtt_width, "both", max_dt=1.0);
+
      #DEBUG: max_dt is uncertain as findall(x -> abs.(x) .>= max_dt,time_axis) l 244 can be findall(x -> abs.(x) .>= max_dt, dt)
 
     MeasurementDict["t_axis_mwcs"]  = t_axis_mwcs
