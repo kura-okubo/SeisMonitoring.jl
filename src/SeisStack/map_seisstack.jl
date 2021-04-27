@@ -201,8 +201,10 @@ function map_seisstack(fipath, stackmode::String, InputDict::OrderedDict)
             C.misc["stack_centraltime"] = centraltime
 
             # compute dv/v and dQinv
-            if ~isempty(C.misc["coda_window"]) && stackmode=="shorttime"
-                t_seismeasurement += @elapsed seismeasurement!(C, InputDict)
+            if haskey(C.misc, "coda_window")
+                if ~isempty(C.misc["coda_window"]) && stackmode=="shorttime"
+                    t_seismeasurement += @elapsed seismeasurement!(C, InputDict)
+                end
             end
 
             # Remove C.corr if InputDict["keep_corr"] == false to save storage
