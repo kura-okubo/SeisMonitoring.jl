@@ -43,7 +43,7 @@ function seismeasurement!(C::CorrData, InputDict::OrderedDict)
     elseif lowercase(measurement_method) == "mwcs"
 
 		MeasurementDict = seisdvv_mwcs(ref,cur,C.freqmin,C.freqmax,C.fs,-C.maxlag,
-								InputDict["mwcs_window_length"], InputDict["mwcs_window_step"],
+								InputDict["mwcs_window_length"], InputDict["mwcs_window_step"], InputDict["mwcs_max_dt"],
 								InputDict["mwcs_smoothing_half_win"], InputDict["coda_init_factor"], InputDict["max_coda_length"],
 								InputDict["min_ballistic_twin"], C.dist*1e3, InputDict["background_vel"])
 
