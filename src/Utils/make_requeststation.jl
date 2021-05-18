@@ -106,7 +106,7 @@ function make_requeststation_fromIRISgmap(fipath::String; locchan::Dict=Dict(), 
     end
 
     # output jld2 file for SeisMonitoring
-    jldopen(fopath, "w") do f
+    jldopen(fopath, "w", , iotype=IOStream) do f
         for key in keys(RequestStations)
             f[key] = RequestStations[key]
         end
