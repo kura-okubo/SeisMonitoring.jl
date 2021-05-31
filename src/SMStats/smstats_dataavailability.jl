@@ -51,7 +51,7 @@ function smstats_dataavailability(fidir::String,foname::String,
     # parallelize with keys in Rawdata.jld2 i.e. stations
     println("-------START Getting Noise Data Fraction--------")
 
-    df_mapped = pmap(x -> map_getnoisedatafraction(x, PlotDict), stations)
+    df_mapped = pmap(x -> map_getnoisedatafraction_dataavail(x, PlotDict), stations)
 
     df_all = DataFrame(station=String[], date = String[], data_fraction=Float64[], removal_fraction=Float64[])
 
@@ -68,12 +68,7 @@ function smstats_dataavailability(fidir::String,foname::String,
     return nothing
 end
 
-"""
-map_getnoisedatafraction(station::String, InputDict::Dict)
-
-Return DataFrame containing stationchannel, date and noise data fraction.
-"""
-function map_getnoisedatafraction(stationpath::String, PlotDict::Dict)
+function map_getnoisedatafraction_dataavail(stationpath::String, PlotDict::Dict)
 
     fidir, fikey = splitdir(stationpath)
 

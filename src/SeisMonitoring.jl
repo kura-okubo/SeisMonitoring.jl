@@ -24,6 +24,7 @@ export
     smplot_pdfdvv,
 
     #stats command
+    smstats_dataavailability,
     smstats_read,
     smstats_read_computedvvdqq,
     smstats_read_mwcs,
@@ -67,6 +68,7 @@ include("SMPlot/smplot_stackcc.jl")
 include("SMPlot/smplot_noiseavailability.jl")
 include("SMPlot/smplot_ppsd.jl")
 include("SMPlot/smplot_pdfdvv.jl")
+include("SMStats/smstats_dataavailability.jl")
 include("SMStats/smstats_read.jl")
 include("SMStats/smstats_read_computedvvdqq.jl")
 include("SMStats/smstats_read_stretching.jl")
