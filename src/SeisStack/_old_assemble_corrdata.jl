@@ -1,5 +1,4 @@
 # include("get_cc_contents_fraction.jl")
-using SeisIO, SeisNoise, Dates, JLD2, Statistics
 """
     assemble_corrdata(C::SeisChannel)
 
@@ -15,12 +14,11 @@ jld2 with SeisMonitoring.jl format.
 - `min_cc_datafraction::Float64` : minimum data fraction of cc within the request time.
 - `CorrData_Buffer::Dict` : Dictionary of CorrData to optimize File IO.
 - `MAX_MEM_USE::AbstractFloat=4.0` : Maximum memory use; throw warning if the memory use exceeds this number.
-- `rename::Bool=true` : true if rename C.name to nochan_stationpair.
+- `IsPreStack::Bool=true` : To avoid too large memory allocation prestacking by time unit in cc jld2 file (=cc_time_unit)
 
 # Return
 - `C::CorrData`: CorrData which contains data from starttime to endtime
 
-Note: 2021.06.07 adding "rename::Bool=true" to assemble corrdate with channel change. Rename to nochan_stationpair.
 """
 function assemble_corrdata(
     fileio,
@@ -31,8 +29,12 @@ function assemble_corrdata(
     min_cc_datafraction::Float64 = 0.5,
     CorrData_Buffer::Dict=Dict(),
     MAX_MEM_USE::AbstractFloat=4.0, #[GB]
-    rename::Bool=true # true if rename C.name to nochan_stationpair
-
+    #---parameters for prestacking---#
+    # stackmode::String="reference", #used for prestacking.
+    # IsReadReference::Bool=false, #used for prestacking.
+    # ReferenceDict::Dict=(), #used for prestacking.
+    # InputDict::OrderedDict=OrderedDict() #used for prestacking.
+    #--------------------------------#
 )
 
     # corrdata_cputime debug
@@ -41,9 +43,11 @@ function assemble_corrdata(
 
     # Nfreqband = length(frequency_band) - 1
     # freqband = map(i -> [frequency_band[i], frequency_band[i+1]], 1:Nfreqband)
+    # C_all = CorrData[]
     C = CorrData()
 
     # 1. find all target timewindow
+    # cc_unit_time_all = keys(fileio[stachanpair])
     cc_unit_time_all = keys(fileio)
 
     # find all path within target time window
@@ -53,6 +57,9 @@ function assemble_corrdata(
     # C_all = Dict{String, CorrData}()
     current_abskey_list = String[] # to be used to update CorrData_Buffer
     # 2. read and merge CorrData for all frequency band
+    # for fb in freqband
+        # freqmin, freqmax = fb
+        # freqkey = join([freqmin, freqmax], "-")
     ccfracs = []
     for file in files_target # e.g. 2004-04-01T00:00:00--2004-04-02T00:00:00
         # abskey = joinpath(stachanpair, file, freqkey)
@@ -76,23 +83,21 @@ function assemble_corrdata(
             # (isnothing(Ctemp) || isempty(Ctemp)) && continue # NOTE: causing segmentation error at isempty(Ctemp)
             isempty(Ctemp.t) && continue
 
-            if rename
-                # rename to nochan_stationpair to avoid error in appending at C += Ctemp
-                stachantemp = split(Ctemp.name, ".")
-                # println(stachantemp)
-                net1, sta1, loc1, cha1 = stachantemp[1:4]
-                net2, sta2, loc2, cha2 = stachantemp[5:8]
-                Ctemp.name = joinpath("$(net1).$(sta1)-$(net2).$(sta2)-$(cha1[end])$(cha2[end])")
-            end
-
             # evaluate cc contents fraction
-            # st, et = DateTime.(split(file, "--"))
+            st, et = DateTime.(split(file, "--"))
 
             # NOTE: Ctemp.misc["ccfrac_within_cc_time_unit"] is computed at SeisXcorrelation stage.
             # dubug_t4 += @elapsed ccfrac = get_cc_contents_fraction(Ctemp,st,et)
             # Ctemp.misc["tccfrac_within_cc_time_unit"] = ccfrac
             ccfrac = Ctemp.misc["ccfrac_within_cc_time_unit"]
 
+            # if InputDict["IsPreStack"]
+            # # 1. append reference to Ctemp if IsReadReference == true for selective stack
+            #     dubug_t5 += @elapsed IsReadReference && append_reference!(Ctemp, stachanpair, freqkey, ReferenceDict, InputDict)
+            # # 2. perform smstack
+            #     dubug_t6 += @elapsed sm_stack!(Ctemp, stackmode, InputDict) # stack with predefined stack method
+            #     # println(Ctemp)
+            # end
             # add CorrData to CorrData_Buffer after stacking.
             CorrData_Buffer[abskey] = Ctemp
             push!(current_abskey_list, abskey)
@@ -105,15 +110,18 @@ function assemble_corrdata(
         # check memory use
         memuse = round(sizeof(C.corr) * 1e-9, digits=6) #[GB]
 
+        # println("debug: size C1.corr=$(size(C1.corr,2)): $(memuse) GB")
 
         if memuse > MAX_MEM_USE
             @warn("Momory use will be $(memuse*Nfreqband) GB, which is more than MAX_MEM_USE=$(MAX_MEM_USE) GB.
-                   This may cause memory overflow in your environment. Please increase MAX_MEM_USE.")
+                   This may cause memory overflow in your environment. Please increase MAX_MEM_USE, or use IsPreStack=true.")
         end
     end
     # if C is nothing or empty, return empty CorrData
     # (isnothing(C) || isempty(C)) && (C = CorrData())
     isempty(C.t) && (C = CorrData())
+
+    # println("debug: $(stachanpair) $(fb)Hz ccfrac = $(ccfracs)")
 
     if  mean(ccfracs) < min_cc_datafraction
         # println("debug: data containts $(mean(ccfracs)) is less than cc_contents_fraction.")
@@ -127,6 +135,18 @@ function assemble_corrdata(
 
     # update CorrData_Buffer
     dubug_t7 += @elapsed update_CorrData_Buffer!(CorrData_Buffer, current_abskey_list)
+
+
+    # println("===Debug cputime===")
+    # println("$(stachanpair) $(string(starttime))-$(string(endtime)) $(freqkey)Hz")
+    # println("findall_target_cc  : $(dubug_t1)[s]")
+    # println("read buffer        : $(dubug_t2)[s]")
+    # println("read from file     : $(dubug_t3)[s]")
+    # # println("get_cc_contents    : $(dubug_t4)[s]")
+    # # println("append_ref prestack: $(dubug_t5)[s]")
+    # # println("prestacking        : $(dubug_t6)[s]")
+    # println("update corrbuffer  : $(dubug_t7)[s]")
+    # println("===================")
 
     return C, CorrData_Buffer
 end
