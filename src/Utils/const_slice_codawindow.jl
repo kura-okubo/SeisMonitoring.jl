@@ -155,19 +155,15 @@ function const_slice_codawindow(
 	# debug plot is available only with corr data.
 	if debugplot
 		p1 = corrplot(C)
-		xlims!(xlims)
 		# plot vlines on coda window
 		!isempty(coda_window) && (p1 = vline!(timelag[coda_window], width=1.0, color=:orange, legend=false, alpha=0.3))
-
 		xlims!(xlims)
-		xlabel!("Time lag[s]")
-		ylabel!("coherence")
+		# xlabel!("Time lag[s]")  # comment out as it causes plotting issue with corrplot()
+		# ylabel!("coherence") # comment out as it causes plotting issue with corrplot()
 		title!("$(C.name) $(C.id)")
-
-		plot(p1, size=(1200,400))
-
+		plot!(size=(800,600))
 		fopath = joinpath(fodir, foname)*".png"
-		savefig(fopath)
+		savefig(p1, fopath)
 	end
 
 	return (coda_window, timelag, fillbox, CodaSliceDict)

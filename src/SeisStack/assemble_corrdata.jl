@@ -76,7 +76,7 @@ function assemble_corrdata(
             # (isnothing(Ctemp) || isempty(Ctemp)) && continue # NOTE: causing segmentation error at isempty(Ctemp)
             isempty(Ctemp.t) && continue
 
-            if rename
+            if rename && (length(split(Ctemp.name, "-")) != 3)
                 # rename to nochan_stationpair to avoid error in appending at C += Ctemp
                 stachantemp = split(Ctemp.name, ".")
                 # println(stachantemp)
