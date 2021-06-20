@@ -344,7 +344,7 @@ function compute_codaQ(x::AbstractArray, t::AbstractArray, fs::Float64, geometri
         fit_curve_pos = coef_pos[1] .+ coef_pos[2].* t_pos
         #compute Qc inverse
         Qcinv_pos = (-coef_pos[2])/(pi * fc * log10(exp(1)))
-        amp_pos = maximum(abs.(A_pos[coda_pos_ind]))
+        amp_pos = maximum(A_pos[coda_pos_ind])
     else
         wts_pos = zeros(Float64, length(t_pos))
         model_pos = []
@@ -363,7 +363,7 @@ function compute_codaQ(x::AbstractArray, t::AbstractArray, fs::Float64, geometri
         fit_curve_neg = coef_neg[1] .+ coef_neg[2].* t_neg
         #compute Qc inverse
         Qcinv_neg = (-coef_neg[2])/(pi * fc * log10(exp(1)))
-        amp_neg = maximum(abs.(A_neg[coda_neg_ind]))
+        amp_neg = maximum(A_neg[coda_neg_ind])
     else
         wts_neg = zeros(Float64, length(t_neg))
         model_neg = []
