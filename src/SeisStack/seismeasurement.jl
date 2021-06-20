@@ -80,6 +80,7 @@ function seismeasurement!(C::CorrData, InputDict::OrderedDict)
     elseif lowercase(measurement_method) == "compute_dvvdqq"
 
 		MeasurementDict = compute_dvvdqq(ref, cur, C.misc["timelag"], fc, C.misc["coda_window"],
+								C.freqmin,C.freqmax,
 								dvmin=-InputDict["dvv_stretching_range"],
 								dvmax=InputDict["dvv_stretching_range"],
 								ntrial_v=InputDict["dvv_stretching_Ntrial"],
