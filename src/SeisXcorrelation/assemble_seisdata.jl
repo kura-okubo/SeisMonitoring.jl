@@ -45,7 +45,7 @@ function assemble_seisdata(
     # files_all = readdir(fidir)
     # NOTE: updated for hierarchical directory tree 2020.10.04
     files_all = String[]
-    for (root, dirs, files) in walkdir(fidir)
+    for (root, dirs, files) in ScanDir.walkdir(fidir)
        for file in files
            fi = joinpath(root, file)
            (split(fi, ".")[end] == "seisio") && push!(files_all, fi)# filter if it is .seisio

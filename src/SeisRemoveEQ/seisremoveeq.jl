@@ -51,7 +51,7 @@ function seisremoveeq(InputDict_origin::OrderedDict)
 	# rawdata_path_all = SeisIO.ls(InputDict["RawData_path"])
 	# NOTE: updated for hierarchical directory tree 2020.10.04
 	rawdata_path_all = []
-	for (root, dirs, files) in walkdir(InputDict["RawData_path"])
+	for (root, dirs, files) in ScanDir.walkdir(InputDict["RawData_path"])
        for file in files
 		   fi = joinpath(root, file)
 		   (split(fi, ".")[end] == "seisio") && push!(rawdata_path_all, fi)# filter if it is .seisio

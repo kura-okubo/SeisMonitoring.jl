@@ -115,7 +115,7 @@ function init_project(
     mkpath(proj_output_abspath*"/plots/dQc")
 
     println("\nProject OUTPUT $proj_output_abspath contains:")
-    for (root, dirs, files) in walkdir(proj_output_abspath)
+    for (root, dirs, files) in ScanDir.walkdir(proj_output_abspath)
         for dir in dirs
             println(joinpath("/",dir)) # path to directories
         end

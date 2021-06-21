@@ -38,7 +38,7 @@ function smstats_dataavailability(fidir::String,foname::String,
     println("***************************************\n")
 
 	stations = String[]
-	for (root, dirs, files) in walkdir(PlotDict["fidir"])
+	for (root, dirs, files) in ScanDir.walkdir(PlotDict["fidir"])
        for file in files
 		   fi = joinpath(root, file)
 		   (split(fi, ".")[end] == "seisio") && push!(stations, fi)# filter if it is .seisio

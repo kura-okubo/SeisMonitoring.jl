@@ -56,7 +56,7 @@ function smplot_noiseavailability(fidir::String,fodir::String,
     # stations = SeisIO.ls(PlotDict["fidir"])
     # filter!(x->split(x, ".")[end] == "seisio", stations)
 	stations = String[]
-	for (root, dirs, files) in walkdir(PlotDict["fidir"])
+	for (root, dirs, files) in ScanDir.walkdir(PlotDict["fidir"])
        for file in files
 		   fi = joinpath(root, file)
 		   (split(fi, ".")[end] == "seisio") && push!(stations, fi)# filter if it is .seisio

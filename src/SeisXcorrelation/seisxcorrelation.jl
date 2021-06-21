@@ -59,7 +59,7 @@ function seisxcorrelation(InputDict_origin::OrderedDict)
     # rawdata_path_all = SeisIO.ls(InputDict["cc_absolute_RawData_path"])
     # filter!(x->split(x, ".")[end] == "seisio", rawdata_path_all)
     rawdata_path_all = String[]
-	for (root, dirs, files) in walkdir(InputDict["cc_absolute_RawData_path"])
+	for (root, dirs, files) in ScanDir.walkdir(InputDict["cc_absolute_RawData_path"])
        for file in files
 		   fi = joinpath(root, file)
 		   (split(fi, ".")[end] == "seisio") && push!(rawdata_path_all, fi)# filter if it is .seisio
