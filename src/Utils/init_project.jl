@@ -64,7 +64,7 @@ function init_project(
 
     if ispath(proj_input_abspath)
         if force
-            rm(proj_input_abspath, recursive=true)
+            # rm(proj_input_abspath, recursive=true)
         else
             @error(
                 "The project input directory already exists. Please make another project, or remove old project.",
@@ -72,11 +72,11 @@ function init_project(
             return
         end
     end
-    mkdir(proj_input_abspath)
+    mkpath(proj_input_abspath)
 
     if ispath(proj_output_abspath)
         if force
-            rm(proj_output_abspath, recursive=true)
+            # rm(proj_output_abspath, recursive=true)
         else
             @error(
                 "The project output directory already exists. Please make another project, or remove old project.",
@@ -84,7 +84,7 @@ function init_project(
             return
         end
     end
-    mkdir(proj_output_abspath)
+    mkpath(proj_output_abspath)
 
 
 
@@ -104,15 +104,15 @@ function init_project(
     #write_requeststation(proj_input_abspath, "request_stations.jld2", StationDataFrame)
 
     # make directories in OUTPUT
-    mkdir(proj_output_abspath*"/seismicdata")
-    mkdir(proj_output_abspath*"/cc")
-    mkdir(proj_output_abspath*"/stack")
-    mkdir(proj_output_abspath*"/plots")
-    mkdir(proj_output_abspath*"/plots/seismicdata")
-    mkdir(proj_output_abspath*"/plots/cc")
-    mkdir(proj_output_abspath*"/plots/stack")
-    mkdir(proj_output_abspath*"/plots/dvv")
-    mkdir(proj_output_abspath*"/plots/dQc")
+    mkpath(proj_output_abspath*"/seismicdata")
+    mkpath(proj_output_abspath*"/cc")
+    mkpath(proj_output_abspath*"/stack")
+    mkpath(proj_output_abspath*"/plots")
+    mkpath(proj_output_abspath*"/plots/seismicdata")
+    mkpath(proj_output_abspath*"/plots/cc")
+    mkpath(proj_output_abspath*"/plots/stack")
+    mkpath(proj_output_abspath*"/plots/dvv")
+    mkpath(proj_output_abspath*"/plots/dQc")
 
     println("\nProject OUTPUT $proj_output_abspath contains:")
     for (root, dirs, files) in walkdir(proj_output_abspath)
