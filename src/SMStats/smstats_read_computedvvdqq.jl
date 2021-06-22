@@ -24,7 +24,8 @@ function smstats_read_computedvvdqq(shorttimestackdir::String, fodir::String, st
                         cc_dvv=Float64[], dvv=Float64[],
                         dqq_pos=Float64[], dqq_neg=Float64[], dqq_avg = Float64[],
                         dss_pos=Float64[], dss_neg=Float64[], dss_avg = Float64[],
-                        Qcinv_pos_ref=Float64[],Qcinv_neg_ref=Float64[],Qcinv_pos_cur=Float64[],Qcinv_neg_cur=Float64[])
+                        Qcinv_pos_ref=Float64[],Qcinv_neg_ref=Float64[],Qcinv_pos_cur=Float64[],Qcinv_neg_cur=Float64[],
+                        amp_pos_ref=Float64[], amp_neg_ref=Float64[], amp_pos_cur=Float64[], amp_neg_cur=Float64[])
 
     for df = df_mapped
         !isnothing(df) && append!(df_all, df)
@@ -100,7 +101,9 @@ function map_get_monitoringdf_comnputedvvdqq(path::String, starttime::DateTime, 
                 if haskey(C.misc, "Qcinv_pos_cur")
                     df_Qcinv = DataFrame(date = C.misc["stack_centraltime"],
                         Qcinv_pos_ref= float(C.misc["Qcinv_pos_ref"]), Qcinv_neg_ref= float(C.misc["Qcinv_neg_ref"]),
-                        Qcinv_pos_cur= float(C.misc["Qcinv_pos_cur"]), Qcinv_neg_cur= float(C.misc["Qcinv_neg_cur"]),)
+                        Qcinv_pos_cur= float(C.misc["Qcinv_pos_cur"]), Qcinv_neg_cur= float(C.misc["Qcinv_neg_cur"]),
+                        amp_pos_ref=float(C.misc["amp_pos_ref"]), amp_pos_ref=float(C.misc["amp_neg_ref"]),
+                        amp_pos_ref=float(C.misc["amp_pos_cur"]), amp_pos_ref=float(C.misc["amp_neg_cur"]))
                     df = leftjoin(df, df_Qcinv, on=:date)
 
                 end
