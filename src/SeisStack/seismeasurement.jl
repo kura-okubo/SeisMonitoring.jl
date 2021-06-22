@@ -85,7 +85,7 @@ function seismeasurement!(C::CorrData, InputDict::OrderedDict)
 								dvmax=InputDict["dvv_stretching_range"],
 								ntrial_v=InputDict["dvv_stretching_Ntrial"],
 		                        geometrical_spreading_α=InputDict["geometricalspreading_α"],
-		                        coda_smooth_window=InputDict["smoothing_window_len"],
+		                        coda_smooth_window=InputDict["computedqq_smoothing_windowlength"],
 		                        figdir=figdir,
 		                        figname=C.name*"--"*string(C.misc["stack_centraltime"])*"--"*join([C.freqmin, C.freqmax], "-"),
 		                        fillbox=C.misc["fillbox"])
