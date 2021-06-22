@@ -53,7 +53,8 @@ function map_get_monitoringdf_comnputedvvdqq(path::String, starttime::DateTime, 
                         cc_dvv=Float64[], dvv=Float64[],
                         dqq_pos=Float64[], dqq_neg=Float64[], dqq_avg = Float64[],
                         dss_pos=Float64[], dss_neg=Float64[], dss_avg = Float64[],
-                        Qcinv_pos_ref=Float64[],Qcinv_neg_ref=Float64[],Qcinv_pos_cur=Float64[],Qcinv_neg_cur=Float64[])
+                        Qcinv_pos_ref=Float64[],Qcinv_neg_ref=Float64[],Qcinv_pos_cur=Float64[],Qcinv_neg_cur=Float64[],
+                        amp_pos_ref=Float64[], amp_neg_ref=Float64[], amp_pos_cur=Float64[], amp_neg_cur=Float64[])
 
     # for stachankey in keys(fi)
     stachankey = split(splitdir(path)[2][1:end-5], "_")[2]
