@@ -102,8 +102,8 @@ function map_get_monitoringdf_comnputedvvdqq(path::String, starttime::DateTime, 
                     df_Qcinv = DataFrame(date = C.misc["stack_centraltime"],
                         Qcinv_pos_ref= float(C.misc["Qcinv_pos_ref"]), Qcinv_neg_ref= float(C.misc["Qcinv_neg_ref"]),
                         Qcinv_pos_cur= float(C.misc["Qcinv_pos_cur"]), Qcinv_neg_cur= float(C.misc["Qcinv_neg_cur"]),
-                        amp_pos_ref=float(C.misc["amp_pos_ref"]), amp_pos_ref=float(C.misc["amp_neg_ref"]),
-                        amp_pos_ref=float(C.misc["amp_pos_cur"]), amp_pos_ref=float(C.misc["amp_neg_cur"]))
+                        amp_pos_ref=float(C.misc["amp_pos_ref"]), amp_neg_ref=float(C.misc["amp_neg_ref"]),
+                        amp_pos_cur=float(C.misc["amp_pos_cur"]), amp_neg_cur=float(C.misc["amp_neg_cur"]))
                     df = leftjoin(df, df_Qcinv, on=:date)
 
                 end
