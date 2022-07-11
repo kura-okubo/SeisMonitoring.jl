@@ -80,12 +80,12 @@ function map_compute_cc(FFT1_Dict::Dict{String, FFTData}, FFT2_Dict::Dict{String
         FFT2 = FFT2_Dict[FFT2_key]
 
         #DEBUG:
-        id1 = FFT1.name*"-"*FFT1.id
-        id2 = FFT2.name*"-"*FFT2.id
-
-        println("Dict keys: $(FFT1_key), $(FFT2_key)")
-        println(FFT1, FFT2)
-        println("key_station_pair: $(key_station_pair) FFTdata id:$(id1)__$(id2) should be in $(foname).")
+        # id1 = FFT1.name*"-"*FFT1.id
+        # id2 = FFT2.name*"-"*FFT2.id
+        #
+        # println("Dict keys: $(FFT1_key), $(FFT2_key)")
+        # println(FFT1, FFT2)
+        # println("key_station_pair: $(key_station_pair) FFTdata id:$(id1)__$(id2) should be in $(foname).")
 
         # Apply spectral normalization
         if InputDict["cc_normalization"] == "coherence"
