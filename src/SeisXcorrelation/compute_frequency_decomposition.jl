@@ -91,6 +91,10 @@ function compute_frequency_decomposition(
          push!(C_all, Ctemp)
       end
 
+   #---Raw correlation---#
+   elseif lowercase(cc_bpfilt_method) == "raw"
+         C_broadband.misc["freq_decomposition_method"] = cc_bpfilt_method
+         push!(C_all, C_broadband)
    #-----------------------------------------------------#
    # elseif lowercase(cc_bpfilt_method) == "chebychev2"
    #    for fb in freqband
