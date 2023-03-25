@@ -88,7 +88,7 @@ function map_compute_fft(netstachan::String, InputDict::OrderedDict)
         if d2u(starttime)+round(1.0/S1.fs, digits=4) == round(S1.t[1,2]*1e-6, digits=4)
             SeisIO.sync!(S1, s=starttime, t=endtime, v=0)
         end
-        
+
         #3. convert to RawData
         R1 = RawData(S1, InputDict["cc_len"], InputDict["cc_step"])
         #4. detrend, taper and band pass before computing fft and cross-correlation
