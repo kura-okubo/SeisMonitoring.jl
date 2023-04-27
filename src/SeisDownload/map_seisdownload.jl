@@ -139,7 +139,8 @@ function map_seisdownload_NOISE(startid, InputDict::OrderedDict; testdownload::B
 					catch
 					end
 					# dump file
-					wseis(joinpath(dir2, varname*".seisio"), Stemp[j])
+					fo_seisio_name = joinpath(dir2, varname*".seisio")
+					!ispath(fo_seisio_name) && wseis(fo_seisio_name, Stemp[j])
 				end
 			end
 

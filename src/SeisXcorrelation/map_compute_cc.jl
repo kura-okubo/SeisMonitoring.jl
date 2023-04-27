@@ -44,7 +44,12 @@ function map_compute_cc(FFT1_Dict::Dict{String, FFTData}, FFT2_Dict::Dict{String
     foname = "$(key_station_pair)__$(u2d(InputDict["starts_chunk"][1]))__$(u2d(InputDict["ends_chunk"][end])).jld2"
     # fo = nothing
     # open output file
-    fopath = joinpath(InputDict["fodir"], foname)
+
+    fo_ccdir = joinpath(InputDict["fodir"], key_station_pair)
+    !ispath(fo_ccdir) && mkpath(fo_ccdir)
+    # fopath = joinpath(InputDict["fodir"], foname)
+    fopath = joinpath(fo_ccdir, foname)
+
     #remove existing cc file
     ispath(fopath) && rm(fopath)
     # fo = jldopen(fopath, "w")
@@ -77,7 +82,10 @@ function map_compute_cc(FFT1_Dict::Dict{String, FFTData}, FFT2_Dict::Dict{String
         #DEBUG:
         # id1 = FFT1.name*"-"*FFT1.id
         # id2 = FFT2.name*"-"*FFT2.id
-        # println("$(id1)__$(id2) should be in $(foname).")
+        #
+        # println("Dict keys: $(FFT1_key), $(FFT2_key)")
+        # println(FFT1, FFT2)
+        # println("key_station_pair: $(key_station_pair) FFTdata id:$(id1)__$(id2) should be in $(foname).")
 
         # Apply spectral normalization
         if InputDict["cc_normalization"] == "coherence"

@@ -30,6 +30,11 @@ function seisdvv_mwcs(ref::AbstractArray,cur::AbstractArray,fmin::Float64,
         return MeasurementDict
     end
 
+    if ref == cur
+        # skip if reference and current traces are identical
+        return MeasurementDict
+    end
+
     t_axis_mwcs, dt_mwcs, error_mwcs, mcoh_mwcs = SeisDvv.mwcs(ref, cur, fmin,
             fmax, fs, tmin, window_length, window_step, smoothing_half_win);
 

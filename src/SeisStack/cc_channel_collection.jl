@@ -15,7 +15,8 @@ end
 
 function get_collect_station_pairdict(ccdir::String)
 
-    cc_paths = SeisIO.ls(ccdir)
+    # cc_paths = SeisIO.ls(ccdir)
+    cc_paths = SeisIO.ls(ccdir*"/*") #2022.07.11 update: search jld2 files recursively
     station_pairdict = Dict{String,Array{String,1}}()
     for cc_path in cc_paths
         split(cc_path, ".")[end] != "jld2" && continue

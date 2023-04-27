@@ -4,6 +4,7 @@ include("selectivestack.jl")
 function sm_stack!(C::CorrData, stackmode::String, InputDict::OrderedDict)
 
     stack_method = InputDict["stack_method"]
+    t_beforestack = C.t
 
     if lowercase(stack_method) == "linear"
         SeisNoise.stack!(C, allstack=true, stacktype=mean)
@@ -25,5 +26,6 @@ function sm_stack!(C::CorrData, stackmode::String, InputDict::OrderedDict)
         error("stack_method: $(stack_method) is not available.")
     end
 
+    C.misc["t_stacked"] = t_beforestack
     C.misc["stack_method"] = stack_method
 end
