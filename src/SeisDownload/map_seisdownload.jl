@@ -45,6 +45,9 @@ function map_seisdownload_NOISE(startid, InputDict::OrderedDict; testdownload::B
 
 	request_src_chanks = jldopen(requeststation_file, "r")
 
+    #Update:  change Protocol associated with NCEDC
+    SeisIO.seis_www["NCEDC"] = "https://service.ncedc.org"
+
     for src in keys(request_src_chanks)
         #---download data---#
 		if src=="IRISDMC"
