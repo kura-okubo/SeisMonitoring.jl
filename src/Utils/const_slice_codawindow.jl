@@ -154,7 +154,7 @@ function const_slice_codawindow(
 
 	# debug plot is available only with corr data.
 	if debugplot
-		p1 = corrplot(C)
+		p1 = Plots.plot(C)
 		# plot vlines on coda window
 		!isempty(coda_window) && (p1 = vline!(timelag[coda_window], width=1.0, color=:orange, legend=false, alpha=0.3))
 		xlims!(xlims)

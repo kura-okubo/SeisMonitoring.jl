@@ -57,7 +57,7 @@ function seisstack(InputDict_origin::OrderedDict)
     InputDict["stack_absolute_RawData_dir"] = cc_collectdir
 
     # get all cc files
-    cc_paths = SeisIO.ls(InputDict["stack_absolute_RawData_dir"])
+    cc_paths = SeisIO.ls(InputDict["stack_absolute_RawData_dir"]*"/*.jld2")
 
     t_reference = 0.0; t_shorttime = 0.0;
     mean_assemble_cc_reference = 0.0; mean_assemble_cc_shorttime=0;mean_stack_reference=0; mean_stack_shorttime=0;
