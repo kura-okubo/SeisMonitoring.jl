@@ -37,6 +37,7 @@ include("SeisXcorrelation/seisxcorrelation.jl")
 include("SeisStack/seisstack.jl")
 include("SeisStack/sm_stack.jl") # used both map_seisstack and assemble_corrdata for prestacking
 # NOTE: do not include GUI if julia is in parallel.
+# NOTE: 2023.08.20 Gtk.jl cannot be added with the latest Julia of v1.9.2. Thus we temporally remove thegui functions.
 # include("SMGUI/makeinput_gui.jl")
 include("Utils/init_project.jl")
 include("Utils/run_job.jl")
