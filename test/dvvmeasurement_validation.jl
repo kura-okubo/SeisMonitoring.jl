@@ -1,4 +1,4 @@
-using SeisIO, SeisNoise, JLD2, Dates, Plots, Interpolations
+using SeisIO, SeisNoise, JLD2, Interpolations
 using SeisMonitoring: seisdvv_mwcs, seisdvv_stretching
 
 @testset "dv/v measurement validation" begin
