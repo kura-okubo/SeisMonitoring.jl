@@ -21,7 +21,7 @@ Pkg.add(url="https://github.com/kura-okubo/SeisMonitoring.jl");
     Type `] rm SeisMonitoring` in the Julia REPL to remove the SeisMonitoring.
 
 ## Tutorial
-We created the notebook of the tutorial in the different github repository, [**SeisMonitoring_Example**](https://github.com/kura-okubo/SeisMonitoring_Example). You can find how to download the data, remove the transient signals, compute cross-correlations, stack the correlation functions and measure the dv/v.
+We created the notebook of the tutorial in a different github repository, [**SeisMonitoring_Example**](https://github.com/kura-okubo/SeisMonitoring_Example). You can find how to download the data, remove the transient signals, compute cross-correlations, stack the correlation functions and measure the dv/v.
 
 
 You can access to the from the badge below:
@@ -41,6 +41,6 @@ or read the QR code:
 <img src="./assets/QRcode_seismonitoring_example.png" alt="QR" width="150"/>
 ```
 
-See also the repoitory of [**SeisMonitoring_Paper**](https://github.com/kura-okubo/SeisMonitoring_Paper) for the post-processing using the dv/v over 20 years at Parkfield.
+See also the repository of [**SeisMonitoring_Paper**](https://github.com/kura-okubo/SeisMonitoring_Paper) for the post-processing using the dv/v over 20 years at Parkfield.
 
 ## Reference
