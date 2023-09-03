@@ -1,9 +1,13 @@
-using SeisMonitoring
 using Test
+using SeisMonitoring
 
-@testset "SeisMonitoring.jl" begin
-    # Write your own tests here.
 
-    @test  typeof("Test script will be implemented.") == String
+# @testset "SeisMonitoring.jl" begin
+#     # Write your own tests here.
+#
+#     @test  typeof("Test script will be implemented.") == String
+#
+# end
 
-end
+include("dvvmeasurement_validation.jl")
+# include("run_seismonitoring_process.jl")
