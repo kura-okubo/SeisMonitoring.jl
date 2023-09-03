@@ -12,9 +12,9 @@ jobs:
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
-        julia-version: ['1.0', '1', 'nightly']
+        julia-version: ['1', 'nightly']
         julia-arch: [x64, x86]
-        os: [ubuntu-latest, windows-latest, macOS-latest]
+        os: [ubuntu-latest, macOS-latest]
         exclude:
           - os: macOS-latest
             julia-arch: x86
@@ -26,8 +26,7 @@ jobs:
           version: ${{ matrix.julia-version }}
           arch: ${{ matrix.julia-arch }}
       - name: Install dependencies
-        run: julia --project=docs/ -e 'using Pkg;Pkg.update(); Pkg.add(PackageSpec(name="SeisIO", version="1.2.1")); Pkg.add(PackageSpec(name="SeisNoise", version="0.5.3")); Pkg.add(url="https://github.com/kura-okubo/SeisDvv.jl"); Pkg.add(url="https://github.com/kura-okubo/SeisMonitoring.jl"); Pkg.instantiate();'
-      - uses: julia-actions/julia-buildpkg@v1
+        run: julia --project=docs/ -e 'using Pkg;Pkg.update(); Pkg.add(PackageSpec(name="SeisIO", version="1.2.1")); Pkg.add(PackageSpec(name="SeisNoise", version="0.5.3")); Pkg.add(url="https://github.com/kura-okubo/SeisDvv.jl"); Pkg.add(url="https://github.com/kura-okubo/SeisMonitoring.jl"); Pkg.add(["Plots", "JLD2", "DataStructures", "Dates", "CSV", "DataFrames", "Interpolations"]); Pkg.instantiate();'
       - uses: julia-actions/julia-runtest@v1
         # with:
         #   annotate: true
