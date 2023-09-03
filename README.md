@@ -2,8 +2,13 @@
 
 A Julia package of the tools for ambient noise seismology.
 
+Documentation is available from the badge below:
+
 [![](https://img.shields.io/badge/docs-stable-blue.svg)](https://kura-okubo.github.io/SeisMonitoring.jl/dev)
 
+Other badges:
+
+[![Documentation](https://github.com/kura-okubo/SeisMonitoring.jl/actions/workflows/documentation.yml/badge.svg)](https://github.com/kura-okubo/SeisMonitoring.jl/actions/workflows/documentation.yml)
 ## Installation
 
 Type the commands below in the Julia REPL:
