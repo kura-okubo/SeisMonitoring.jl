@@ -9,6 +9,8 @@ Documentation is available from the badge below:
 Other badges:
 
 [![Documentation](https://github.com/kura-okubo/SeisMonitoring.jl/actions/workflows/documentation.yml/badge.svg)](https://github.com/kura-okubo/SeisMonitoring.jl/actions/workflows/documentation.yml)
+[![Run tests](https://github.com/kura-okubo/SeisMonitoring.jl/actions/workflows/test.yml/badge.svg)](https://github.com/kura-okubo/SeisMonitoring.jl/actions/workflows/test.yml)
+
 ## Installation
 
 Type the commands below in the Julia REPL:
