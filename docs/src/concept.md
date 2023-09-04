@@ -40,7 +40,7 @@ The most computationally expensive process is **to compute the cross-correlation
 !!! note "Example of cross-correlation in parallel"
     Let us do the correlations across the stations `STA1`, `STA2`, `STA3` after applying the FFT on the waveforms. Then,
     the tasks are `STA1-STA2`, `STA1-STA3`, `STA2-STA3`.
-    - If you read the seismic data or FFT files from the disk in each task, you need to read the `STA1` twice from the disk. This is redundant, which could cause the damage in the disk.
+    - If you read the seismic data or FFT files from the disk in each task, you need to read all the `STA1`, `STA2` and `STA3` twice from the disk. This is redundant, which could cause the damage in the disk.
     - The frequency of file I/O is very important to secure the scratch system and disks. See the documentation by TACC [https://docs.tacc.utexas.edu/tutorials/managingio/] (https://docs.tacc.utexas.edu/tutorials/managingio/) to optimize it.
     - So, you want to store all the FFTs in the memory and distribute them to the tasks. However, if you send the FFT from master core hosting the tasks to the workers in the different node, it takes time to transfer the data. You can run this metric, but it is inefficient comparing to conduct the tasks within a node.
     - Therefore, we first parallelized the time window e.g. every 2 years, and submitted the jobs separately, and each job executes the cross-correlations of all possible station pairs parallelized with the number of cores in the node. This metric is optimized in the file I/O such that the file of seismic data is accessed only once, and is distributed via the memory within the node.
