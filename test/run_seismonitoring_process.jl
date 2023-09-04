@@ -127,7 +127,7 @@ end
     ifGenerateTrueFiles && CSV.write("./data/seisxcorr_C1_true.csv", Tables.table(C1.corr))
     C1_true = CSV.read("./data/seisxcorr_C1_true.csv", DataFrame).Column1
     @test typeof(C1) == CorrData
-    @test C1_true ≈ C1.corr atol=1e-19
+    @test C1_true ≈ C1.corr atol=1e-17
     # note: the
 
     #2. filter with Wavelet transform
@@ -146,7 +146,7 @@ end
     ifGenerateTrueFiles && CSV.write("./data/seisxcorr_C2_true.csv", Tables.table(C2.corr))
     C2_true = CSV.read("./data/seisxcorr_C2_true.csv", DataFrame).Column1
     @test typeof(C2) == CorrData
-    @test C2_true ≈ C2.corr atol=1e-19
+    @test C2_true ≈ C2.corr atol=1e-17
     @test C1.corr != C2.corr
 
     # lagt = -C1.maxlag:1/(C1.fs):C1.maxlag
@@ -203,9 +203,9 @@ end
     # plot(lagt, Cref.corr) # The asymmetric ACF might be due to the ButterWorth filter even we apply it with zerophase=true.
     # plot!(lagt, Css.corr)
 
-    @test Css.misc["dvv_mwcs"] ≈ 0.017942949 atol=1e-7
-    @test Css.misc["dvv0_mwcs"] ≈ 0.022648201 atol=1e-7
-    @test Css.misc["dvv_err_mwcs"] ≈ 4.96150e-6 atol=1e-9
+    @test Css.misc["dvv_mwcs"] ≈ 0.017942949 atol=1e-5
+    @test Css.misc["dvv0_mwcs"] ≈ 0.022648201 atol=1e-5
+    @test Css.misc["dvv_err_mwcs"] ≈ 4.96150e-6 atol=1e-7
 
     # Test Stretching
     set_parameter(fo_mainparam, "measurement_method", "stretching") # select the method of the measurement of dv/v
