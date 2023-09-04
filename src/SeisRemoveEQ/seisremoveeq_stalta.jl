@@ -2,7 +2,7 @@
     detect_eq_stalta(data::SeisChannel, InputDict::OrderedDict)
 
 find earthquake and tremors using STA/LTA
-original code written by Seth Olinger. For our purpose, overlap is applied to short time window
+original code written by S. Olinger. For our purpose, overlap is applied to short time window
 """
 function detect_eq_stalta!(data::SeisChannel, InputDict::OrderedDict, datagap_eps::Float64=1e-8)
 
@@ -22,6 +22,10 @@ function detect_eq_stalta!(data::SeisChannel, InputDict::OrderedDict, datagap_ep
     shortWin     = trunc(Int,shortWinLength * data.fs)
     overlapWin   = trunc(Int,stalta_overlap * data.fs)
     trace        = @view data.x[:]
+
+    if shortWin == overlapWin
+        error("shortWinLength should be longer than stalta_overlap.")
+    end
 
     #buffer for sta/lta value
     staltatrace = zeros(length(trace))
