@@ -5,3 +5,5 @@
 /Manifest.toml
 /dev/
 /docs/build/
+/test/data/run_seismonitoring_test_INPUT
+/test/data/run_seismonitoring_test_OUTPUT
