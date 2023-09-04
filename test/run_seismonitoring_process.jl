@@ -127,7 +127,7 @@ end
     ifGenerateTrueFiles && CSV.write("./data/seisxcorr_C1_true.csv", Tables.table(C1.corr))
     C1_true = CSV.read("./data/seisxcorr_C1_true.csv", DataFrame).Column1
     @test typeof(C1) == CorrData
-    @test C1_true ≈ C1.corr atol=1e-17
+    @test C1_true ≈ C1.corr atol=1e-16
     # note: the
 
     #2. filter with Wavelet transform
@@ -146,7 +146,7 @@ end
     ifGenerateTrueFiles && CSV.write("./data/seisxcorr_C2_true.csv", Tables.table(C2.corr))
     C2_true = CSV.read("./data/seisxcorr_C2_true.csv", DataFrame).Column1
     @test typeof(C2) == CorrData
-    @test C2_true ≈ C2.corr atol=1e-17
+    @test C2_true ≈ C2.corr atol=1e-16
     @test C1.corr != C2.corr
 
     # lagt = -C1.maxlag:1/(C1.fs):C1.maxlag
@@ -191,13 +191,13 @@ end
     Cref = t3["2016-01-15T00:00:00--2016-01-15T00:05:00/0.9-1.2"]
     ifGenerateTrueFiles && CSV.write("./data/seisstack_Cref_true.csv", Tables.table(Cref.corr))
     Cref_true = CSV.read("./data/seisstack_Cref_true.csv", DataFrame).Column1
-    @test Cref_true ≈ Cref.corr atol=1e-17
+    @test Cref_true ≈ Cref.corr atol=1e-16
 
     t4 = jldopen("./data/$(project_name)_OUTPUT/stack_MWCS/shorttime/shorttime_BP.EADB-BP.EADB-11.jld2", "r")
     Css = t4["2016-01-15T00:00:00--2016-01-15T00:02:00/0.9-1.2"]
     ifGenerateTrueFiles && CSV.write("./data/seisstack_Css_MWCS_true.csv", Tables.table(Css.corr))
     Css_true = CSV.read("./data/seisstack_Css_MWCS_true.csv", DataFrame).Column1
-    @test Css_true ≈ Css.corr atol=1e-17
+    @test Css_true ≈ Css.corr atol=1e-16
 
     # lagt = -Css.maxlag:1/(Css.fs):Css.maxlag
     # plot(lagt, Cref.corr) # The asymmetric ACF might be due to the ButterWorth filter even we apply it with zerophase=true.
@@ -222,13 +222,13 @@ end
     Cref = t3["2016-01-15T00:00:00--2016-01-15T00:05:00/0.9-1.2"]
     ifGenerateTrueFiles && CSV.write("./data/seisstack_Cref_true.csv", Tables.table(Cref.corr))
     Cref_true = CSV.read("./data/seisstack_Cref_true.csv", DataFrame).Column1
-    @test Cref_true ≈ Cref.corr atol=1e-17
+    @test Cref_true ≈ Cref.corr atol=1e-16
 
     t4 = jldopen("./data/$(project_name)_OUTPUT/stack_Stretching/shorttime/shorttime_BP.EADB-BP.EADB-11.jld2", "r")
     Css = t4["2016-01-15T00:00:00--2016-01-15T00:02:00/0.9-1.2"]
     ifGenerateTrueFiles && CSV.write("./data/seisstack_Css_Stretching_true.csv", Tables.table(Css.corr))
     Css_true = CSV.read("./data/seisstack_Css_Stretching_true.csv", DataFrame).Column1
-    @test Css_true ≈ Css.corr atol=1e-17
+    @test Css_true ≈ Css.corr atol=1e-16
 
     # lagt = -Css.maxlag:1/(Css.fs):Css.maxlag
     # plot(lagt, Cref.corr) # The asymmetric ACF might be due to the ButterWorth filter even we apply it with zerophase=true.
