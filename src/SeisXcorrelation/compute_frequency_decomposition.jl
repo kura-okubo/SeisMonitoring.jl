@@ -42,7 +42,7 @@ function compute_frequency_decomposition(
       for fb in freqband
          freqmin, freqmax = fb
          # apply bandpass filter
-         Ctemp = bandpass(C_broadband, freqmin, freqmax, corners = 4)
+         Ctemp = bandpass(C_broadband, freqmin, freqmax, corners = 2) # Avoid to NaN with Float32
          # apply frequenc_dependent tapering
          taper_for_freqdecomposition!(Ctemp, freqency_band, α0, αmax)
          Ctemp.misc["freq_decomposition_method"] = cc_bpfilt_method
