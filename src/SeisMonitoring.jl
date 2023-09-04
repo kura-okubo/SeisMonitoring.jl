@@ -25,7 +25,6 @@ export
 
     #stats command
     smstats_dataavailability,
-    smstats_read,
     smstats_read_computedvvdqq,
     smstats_read_mwcs,
     smstats_read_stretching
