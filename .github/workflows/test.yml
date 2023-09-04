@@ -16,7 +16,8 @@ jobs:
         julia-version: ['1', 'nightly']
         julia-arch: [x64]
         os: [ubuntu-latest, macOS-latest]
-        
+
+    timeout-minutes: 20
     steps:
       - uses: actions/checkout@v2
       - uses: julia-actions/setup-julia@v1
