@@ -11,13 +11,11 @@ jobs:
   test:
     runs-on: ${{ matrix.os }}
     strategy:
+      # We test the latest Julia v1.x, nightly in 64bit PC on ubuntu-latest and macOS-latest
       matrix:
         julia-version: ['1', 'nightly']
-        julia-arch: [x64, x86]
+        julia-arch: [x64]
         os: [ubuntu-latest, macOS-latest]
-        exclude:
-          - os: macOS-latest
-            julia-arch: x86
 
     steps:
       - uses: actions/checkout@v2
