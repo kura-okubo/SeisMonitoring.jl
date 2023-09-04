@@ -23,7 +23,7 @@ jobs:
         with:
           version: ${{ matrix.julia-version }}
           arch: ${{ matrix.julia-arch }}
-      - run: julia --color=yes --project="@." -e 'import Pkg; Pkg.Registry.add("General");'
+      - run: julia --color=yes --project="@." -e 'import Pkg; Pkg.Registry.add("General"); Pkg.add(PackageSpec(name="SeisIO", version="1.2.1")); Pkg.add(PackageSpec(name="SeisNoise", version="0.5.3")); Pkg.develop(url="https://github.com/kura-okubo/SeisDvv.jl"); Pkg.develop(url="https://github.com/kura-okubo/SeisMonitoring.jl"); Pkg.add(["Plots", "JLD2", "DataStructures", "Dates", "CSV", "DataFrames", "Interpolations"]); Pkg.instantiate(); Pkg.resolve(); Pkg.build()'
       - uses: julia-actions/julia-runtest@v1
         # with:
         #   annotate: true
