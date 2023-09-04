@@ -9,6 +9,7 @@ makedocs(
 	"Index" => "index.md",
     "Development concept" => "concept.md",
 	"Processing parameters" => "process_parameters.md",
+    "Test using Github Actions" => "test_actions.md",
 	"Functions" => "functions.md"
     ])
 
