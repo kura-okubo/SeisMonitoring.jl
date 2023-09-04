@@ -25,7 +25,13 @@ jobs:
           arch: ${{ matrix.julia-arch }}
       - name: Install dependencies
         run: julia --project=docs/ -e 'using Pkg; Pkg.update(); Pkg.add(PackageSpec(name="SeisIO", version="1.2.1")); Pkg.add(PackageSpec(name="SeisNoise", version="0.5.3")); Pkg.develop(url="https://github.com/kura-okubo/SeisDvv.jl"); Pkg.develop(url="https://github.com/kura-okubo/SeisMonitoring.jl"); Pkg.add(["Plots", "JLD2", "DataStructures", "Dates", "CSV", "DataFrames", "Interpolations"]); Pkg.instantiate();'
-      - uses: julia-actions/julia-buildpkg@v1
+      - run: |
+          import Pkg
+          VERSION >= v"1.5-" && Pkg.Registry.add("General")
+          VERSION >= v"1.1.0-rc1" ? Pkg.build(verbose=true) : Pkg.build()
+        shell: julia --color=yes --project=${{ inputs.project }} {0}
+        env:
+          JULIA_PKG_PRECOMPILE_AUTO: "${{ inputs.precompile }}"
       - uses: julia-actions/julia-runtest@v1
         # with:
         #   annotate: true
