@@ -10,8 +10,8 @@ Type the commands below in the Julia REPL:
 using Pkg; Pkg.update();
 Pkg.add(PackageSpec(name="SeisIO", version="1.2.1"));
 Pkg.add(PackageSpec(name="SeisNoise", version="0.5.3"));
-Pkg.add(url="https://github.com/kura-okubo/SeisDvv.jl");
-Pkg.add(url="https://github.com/kura-okubo/SeisMonitoring.jl");
+Pkg.develop(url="https://github.com/kura-okubo/SeisDvv.jl");
+Pkg.develop(url="https://github.com/kura-okubo/SeisMonitoring.jl");
 ```
 
 !!! note
