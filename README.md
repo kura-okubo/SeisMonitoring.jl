@@ -10,6 +10,7 @@ Other badges:
 
 [![Documentation](https://github.com/kura-okubo/SeisMonitoring.jl/actions/workflows/documentation.yml/badge.svg)](https://github.com/kura-okubo/SeisMonitoring.jl/actions/workflows/documentation.yml)
 [![Run tests](https://github.com/kura-okubo/SeisMonitoring.jl/actions/workflows/test.yml/badge.svg)](https://github.com/kura-okubo/SeisMonitoring.jl/actions/workflows/test.yml)
+[![codecov](https://codecov.io/gh/kura-okubo/SeisMonitoring.jl/graph/badge.svg?token=iNq1WJH5bK)](https://codecov.io/gh/kura-okubo/SeisMonitoring.jl)
 
 ## Installation
 
