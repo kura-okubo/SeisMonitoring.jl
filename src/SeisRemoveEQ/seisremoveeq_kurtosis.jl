@@ -179,6 +179,10 @@ function detect_eq_kurtosis!(data::SeisChannel, InputDict::OrderedDict)
     twsize = trunc(Int, kurtosis_removewindow * data.fs)
     overlapsize = trunc(Int, kurtosis_overlap * data.fs)
 
+    if twsize == overlapsize
+        error("shortWinLength should be longer than stalta_overlap.")
+    end
+
     #calculate how much to move beginning of window each iteration
     slide = twsize-overlapsize
 
