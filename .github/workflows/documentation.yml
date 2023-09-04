@@ -6,6 +6,7 @@ on:
       - master # update to match your development branch (master, main, dev, trunk, ...)
       - develop
       - dev_parallel_modified
+      - dev_beforeupdate@0.2.0
     tags: '*'
   pull_request:
 
