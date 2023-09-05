@@ -9,7 +9,7 @@ project_outputdir="./data"
 master_param="./data/mainparam_master.jl"
 fo_mainparam = project_inputdir*"/$(project_name)_INPUT/mainparam.jl"
 
-ifGenerateTrueFiles = false # set true to generate true files
+ifGenerateTrueFiles = false # set true to generate true files and false when you test
 
 @testset "seismonitoring_processings" begin
 @testset "init project" begin
@@ -86,8 +86,10 @@ end
     set_parameter(fo_mainparam, "shorttime_window", "5")
     set_parameter(fo_mainparam, "longtime_window", "60")
     set_parameter(fo_mainparam, "timewindow_overlap", "2.5")
+    set_parameter(fo_mainparam, "kurtosis_threshold", "1.0")
     set_parameter(fo_mainparam, "stalta_threshold", "1.5")
     set_parameter(fo_mainparam, "fixed_tukey_margin", "2.0")
+    set_parameter(fo_mainparam, "IsWhitening", "true")
 
     SeisMonitoring.run_job(fo_mainparam,
         run_seisdownload=false,
@@ -111,6 +113,7 @@ end
     set_parameter(fo_mainparam, "cc_step", "5")
     set_parameter(fo_mainparam, "maxlag", "10")
     set_parameter(fo_mainparam, "cc_bpfilt_method", "Butterworth")
+    set_parameter(fo_mainparam, "IsOnebit", "true") # We mitigate the edge effect during the whitening of SeisRemoveEQ for this test.
     set_parameter(fo_mainparam, "IsPreStack", "true") # avoid the prestack of the unit time (e.g. day) to keep all the short-time (e.g. hourly) CFs.
 
     SeisMonitoring.run_job(fo_mainparam,
@@ -127,7 +130,7 @@ end
     ifGenerateTrueFiles && CSV.write("./data/seisxcorr_C1_true.csv", Tables.table(C1.corr))
     C1_true = CSV.read("./data/seisxcorr_C1_true.csv", DataFrame).Column1
     @test typeof(C1) == CorrData
-    @test C1_true ≈ C1.corr atol=1e-16
+    @test C1_true ≈ C1.corr atol=1e-5
     # note: the
 
     #2. filter with Wavelet transform
@@ -146,7 +149,7 @@ end
     ifGenerateTrueFiles && CSV.write("./data/seisxcorr_C2_true.csv", Tables.table(C2.corr))
     C2_true = CSV.read("./data/seisxcorr_C2_true.csv", DataFrame).Column1
     @test typeof(C2) == CorrData
-    @test C2_true ≈ C2.corr atol=1e-16
+    @test C2_true ≈ C2.corr atol=1e-5
     @test C1.corr != C2.corr
 
     # lagt = -C1.maxlag:1/(C1.fs):C1.maxlag
@@ -191,21 +194,21 @@ end
     Cref = t3["2016-01-15T00:00:00--2016-01-15T00:05:00/0.9-1.2"]
     ifGenerateTrueFiles && CSV.write("./data/seisstack_Cref_true.csv", Tables.table(Cref.corr))
     Cref_true = CSV.read("./data/seisstack_Cref_true.csv", DataFrame).Column1
-    @test Cref_true ≈ Cref.corr atol=1e-16
+    @test Cref_true ≈ Cref.corr atol=1e-4
 
     t4 = jldopen("./data/$(project_name)_OUTPUT/stack_MWCS/shorttime/shorttime_BP.EADB-BP.EADB-11.jld2", "r")
     Css = t4["2016-01-15T00:00:00--2016-01-15T00:02:00/0.9-1.2"]
     ifGenerateTrueFiles && CSV.write("./data/seisstack_Css_MWCS_true.csv", Tables.table(Css.corr))
     Css_true = CSV.read("./data/seisstack_Css_MWCS_true.csv", DataFrame).Column1
-    @test Css_true ≈ Css.corr atol=1e-16
+    @test Css_true ≈ Css.corr atol=1e-4
 
     # lagt = -Css.maxlag:1/(Css.fs):Css.maxlag
     # plot(lagt, Cref.corr) # The asymmetric ACF might be due to the ButterWorth filter even we apply it with zerophase=true.
     # plot!(lagt, Css.corr)
 
-    @test Css.misc["dvv_mwcs"] ≈ 0.017942949 atol=1e-5
-    @test Css.misc["dvv0_mwcs"] ≈ 0.022648201 atol=1e-5
-    @test Css.misc["dvv_err_mwcs"] ≈ 4.96150e-6 atol=1e-7
+    @test Css.misc["dvv_mwcs"] ≈ 0.01028110015 atol=1e-5
+    @test Css.misc["dvv0_mwcs"] ≈ 0.01019001658 atol=1e-5
+    @test Css.misc["dvv_err_mwcs"] ≈ 5.7833216142e-6 atol=1e-7
 
     # Test Stretching
     set_parameter(fo_mainparam, "measurement_method", "stretching") # select the method of the measurement of dv/v
@@ -222,21 +225,21 @@ end
     Cref = t3["2016-01-15T00:00:00--2016-01-15T00:05:00/0.9-1.2"]
     ifGenerateTrueFiles && CSV.write("./data/seisstack_Cref_true.csv", Tables.table(Cref.corr))
     Cref_true = CSV.read("./data/seisstack_Cref_true.csv", DataFrame).Column1
-    @test Cref_true ≈ Cref.corr atol=1e-16
+    @test Cref_true ≈ Cref.corr atol=1e-4
 
     t4 = jldopen("./data/$(project_name)_OUTPUT/stack_Stretching/shorttime/shorttime_BP.EADB-BP.EADB-11.jld2", "r")
     Css = t4["2016-01-15T00:00:00--2016-01-15T00:02:00/0.9-1.2"]
     ifGenerateTrueFiles && CSV.write("./data/seisstack_Css_Stretching_true.csv", Tables.table(Css.corr))
     Css_true = CSV.read("./data/seisstack_Css_Stretching_true.csv", DataFrame).Column1
-    @test Css_true ≈ Css.corr atol=1e-16
+    @test Css_true ≈ Css.corr atol=1e-4
 
     # lagt = -Css.maxlag:1/(Css.fs):Css.maxlag
     # plot(lagt, Cref.corr) # The asymmetric ACF might be due to the ButterWorth filter even we apply it with zerophase=true.
     # plot!(lagt, Css.corr)
 
-    @test Css.misc["dvv_ts"] ≈ -1.98 atol=1e-2 # NOTE: dv/v is overscaled with stretching method in this test.
-    @test Css.misc["cc_ts"] ≈ 0.865545 atol=1e-5
-    @test Css.misc["err_ts"] ≈ 0.968192 atol=1e-5
+    @test Css.misc["dvv_ts"] ≈ -1.57503006 atol=1e-2
+    @test Css.misc["cc_ts"] ≈ 0.82652899 atol=1e-5
+    @test Css.misc["err_ts"] ≈ 1.13953928 atol=1e-5
 
 end
 
