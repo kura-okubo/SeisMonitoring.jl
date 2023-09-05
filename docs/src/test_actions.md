@@ -27,7 +27,7 @@ Here is the script of github actions located in [`.github/workflows/test.yml`](h
 ```yml
 name: Run tests
 
-on:
+on: 
   push:
     branches:
       - master
@@ -44,7 +44,7 @@ jobs:
         julia-arch: [x64]
         os: [ubuntu-latest, macOS-latest]
 
-    timeout-minutes: 20
+    timeout-minutes: 30
     steps:
       - uses: actions/checkout@v2
       - uses: julia-actions/setup-julia@v1
@@ -53,6 +53,11 @@ jobs:
           arch: ${{ matrix.julia-arch }}
       - run: julia --color=yes --project="@." -e 'using Pkg; ENV["JULIA_PKG_PRECOMPILE_AUTO"]=0; Pkg.Registry.add("General"); Pkg.develop(url="https://github.com/kura-okubo/SeisDvv.jl"); Pkg.instantiate(); Pkg.resolve(); Pkg.build()'
       - uses: julia-actions/julia-runtest@v1
+      - uses: julia-actions/julia-processcoverage@v1
+        with:
+          directories: src/SeisDownload,src/SeisRemoveEQ,src/SeisXcorrelation,src/SeisStack,src/SMStats
+          
+      - uses: codecov/codecov-action@v3
         # with:
         #   annotate: true
 ```
@@ -63,7 +68,7 @@ jobs:
 
     - `ENV["JULIA_PKG_PRECOMPILE_AUTO"]=0` saved the computational time of the test.
 
-    - The usage of Github Actions runtime is limited like 2000-3000 minutes per month. Use `timeout-minutes: 20` to avoid the unexpected long time of executing the test.
+    - The usage of Github Actions runtime is limited like 2000-3000 minutes per month. Use `timeout-minutes: 30` to avoid the unexpected long time of executing the test.
 
 You can check the status of this test by the badge as below:
 
