@@ -34,7 +34,7 @@ function smstats_read_computedvvdqq(shorttimestackdir::String, fodir::String, st
     csvname = joinpath(fodir, foname)
     CSV.write(csvname, df_all)
 
-    @info("$(splitdir(csvname)[2]) is successfully saved. For plotting, please use smplot_dvv(\"$(csvname)\", kwargs...) or smplot_dQc($(csvname), kwargs...)")
+    @info("$(splitdir(csvname)[2]) is successfully saved.")
 
     return nothing
 end

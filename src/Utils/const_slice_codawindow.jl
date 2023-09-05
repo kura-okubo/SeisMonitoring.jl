@@ -156,7 +156,7 @@ function const_slice_codawindow(
 	if debugplot
 		p1 = Plots.plot(C)
 		# plot vlines on coda window
-		!isempty(coda_window) && (p1 = vline!(timelag[coda_window], width=1.0, color=:orange, legend=false, alpha=0.3))
+		!isempty(coda_window) && (p1 = vline!(timelag[coda_window], width=2.0, color=:orange, legend=false, alpha=0.3)) # highlight the coda window by color
 		xlims!(xlims)
 		# xlabel!("Time lag[s]")  # comment out as it causes plotting issue with corrplot()
 		# ylabel!("coherence") # comment out as it causes plotting issue with corrplot()
