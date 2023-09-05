@@ -2,3 +2,4 @@ ignore:
   - "src/SMGUI"  # ignore folders and all its contents
   - "src/SMPlot"
   - "src/Utils"
+  - "src/SeisStack/SeisMeasurement/dualstretching.jl"
