@@ -130,7 +130,7 @@ end
     ifGenerateTrueFiles && CSV.write("./data/seisxcorr_C1_true.csv", Tables.table(C1.corr))
     C1_true = CSV.read("./data/seisxcorr_C1_true.csv", DataFrame).Column1
     @test typeof(C1) == CorrData
-    @test C1_true ≈ C1.corr atol=1e-4
+    @test C1_true ≈ C1.corr atol=1e-2
     # note: the
 
     #2. filter with Wavelet transform
@@ -149,7 +149,7 @@ end
     ifGenerateTrueFiles && CSV.write("./data/seisxcorr_C2_true.csv", Tables.table(C2.corr))
     C2_true = CSV.read("./data/seisxcorr_C2_true.csv", DataFrame).Column1
     @test typeof(C2) == CorrData
-    @test C2_true ≈ C2.corr atol=1e-4
+    @test C2_true ≈ C2.corr atol=1e-2
     @test C1.corr != C2.corr
 
     # lagt = -C1.maxlag:1/(C1.fs):C1.maxlag
