@@ -30,6 +30,65 @@ ifGenerateTrueFiles = false # set true to generate true files and false when you
     @test df_avail == df_avail_true
 end
 
+@testset "seisremoveeq append traces" begin
+
+    set_parameter(fo_mainparam, "Append_alltraces", "true")
+
+    SeisMonitoring.run_job(fo_mainparam,
+        run_seisdownload=false,
+        run_seisremoveeq=true,
+        run_seisxcorrelation=false,
+        run_seisstack=false)
+
+    tremall = jldopen("./data/run_seismonitoring_test_OUTPUT/seismicdata/seisremoveeq/BP.EADB.40.SP1__2016-01-15T00:00:00__2016-01-15T00:01:00__sp1.seisio.jld2", "r")
+    S = tremall["S"]
+    @test S.misc["data_fraction"] ≈ 0.874271 atol=1e-3
+    close(tremall)
+
+end
+
+@testset "CC spectral normalization" begin
+
+    # Coherence method
+    set_parameter(fo_mainparam, "cc_normalization", "coherence")
+
+    SeisMonitoring.run_job(fo_mainparam,
+            run_seisdownload=false,
+            run_seisremoveeq=false,
+            run_seisxcorrelation=true,
+            run_seisstack=false)
+
+    mv("./data/$(project_name)_OUTPUT/cc/BP.EADB.40.SP1-BP.EADB.40.SP1", "./data/$(project_name)_OUTPUT/cc/Coh_BP.EADB.40.SP1-BP.EADB.40.SP1", force=true)
+
+    t1 = jldopen("./data/$(project_name)_OUTPUT/cc/Coh_BP.EADB.40.SP1-BP.EADB.40.SP1/BP.EADB.40.SP1-BP.EADB.40.SP1__2016-01-15T00:00:00__2016-01-15T00:03:00.jld2", "r")
+    C1 = t1["2016-01-15T00:00:00--2016-01-15T00:01:00/0.9-1.2"]
+    close(t1)
+    ifGenerateTrueFiles && CSV.write("./data/seisxcorr_Coh_true.csv", Tables.table(C1.corr))
+    C1_true = CSV.read("./data/seisxcorr_Coh_true.csv", DataFrame).Column1
+    @test typeof(C1) == CorrData
+    @test C1_true ≈ C1.corr atol=1e-2
+
+    # Deconvolution method
+    set_parameter(fo_mainparam, "cc_normalization", "deconvolution")
+
+    SeisMonitoring.run_job(fo_mainparam,
+            run_seisdownload=false,
+            run_seisremoveeq=false,
+            run_seisxcorrelation=true,
+            run_seisstack=false)
+
+    mv("./data/$(project_name)_OUTPUT/cc/BP.EADB.40.SP1-BP.EADB.40.SP1", "./data/$(project_name)_OUTPUT/cc/Cdec_BP.EADB.40.SP1-BP.EADB.40.SP1", force=true)
+
+    t1 = jldopen("./data/$(project_name)_OUTPUT/cc/Cdec_BP.EADB.40.SP1-BP.EADB.40.SP1/BP.EADB.40.SP1-BP.EADB.40.SP1__2016-01-15T00:00:00__2016-01-15T00:03:00.jld2", "r")
+    C1 = t1["2016-01-15T00:00:00--2016-01-15T00:01:00/0.9-1.2"]
+    close(t1)
+    ifGenerateTrueFiles && CSV.write("./data/seisxcorr_Cdec_true.csv", Tables.table(C1.corr))
+    C1_true = CSV.read("./data/seisxcorr_Cdec_true.csv", DataFrame).Column1
+    @test typeof(C1) == CorrData
+    @test C1_true ≈ C1.corr atol=1e-2
+
+end
+
 @testset "compute_dvvdqq" begin
     @testset "seisstack_dvvdqq" begin
 
@@ -55,6 +114,7 @@ end
         # Test compute_dvvdqq
         set_parameter(fo_mainparam, "measurement_method", "compute_dvvdqq") # select the method of the measurement of dv/v
         set_parameter(fo_mainparam, "computedqq_smoothing_windowlength", "2.0") # select the method of the measurement of dv/v
+        set_parameter(fo_mainparam, "stretch_debugplot", "true") # plot for coda Q debug figures
         set_parameter(fo_mainparam, "codaslice_debugplot", "true") # test the coda slice debug plot
 
 
@@ -117,11 +177,16 @@ end
 
     C_origin, _ = SeisMonitoring.assemble_corrdata(fi, starttime, endtime, "0.9-1.2")
 
-    for stackmethod in ["linear", "robust", "pws", "robustpws"]
+    for stackmethod in ["linear", "selective", "robust", "pws", "robustpws"]
 
         C = deepcopy(C_origin)
-        InputDict = OrderedDict("stack_method" => stackmethod)
-        SeisMonitoring.sm_stack!(C, "reference", InputDict)
+
+        if stackmethod == "selective"
+            SeisMonitoring.selectivestack(C, "shorttime")
+        end
+
+        InputDict = OrderedDict("stack_method" => stackmethod, "dist_threshold" => 1.0, "distance_type"  => "CorrDist")
+        SeisMonitoring.sm_stack!(C, "shorttime", InputDict)
         @test size(C.corr, 2) == 1
         @test C.misc["stack_method"] == stackmethod
 
@@ -130,5 +195,42 @@ end
         @test C_true ≈ C.corr
 
     end
+
+end
+
+@testset "seisdownload IRIS test" begin
+
+
+    set_parameter(fo_mainparam, "IsLocationBox", "true")
+    set_parameter(fo_mainparam, "reg",  "47.6391, 47.6462, -122.3354, -122.3229")
+    set_parameter(fo_mainparam, "download_time_unit", "60")
+    set_parameter(fo_mainparam, "download_margin", "1")
+    set_parameter(fo_mainparam, "starttime", "2019-03-01T00:00:00")
+    set_parameter(fo_mainparam, "endtime", "2019-03-01T00:01:00")
+    set_parameter(fo_mainparam, "sampling_frequency", "20")
+    set_parameter(fo_mainparam, "requeststation_file",  "./data/run_seismonitoring_test_OUTPUT/seismonitoring_IRIS_test.jld2")
+
+    include("./data/$(project_name)_INPUT/mainparam.jl")
+
+    # make station
+    dftemp = DataFrame(network="UW", station="BST11",location="*",channel="HHZ")
+
+    RequestStations = Dict(
+        "IRISDMC" => dftemp
+    )
+
+    jldopen("./data/run_seismonitoring_test_OUTPUT/seismonitoring_IRIS_test.jld2", "w") do f
+        for key in keys(RequestStations)
+            f[key] = RequestStations[key]
+        end
+    end
+
+    SeisMonitoring.run_job(fo_mainparam,
+            run_seisdownload=true,
+            run_seisremoveeq=false,
+            run_seisxcorrelation=false,
+            run_seisstack=false)
+
+    @test isfile("./data/run_seismonitoring_test_OUTPUT/seismicdata/rawseismicdata/UW.BST11..HHZ/2019/UW.BST11..HHZ__2019-03-01T00:00:00__2019-03-01T00:00:59__hhz.seisio")
 
 end
