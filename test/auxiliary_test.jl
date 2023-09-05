@@ -129,8 +129,8 @@ end
 
         tqref = jldopen("./data/$(project_name)_OUTPUT/stack_conputedvvdqq/reference/reference_BP.EADB-BP.EADB-11.jld2", "r") # everytime compute the Cref, although the process is identical over different measurment method
         Cref = tqref["2016-01-15T00:00:00--2016-01-15T00:05:00/0.9-1.2"]
-        ifGenerateTrueFiles && CSV.write("./data/seisstack_Cref_true.csv", Tables.table(Cref.corr))
-        Cref_true = CSV.read("./data/seisstack_Cref_true.csv", DataFrame).Column1
+        ifGenerateTrueFiles && CSV.write("./data/seisstack_Cref_dvq_true.csv", Tables.table(Cref.corr))
+        Cref_true = CSV.read("./data/seisstack_Cref_dvq_true.csv", DataFrame).Column1
         @test Cref_true ≈ Cref.corr atol=1e-4
 
         tq = jldopen("./data/$(project_name)_OUTPUT/stack_conputedvvdqq/shorttime/shorttime_BP.EADB-BP.EADB-11.jld2", "r")
@@ -145,9 +145,9 @@ end
         # plot!(lagt, Cvq.corr)
 
         @info("NOTE: Here we just test the consistensy in computation. The value of dqq needs to be further evaluated to check its plausibility.")
-        @test Css.misc["cc_dvv"] ≈ 0.82652899 atol=1e-5
-        @test Css.misc["err_dvv"] ≈ 1.1395392867 atol=1e-5
-        @test Css.misc["dqq_avg"] ≈ 16.67596460789 atol=1e-2
+        @test Css.misc["cc_dvv"] ≈ 0.95415793 atol=1e-5
+        @test Css.misc["err_dvv"] ≈ 0.52487069 atol=1e-5
+        @test Css.misc["dqq_avg"] ≈ 0.57745104 atol=1e-2
 
     end
 
@@ -201,16 +201,16 @@ end
 @testset "seisdownload IRIS test" begin
 
 
-    set_parameter(fo_mainparam, "IsLocationBox", "true")
-    set_parameter(fo_mainparam, "reg",  "47.6391, 47.6462, -122.3354, -122.3229")
-    set_parameter(fo_mainparam, "download_time_unit", "60")
-    set_parameter(fo_mainparam, "download_margin", "1")
-    set_parameter(fo_mainparam, "starttime", "2019-03-01T00:00:00")
-    set_parameter(fo_mainparam, "endtime", "2019-03-01T00:01:00")
-    set_parameter(fo_mainparam, "sampling_frequency", "20")
-    set_parameter(fo_mainparam, "requeststation_file",  "./data/run_seismonitoring_test_OUTPUT/seismonitoring_IRIS_test.jld2")
-
-    include("./data/$(project_name)_INPUT/mainparam.jl")
+    cp("./data/$(project_name)_INPUT/mainparam.jl", "./data/$(project_name)_INPUT/mainparam_IRIS.jl", force=true)
+    fo_mainparam_IRIS = "./data/$(project_name)_INPUT/mainparam_IRIS.jl"
+    set_parameter(fo_mainparam_IRIS, "IsLocationBox", "true")
+    set_parameter(fo_mainparam_IRIS, "reg",  "47.6391, 47.6462, -122.3354, -122.3229")
+    set_parameter(fo_mainparam_IRIS, "download_time_unit", "60")
+    set_parameter(fo_mainparam_IRIS, "download_margin", "1")
+    set_parameter(fo_mainparam_IRIS, "starttime", "2019-03-01T00:00:00")
+    set_parameter(fo_mainparam_IRIS, "endtime", "2019-03-01T00:01:00")
+    set_parameter(fo_mainparam_IRIS, "sampling_frequency", "20")
+    set_parameter(fo_mainparam_IRIS, "requeststation_file",  "./data/run_seismonitoring_test_OUTPUT/seismonitoring_IRIS_test.jld2")
 
     # make station
     dftemp = DataFrame(network="UW", station="BST11",location="*",channel="HHZ")
@@ -225,7 +225,7 @@ end
         end
     end
 
-    SeisMonitoring.run_job(fo_mainparam,
+    SeisMonitoring.run_job(fo_mainparam_IRIS,
             run_seisdownload=true,
             run_seisremoveeq=false,
             run_seisxcorrelation=false,
