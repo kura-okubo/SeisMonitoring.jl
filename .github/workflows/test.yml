@@ -27,6 +27,8 @@ jobs:
       - run: julia --color=yes --project="@." -e 'using Pkg; ENV["JULIA_PKG_PRECOMPILE_AUTO"]=0; Pkg.Registry.add("General"); Pkg.develop(url="https://github.com/kura-okubo/SeisDvv.jl"); Pkg.instantiate(); Pkg.resolve(); Pkg.build()'
       - uses: julia-actions/julia-runtest@v1
       - uses: julia-actions/julia-processcoverage@v1
+        with:
+            directories: src/SeisDownload,src/SeisRemoveEQ,src/SeisXcorrelation,src/SeisStack,src/SMStats
       - uses: codecov/codecov-action@v3
         # with:
         #   annotate: true
