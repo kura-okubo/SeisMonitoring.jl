@@ -187,6 +187,31 @@ end
 
     end
 
+    @testset "seismeasurement error" begin
+        t = jldopen("./data/$(project_name)_OUTPUT/stack_conputedvvdqq/shorttime/shorttime_BP.EADB-BP.EADB-11.jld2", "r")
+        Css = t["2016-01-15T00:00:00--2016-01-15T00:02:00/0.9-1.2"]
+        close(t)
+
+        InputDict = OrderedDict{String, Any}(
+        "project_outputdir" => "./data/run_seismonitoring_test_OUTPUT",
+        "stretch_debugplot" => true,
+        "dvv_stretching_range" => 0.02,
+        "dvv_stretching_Ntrial" => 201,
+        "geometricalspreading_α" => NaN,
+        "computedqq_smoothing_windowlength" => 2.0
+        )
+
+        InputDict["measurement_method"] = "wcc"
+        SeisMonitoring.seismeasurement!(Css, InputDict)
+        InputDict["measurement_method"] = "dtw"
+        SeisMonitoring.seismeasurement!(Css, InputDict)
+        InputDict["measurement_method"] = "compute_dvvdqq"
+        InputDict["geometricalspreading_α"] = NaN # dummy nan for the sake of error test
+        InputDict["reference"] = Css.corr*0.9
+        MeasurementDict = SeisMonitoring.seismeasurement!(Css, InputDict)
+
+    end
+
     @testset "seisstats_dvvdqq" begin
         # Output the CSV file of the dv/v measurement
         fodir = "./data"
@@ -221,8 +246,8 @@ end
             SeisMonitoring.selectivestack(C, "shorttime")
         end
 
-        InputDict = OrderedDict("stack_method" => stackmethod, "dist_threshold" => 1.0, "distance_type"  => "CorrDist")
-        SeisMonitoring.sm_stack!(C, "shorttime", InputDict)
+        InputDict_stack = OrderedDict("stack_method" => stackmethod, "dist_threshold" => 1.0, "distance_type"  => "CorrDist")
+        SeisMonitoring.sm_stack!(C, "shorttime", InputDict_stack)
         @test size(C.corr, 2) == 1
         @test C.misc["stack_method"] == stackmethod
 

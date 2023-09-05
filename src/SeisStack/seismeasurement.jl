@@ -16,9 +16,9 @@ Methods are imported from SeisDvv.jl
 - `MWCS`            : Moving window cross spectrum
 - `WCC`             : Windowed cross-correlation
 - `DTW`             : Dynamic time warping
-- `DualStretching`  :
+- `compute_dvvdqq`  : Beta version; needs to be verified.
 
-NOTE: dQin are obtained only with DualStretching method (dvv is also computed during DualStretching).
+NOTE: dQin are obtained only with compute_dvvdqq method (dvv is also computed during compute_dvvdqq).
 """
 function seismeasurement!(C::CorrData, InputDict::OrderedDict)
 
@@ -32,7 +32,7 @@ function seismeasurement!(C::CorrData, InputDict::OrderedDict)
     figdir = InputDict["stretch_debugplot"] ? joinpath(abspath(InputDict["project_outputdir"]), "plots/stack") : ""
 
 	fc = (C.freqmin+C.freqmax)/2.0
-	isempty(C.misc["coda_window"]) && return nothing # if coda window is empty, don't perform coda Q measurement
+	isempty(C.misc["coda_window"]) && return nothing # if coda window is empty, don't perform the measurement
 
     if lowercase(measurement_method) == "stretching"
 		MeasurementDict = seisdvv_stretching(ref, cur, C.misc["timelag"], C.misc["coda_window"],
@@ -50,32 +50,34 @@ function seismeasurement!(C::CorrData, InputDict::OrderedDict)
 
     elseif lowercase(measurement_method) == "wcc"
         @warn("measurement_method:$(measurement_method) is under developping. skip seismeasurement.")
+        MeasurementDict = Dict()
 
     elseif lowercase(measurement_method) == "dtw"
         @warn("measurement_method:$(measurement_method) is under developping. skip seismeasurement.")
+        MeasurementDict = Dict()
 
-    elseif lowercase(measurement_method) == "dualstretching"
-
-        fc = (C.freqmin+C.freqmax)/2.0
-
-        MeasurementDict = dualstretching(ref, cur, C.misc["timelag"], fc, C.misc["coda_window"],
-                                # parameters for dvv stretching
-                                dvmin=-InputDict["dvv_stretching_range"],
-                                dvmax=InputDict["dvv_stretching_range"],
-                                ntrial_v=InputDict["dvv_stretching_Ntrial"],
-                                # parameters for coda-Q stretching
-                                dQcinvmin=-InputDict["dQc_stretching_range"],
-                                dQcinvmax=InputDict["dQc_stretching_range"],
-                                ntrial_q=InputDict["dQc_stretching_Ntrial"],
-                                dAAmin=-InputDict["dAA_stretching_range"],
-                                dAAmax=+InputDict["dAA_stretching_range"],
-                                ntrial_A=InputDict["dAA_stretching_Ntrial"],
-                                smoothing_window_len=InputDict["smoothing_window_len"],
-                                # parameters for distance and debug figure plot
-                                dist_method=InputDict["stretch_distmethod"],
-                                figdir=figdir,
-                                figname=C.name*"--"*string(C.misc["stack_centraltime"])*"--"*join([C.freqmin, C.freqmax], "-"),
-                                fillbox =C.misc["fillbox"])
+    # elseif lowercase(measurement_method) == "dualstretching"
+    #
+    #     fc = (C.freqmin+C.freqmax)/2.0
+    #
+    #     MeasurementDict = dualstretching(ref, cur, C.misc["timelag"], fc, C.misc["coda_window"],
+    #                             # parameters for dvv stretching
+    #                             dvmin=-InputDict["dvv_stretching_range"],
+    #                             dvmax=InputDict["dvv_stretching_range"],
+    #                             ntrial_v=InputDict["dvv_stretching_Ntrial"],
+    #                             # parameters for coda-Q stretching
+    #                             dQcinvmin=-InputDict["dQc_stretching_range"],
+    #                             dQcinvmax=InputDict["dQc_stretching_range"],
+    #                             ntrial_q=InputDict["dQc_stretching_Ntrial"],
+    #                             dAAmin=-InputDict["dAA_stretching_range"],
+    #                             dAAmax=+InputDict["dAA_stretching_range"],
+    #                             ntrial_A=InputDict["dAA_stretching_Ntrial"],
+    #                             smoothing_window_len=InputDict["smoothing_window_len"],
+    #                             # parameters for distance and debug figure plot
+    #                             dist_method=InputDict["stretch_distmethod"],
+    #                             figdir=figdir,
+    #                             figname=C.name*"--"*string(C.misc["stack_centraltime"])*"--"*join([C.freqmin, C.freqmax], "-"),
+    #                             fillbox =C.misc["fillbox"])
 
     elseif lowercase(measurement_method) == "compute_dvvdqq"
 
