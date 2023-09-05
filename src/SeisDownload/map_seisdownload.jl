@@ -23,7 +23,7 @@ function map_seisdownload_NOISE(startid, InputDict::OrderedDict; testdownload::B
 	end
 
 	if !haskey(InputDict, "sampling_frequency")
-		InputDict["sampling_frequency"] = false # default margin: 5 minutes
+		InputDict["sampling_frequency"] = false
 	end
 
 	if !haskey(InputDict, "download_margin")
