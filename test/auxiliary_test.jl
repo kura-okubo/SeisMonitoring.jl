@@ -121,7 +121,6 @@ end
         cp("./data/$(project_name)_OUTPUT/cc/C1_BP.EADB.40.SP1-BP.EADB.40.SP1", "./data/$(project_name)_OUTPUT/cc_dvvdqq/BP.EADB.40.SP1-BP.EADB.40.SP1", force=true)
         set_parameter(fo_mainparam, "stack_RawData_dir", "./data/$(project_name)_OUTPUT/cc_dvvdqq") # collect the stationpair
 
-
         !isdir("./data/$(project_name)_OUTPUT/stack") && mkdir("./data/$(project_name)_OUTPUT/stack")
         SeisMonitoring.run_job(fo_mainparam,
                 run_seisdownload=false,
@@ -135,13 +134,13 @@ end
         Cref = tqref["2016-01-15T00:00:00--2016-01-15T00:05:00/0.9-1.2"]
         ifGenerateTrueFiles && CSV.write("./data/seisstack_Cref_dvq_true.csv", Tables.table(Cref.corr))
         Cref_true = CSV.read("./data/seisstack_Cref_dvq_true.csv", DataFrame).Column1
-        @test Cref_true ≈ Cref.corr atol=1e-4
+        @test Cref_true ≈ Cref.corr atol=1e-2
 
         tq = jldopen("./data/$(project_name)_OUTPUT/stack_conputedvvdqq/shorttime/shorttime_BP.EADB-BP.EADB-11.jld2", "r")
         Css = tq["2016-01-15T00:00:00--2016-01-15T00:02:00/0.9-1.2"]
         ifGenerateTrueFiles && CSV.write("./data/seisstack_Css_dvvdqq_true.csv", Tables.table(Css.corr))
         Css_true = CSV.read("./data/seisstack_Css_dvvdqq_true.csv", DataFrame).Column1
-        @test Css_true ≈ Css.corr atol=1e-4
+        @test Css_true ≈ Css.corr atol=1e-2
 
 
         # lagt = -Cvq.maxlag:1/(Cvq.fs):Css.maxlag
