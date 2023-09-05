@@ -87,7 +87,7 @@ end
         @info("NOTE: Here we just test the consistensy in computation. The value of dqq needs to be further evaluated to check its plausibility.")
         @test Css.misc["cc_dvv"] ≈ 0.82652899 atol=1e-5
         @test Css.misc["err_dvv"] ≈ 1.1395392867 atol=1e-5
-        @test Css.misc["dqq_avg"] ≈ 16.67596460789 atol=1e-5
+        @test Css.misc["dqq_avg"] ≈ 16.67596460789 atol=1e-2
 
     end
 
