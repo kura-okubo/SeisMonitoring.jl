@@ -97,7 +97,6 @@ end
         set_parameter(fo_mainparam, "compute_reference", "true") # compute the reference stack
         set_parameter(fo_mainparam, "compute_shorttimestack", "true") # compute the short time (e.g. monthly) stack
 
-        set_parameter(fo_mainparam, "stack_RawData_dir", "./data/$(project_name)_OUTPUT/cc") # collect the stationpair
         set_parameter(fo_mainparam, "codaslice_debugplot", "false") # debug plot of the coda window
         set_parameter(fo_mainparam, "use_local_tmpdir", "false") # used mainly when you run in the cluster; process the data after copying from scratch filesystem to the local machine to avoid frequent I/O to the scratch.
 
@@ -116,6 +115,11 @@ end
         set_parameter(fo_mainparam, "computedqq_smoothing_windowlength", "2.0") # select the method of the measurement of dv/v
         set_parameter(fo_mainparam, "stretch_debugplot", "true") # plot for coda Q debug figures
         set_parameter(fo_mainparam, "codaslice_debugplot", "true") # test the coda slice debug plot
+
+        # cp cross-correlation data for the test of dvvdqq
+        !isdir("./data/$(project_name)_OUTPUT/cc_dvvdqq") && mkdir("./data/$(project_name)_OUTPUT/cc_dvvdqq")
+        cp("./data/$(project_name)_OUTPUT/cc/C1_BP.EADB.40.SP1-BP.EADB.40.SP1", "./data/$(project_name)_OUTPUT/cc_dvvdqq/BP.EADB.40.SP1-BP.EADB.40.SP1", force=true)
+        set_parameter(fo_mainparam, "stack_RawData_dir", "./data/$(project_name)_OUTPUT/cc_dvvdqq") # collect the stationpair
 
 
         !isdir("./data/$(project_name)_OUTPUT/stack") && mkdir("./data/$(project_name)_OUTPUT/stack")
@@ -199,7 +203,6 @@ end
 end
 
 @testset "seisdownload IRIS test" begin
-
 
     cp("./data/$(project_name)_INPUT/mainparam.jl", "./data/$(project_name)_INPUT/mainparam_IRIS.jl", force=true)
     fo_mainparam_IRIS = "./data/$(project_name)_INPUT/mainparam_IRIS.jl"
