@@ -57,7 +57,7 @@ function selectivestack!(C::CorrData, stackmode::String; dist_threshold::Abstrac
 end
 
 selectivestack(C::CorrData, stackmode::String; dist_threshold::AbstractFloat=0.0,
-distance_type=CorrDist()) = (U = deepcopy(C);
+distance_type::String="CorrDist") = (U = deepcopy(C);
       	 selectivestack!(U,stackmode,dist_threshold=dist_threshold,
              distance_type=distance_type);return U)
 
