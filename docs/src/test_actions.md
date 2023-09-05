@@ -13,6 +13,13 @@ We test the followings:
 Test scripts can be found in **[SeisMonitoring.jl/test
 ](https://github.com/kura-okubo/SeisMonitoring.jl/tree/dev_beforeupdate%400.2.0/test)**.
 
+To run the test, type the following in the Julia REPL:
+
+```julia
+julia> using Pkg
+julia> Pkg.test("SeisMonitoring")
+```
+
 ## Github Actions test.yml
 
 Here is the script of github actions located in [`.github/workflows/test.yml`](https://github.com/kura-okubo/SeisMonitoring.jl/blob/dev_beforeupdate%400.2.0/.github/workflows/test.yml). You can configure this from the tab of `Actions` in the [web page of repository](https://github.com/kura-okubo/SeisMonitoring.jl/actions).
