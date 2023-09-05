@@ -17,13 +17,14 @@ dvv history database.
 
 """
 function smplot_pdfdvv(statsfile::String, fodir::String, starttime::DateTime, endtime::DateTime, time_bin_length::Real;
-    cc_threshold::Float64=0.6, network_option=["all"], compontents_option::AbstractArray=["all"],
+    cc_threshold::Float64=0.6, network_option=["all"], compontents_option::AbstractArray=["all"], dvv_method::String="stretching",
+    plotmean::Bool=true, plotmedian::Bool=true, plotmode::Bool=true,
     plot_maxdvv::Float64=0.05, number_of_dvvbins::Int = 30, minimum_paircount::Int=1, plottimeunit::String="day",
     figsize = (1200, 600), clims=(0.0, 0.3), xlims = [], ylims = (-0.03, 0.03), xrotation::Real=-45,
     fmt="png")
 
     #1. read dvvfile
-    df = CSV.read(statsfile)
+    df = CSV.read(statsfile, DataFrame)
 
     stbins = range(d2u(starttime), stop = (d2u(endtime)-time_bin_length), step = time_bin_length)
     etbins = stbins .+ time_bin_length
@@ -38,6 +39,7 @@ function smplot_pdfdvv(statsfile::String, fodir::String, starttime::DateTime, en
 
     for freqband in freqbands
 
+        println("$(freqband) start plotting.")
         # filter with freqband
         df_filtered = filter(:freqband => x -> (x == freqband) , df)
 
@@ -56,7 +58,11 @@ function smplot_pdfdvv(statsfile::String, fodir::String, starttime::DateTime, en
         df_filtered = filter(:components => x -> (x ∈ compontents_option || "all" ∈ compontents_option) , df_filtered)
 
         # filtering with cc_threshold
-        df_filtered = filter(:cc_dvv => x -> (x >= cc_threshold) , df_filtered)
+        if lowercase(dvv_method)=="stretching"
+            df_filtered = filter(:cc_ts => x -> (x >= cc_threshold) , df_filtered)
+        else
+            df_filtered = filter(:cc_dvv => x -> (x >= cc_threshold) , df_filtered)
+        end
 
         dvvbins = range(-plot_maxdvv, stop=plot_maxdvv, length=number_of_dvvbins+1)
 
@@ -65,6 +71,9 @@ function smplot_pdfdvv(statsfile::String, fodir::String, starttime::DateTime, en
             "freqband" => freqband,
             "T" => DateTime[], #DateTime
             "dvv_mean" => Union{Float64, Missing}[],
+            "dvv_median" => Union{Float64, Missing}[],
+            "dvv_mode" => Union{Float64, Missing}[],
+            "dvvbins" => dvvbins,
             "pdfdvv" => Array{Union{Float64, Missing}, 2}(undef, number_of_dvvbins, 0),
             "count_pairs" => Int[],
         )
@@ -78,9 +87,14 @@ function smplot_pdfdvv(statsfile::String, fodir::String, starttime::DateTime, en
 
             push!(DvvDict["T"], u2d(mtbin))
 
-            global df_binned = filter(:date => x -> (stbin <= x < etbin) , df_filtered)
+            df_binned = filter(:date => x -> (stbin <= x < etbin) , df_filtered)
             # println(df_binned)
-            dvv_all = df_binned.dvv
+
+            if lowercase(dvv_method)=="stretching"
+                dvv_all = df_binned.dvv_ts ./100
+            else
+                dvv_all = df_binned.dvv
+            end
 
             paircount = length(dvv_all)
 
@@ -88,6 +102,8 @@ function smplot_pdfdvv(statsfile::String, fodir::String, starttime::DateTime, en
                 # this time bin does not have enough station pairs above threshold
                 # append to DvvDict
                 push!(DvvDict["dvv_mean"], missing)
+                push!(DvvDict["dvv_median"], missing)
+                push!(DvvDict["dvv_mode"], missing)
                 DvvDict["pdfdvv"] = hcat(DvvDict["pdfdvv"], fill(missing, number_of_dvvbins))
                 push!(DvvDict["count_pairs"], paircount)
                 continue;
@@ -96,13 +112,21 @@ function smplot_pdfdvv(statsfile::String, fodir::String, starttime::DateTime, en
             #compute pdf of dvv
              h = StatsBase.fit(Histogram, dvv_all, dvvbins)
              hn = normalize(h, mode=:probability)
-             println(hn.weights)
+             # println(hn.weights)
              # append to DvvDict
+             # compute mode at this bin
+             @show findmax(dvv_all)
+             @show dvvbins
+             dvv_mode=dvvbins[findmax(hn.weights)[2]]
+
              push!(DvvDict["dvv_mean"], Statistics.mean(dvv_all))
+             push!(DvvDict["dvv_median"], Statistics.median(dvv_all))
+             push!(DvvDict["dvv_mode"], dvv_mode)
              DvvDict["pdfdvv"] = hcat(DvvDict["pdfdvv"], hn.weights)
              push!(DvvDict["count_pairs"], paircount)
         end
 
+        println("plotting pdfdvv.")
         # plot pdf-mean of dvv and bar count.
         plot(layout = grid(2, 2, heights=[0.6, 0.4], widths=[0.9, 0.1]), link=:x)
 
@@ -144,8 +168,21 @@ function smplot_pdfdvv(statsfile::String, fodir::String, starttime::DateTime, en
         xrotation=xrotation, frame=:box, xticks = xticks,
         title = figtitle, colorbar=false)
 
-        plot!(mtbins, DvvDict["dvv_mean"], size=figsize, color=:magenta, subplot=1, linewidth = 3.0,
-         xformatter=xformatter, xticks = xticks, label = "mean", link=:x)
+        # plot mean
+        if plotmean
+            plot!(mtbins, DvvDict["dvv_mean"], size=figsize, color=:cyan, subplot=1, linewidth = 3.0,
+            xformatter=xformatter, xticks = xticks, label = "mean", link=:x)
+        end
+
+        if plotmedian
+            plot!(mtbins, DvvDict["dvv_median"], size=figsize, color=:black, subplot=1, linewidth = 3.0,
+            xformatter=xformatter, xticks = xticks, label = "median", link=:x)
+        end
+
+        if plotmode
+            plot!(mtbins, DvvDict["dvv_mode"], size=figsize, color=:magenta, subplot=1, linewidth = 3.0,
+            xformatter=xformatter, xticks = xticks, label = "mode", link=:x)
+        end
 
         # plot only colorbar to share the x axis between contour and bar.
         # NOTE: Currently there is no way to plot only colorbar with julia.

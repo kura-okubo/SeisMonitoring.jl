@@ -5,3 +5,8 @@
 /Manifest.toml
 /dev/
 /docs/build/
+/test/data/run_seismonitoring_test_INPUT
+/test/data/run_seismonitoring_test_OUTPUT
+/test/data/run_seismonitoring_test_dvvdqq.csv
+/test/data/run_seismonitoring_test_MWCS.csv
+/test/data/run_seismonitoring_test_Stretching.csv

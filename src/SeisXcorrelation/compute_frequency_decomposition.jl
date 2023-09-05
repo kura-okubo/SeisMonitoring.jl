@@ -1,3 +1,6 @@
+#include("bandpass_chebyshev2.jl")
+
+
 """
     compute_frequency_decomposition(C::CorrData, freqency_band::Array{Float64,1}; cc_bpfilt_method::String="Butterworth",
                                  dj::Float64 = 1 / 12, α0::AbstractFloat = 0.0, αmax::AbstractFloat = 0.25)
@@ -39,7 +42,7 @@ function compute_frequency_decomposition(
       for fb in freqband
          freqmin, freqmax = fb
          # apply bandpass filter
-         Ctemp = bandpass(C_broadband, freqmin, freqmax, corners = 4)
+         Ctemp = bandpass(C_broadband, freqmin, freqmax, corners = 2) # Avoid to NaN with Float32
          # apply frequenc_dependent tapering
          taper_for_freqdecomposition!(Ctemp, freqency_band, α0, αmax)
          Ctemp.misc["freq_decomposition_method"] = cc_bpfilt_method
@@ -88,6 +91,22 @@ function compute_frequency_decomposition(
          push!(C_all, Ctemp)
       end
 
+   #---Raw correlation---#
+   elseif lowercase(cc_bpfilt_method) == "raw"
+         C_broadband.misc["freq_decomposition_method"] = cc_bpfilt_method
+         push!(C_all, C_broadband)
+   #-----------------------------------------------------#
+   # elseif lowercase(cc_bpfilt_method) == "chebychev2"
+   #    for fb in freqband
+   #       freqmin, freqmax = fb
+   #       # apply bandpass filter
+   #       Ctemp = bandpass_chebyshev(C_broadband, freqmin, freqmax, corners = 4)
+   #       # apply frequenc_dependent tapering
+   #       taper_for_freqdecomposition!(Ctemp, freqency_band, α0, αmax)
+   #       Ctemp.misc["freq_decomposition_method"] = cc_bpfilt_method
+   #       push!(C_all, Ctemp)
+   #    end
+
    else
       error("cc_bpfilt_method $(cc_bpfilt_method) is not available. use ButterWorth or Wavelet")
    end
@@ -112,7 +131,12 @@ function taper_for_freqdecomposition!(C::CorrData, freqency_band::Array{Float64,
 
    T, N = size(C.corr)
    #adaptive taper percentage due to stronger edge effect at high frequency
-   max_percentage = ((αmax-α0)/(freqency_band[end]-freqency_band[2]))*(C.freqmax-freqency_band[2]) + α0
+   if length(freqency_band) == 2
+      max_percentage = α0
+   else
+      max_percentage = ((αmax-α0)/(freqency_band[end]-freqency_band[2]))*(C.freqmax-freqency_band[2]) + α0
+   end
+
    taperwindow = zeros(T)
    margin = round(Int, 0.5*max_percentage*T)
    tukeywindow = DSP.tukey(T-2*margin, 0.1)

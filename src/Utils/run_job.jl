@@ -74,7 +74,7 @@ function run_job(inputfile::String="";
     # end
 
     println("Number of procs              : $(nprocs())")
-    println("Number of available CPU Cores: $(length(Sys.cpu_info()))")
+    println("Number of available CPU Cores per node: $(length(Sys.cpu_info()))")
     println("Number of workers is distributed into cpu cores, so Nprocs>=Ncores uses all cores.")
 
     # if nprocs()-1 >= 1; println("Number of workers: $(nprocs()-1)\n") end

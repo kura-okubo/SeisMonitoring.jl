@@ -12,7 +12,7 @@ function do_work(ch_paths, ch_seisdata) # define work function everywhere
 
 	   fileextension=split(basename(path), ".")[end]
 
-	   if fileextension=="dat"
+	   if fileextension=="dat" || fileextension=="seisio"
 		   # SeisIO binary file
 		   SC = rseis(path)[1]
 	   elseif fileextension=="jld2"
@@ -20,7 +20,7 @@ function do_work(ch_paths, ch_seisdata) # define work function everywhere
            			fi["S"]
        	   end
 	   else
-			@warn("$(basename(path)) is not read because the extension is not .dat nor .jld2. Use .dat for SeisIO file, or jld2 for temporally file.")
+			@warn("$(basename(path)) is not read because the extension is not .dat, .seisio nor .jld2. Use .dat for SeisIO file, or jld2 for temporally file.")
 	   end
 
 	   SC_all = [] # will contain all seischannels to be saved.

@@ -10,12 +10,22 @@ include("map_seisdownload.jl")
 """
 function seisdownload(InputDict_origin::OrderedDict)
 
+	#===================================================================#
+	#NOTE: Exit if nprocs is larger than 64 to avoid following issues:
+	# 1. massive HTTP request causing degradation of data server.
+	# 2. massive File I/O
+	#===================================================================#
+
+	if nprocs() > 64
+		error("nprocs $(nprocs()) should be less than 64 to avoid massive HTTP request and FIle I/O.")
+	end
+
 	# parse input dictionary
 	InputDict = parse_inputdict(InputDict_origin)
 
 	project_outputdir		= abspath(InputDict["project_outputdir"])
 	fodir					= joinpath(project_outputdir, "seismicdata")
-	tmpdir 					= joinpath(project_outputdir, "seismicdata", "seisdownload_tmp")
+	tmpdir 					= joinpath(project_outputdir, "seismicdata", "rawseismicdata")
 	InputDict["fodir"] 		= fodir
 	InputDict["tmpdir"] 	= tmpdir
 
@@ -23,11 +33,12 @@ function seisdownload(InputDict_origin::OrderedDict)
 	InputDict["stationxml_dir"] = stationxml_dir
 
 
-	if ispath(tmpdir); rm(tmpdir, recursive=true); end
-	mkdir(tmpdir)
+	# if ispath(tmpdir); rm(tmpdir, recursive=true); end
+	#NOTE: do not delete output file dir for restarting job
+	!ispath(tmpdir) && mkdir(tmpdir)
 
-	if ispath(stationxml_dir); rm(stationxml_dir, recursive=true); end
-	mkdir(stationxml_dir)
+	# if ispath(stationxml_dir); rm(stationxml_dir, recursive=true); end
+	!ispath(stationxml_dir) && mkdir(stationxml_dir)
 
 	#stationlist
 	# stationlist     = InputDict["stationinfo"]["stationlist"]
@@ -52,7 +63,7 @@ function seisdownload(InputDict_origin::OrderedDict)
 	#----Restrict number of processors------#
 	#NEVER CHANGE THIS THRESHOLD OTHERWISE IT OVERLOADS THE DATA SERVER
 	np = nprocs()
-	if np > 100 throw(DomainError(np, "np must be smaller than 100.")) end
+	if np > 64 throw(DomainError(np, "np must be smaller than 64.")) end
 	#---------------------------------------#
 
     # # Test download to evaluate use of memory and estimate download time.
@@ -68,16 +79,16 @@ function seisdownload(InputDict_origin::OrderedDict)
 	println("-------START CONVERTING--------")
 
 	# t_convert = @elapsed convert_tmpfile(InputDict)
-	t_convert = @elapsed convert_tmpfile(InputDict, "seisdownload")
+	# t_convert = @elapsed convert_tmpfile(InputDict, "seisdownload")
 
 
 	println("---Summary of computational time---")
 	println(@sprintf("Total download time:%8.4f[s]", t_download))
-	println(@sprintf("Total convert time:%8.4f[s]", t_convert))
+	# println(@sprintf("Total convert time:%8.4f[s]", t_convert))
 
-	if !InputDict["Istmpfilepreserved"]
-		rm(tmpdir, recursive=true, force=true)
-	end
+	# if !InputDict["Istmpfilepreserved"]
+	# 	rm(tmpdir, recursive=true, force=true)
+	# end
 
 	if !InputDict["IsXMLfilepreserved"]
 		rm(stationxml_dir, recursive=true, force=true)

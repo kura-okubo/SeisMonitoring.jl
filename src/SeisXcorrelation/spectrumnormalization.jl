@@ -1,6 +1,6 @@
 using SeisNoise, SeisIO, Statistics, DSP, FFTW, Plots
 """
-    smooth_withfiltfilt(A::AbstractArray; window_len::Int=7, window::Symbol=:bartlett)
+    smooth_withfiltfilt(A::AbstractArray; window_len::Int=7, window::Symbol=:rect)
 
 Apply DSP.filtfilt() to smooth the waveform.
 
@@ -8,7 +8,7 @@ Apply DSP.filtfilt() to smooth the waveform.
 
 - "A::AbstractArray": periodogram of spectrum
 - "window_len::Int=7": window length
-- "window::Symbol=:bartlett": window type: (see https://juliadsp.github.io/DSP.jl/stable/windows/)
+- "window::Symbol=:rect": window type: (see https://juliadsp.github.io/DSP.jl/stable/windows/)
 """
 function smooth_withfiltfilt(A::AbstractArray; window_len::Int=11, window::Symbol=:rect)
     w = getfield(DSP.Windows, window)(window_len)

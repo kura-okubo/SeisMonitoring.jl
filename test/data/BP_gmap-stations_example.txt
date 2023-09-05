@@ -1,0 +1,4 @@
+#Network | Station | Latitude | Longitude | Elevation | Sitename | StartTime | EndTime
+
+#DATACENTER=NCEDC,http://www.ncedc.org
+BP|EADB|35.89522|-120.42262|469.0|Eade Ranch, Parkfield, CA, USA|2000-11-25T00:00:00|3000-01-01T00:00:00

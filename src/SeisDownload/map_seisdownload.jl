@@ -23,7 +23,7 @@ function map_seisdownload_NOISE(startid, InputDict::OrderedDict; testdownload::B
 	end
 
 	if !haskey(InputDict, "sampling_frequency")
-		InputDict["sampling_frequency"] = false # default margin: 5 minutes
+		InputDict["sampling_frequency"] = false
 	end
 
 	if !haskey(InputDict, "download_margin")
@@ -45,8 +45,16 @@ function map_seisdownload_NOISE(startid, InputDict::OrderedDict; testdownload::B
 
 	request_src_chanks = jldopen(requeststation_file, "r")
 
+    #Update:  change Protocol associated with NCEDC
+    SeisIO.seis_www["NCEDC"] = "https://service.ncedc.org"
+
     for src in keys(request_src_chanks)
         #---download data---#
+		if src=="IRISDMC"
+			reqsrc="IRIS"
+		else
+			reqsrc=src
+		end
 
 		requeststrs = get_requeststr(request_src_chanks[src], InputDict["numstationperrequest"])
 
@@ -62,14 +70,14 @@ function map_seisdownload_NOISE(startid, InputDict::OrderedDict; testdownload::B
 
 			if InputDict["IsLocationBox"]
 		        ex = :(get_data($(method), $(requeststr), s=$(starttime), t=$(dltime), reg=$(InputDict["reg"]),
-				 v=$(0), src=$(src), xf=$(stationxml_path), unscale=$(InputDict["get_data_opt"][1]),
+				 v=$(0), src=$(reqsrc), xf=$(stationxml_path), unscale=$(InputDict["get_data_opt"][1]),
 				  demean=$(InputDict["get_data_opt"][2]), detrend=$(InputDict["get_data_opt"][3]),taper=$(InputDict["get_data_opt"][4]),
 				  ungap=$(InputDict["get_data_opt"][5]), rr=$(InputDict["IsResponseRemove"])))
 
 		        t_dl = @elapsed Stemp = check_and_get_data(ex, requeststr)
 			else
 				ex = :(get_data($(method), $(requeststr), s=$(starttime), t=$(dltime),
-				 v=$(0), src=$(src), xf=$(stationxml_path),unscale=$(InputDict["get_data_opt"][1]),
+				 v=$(0), src=$(reqsrc), xf=$(stationxml_path),unscale=$(InputDict["get_data_opt"][1]),
 				  demean=$(InputDict["get_data_opt"][2]), detrend=$(InputDict["get_data_opt"][3]),taper=$(InputDict["get_data_opt"][4]),
 				  ungap=$(InputDict["get_data_opt"][5]), rr=$(InputDict["IsResponseRemove"])))
 
@@ -105,10 +113,34 @@ function map_seisdownload_NOISE(startid, InputDict::OrderedDict; testdownload::B
 			#DEBUG: to avoid too much memory allocation, save each seischannel into seisio file
 
 			for j = 1:Stemp.n
-				if Stemp.misc[j]["dlerror"] == 0 && !isempty(Stemp[j].t)
+				if Stemp[j].misc["dlerror"] == 0 && !isempty(Stemp[j].t)
 					Stemp[j].misc["data_fraction"] = get_noisedatafraction(Stemp[j].x, zerosignal_minpts=100, eps_α=1e-6)
-					fname_out = join([Stemp[j].id, string(stsync), string(etsync), src], "__")*".dat"
-					wseis(joinpath(InputDict["tmpdir"], fname_out), Stemp[j])
+					# fname_out = join([Stemp[j].id, string(stsync), string(etsync), src], "__")*".seisio"
+					# make filename
+					# skip if S.t is empty
+					(isempty(Stemp[j]) || isempty(Stemp[j].t)) && continue;
+					s_str = string(u2d(Stemp[j].t[1,2]*1e-6))[1:19]
+					# compute end time:
+					et = Stemp[j].t[1,2]*1e-6 + (Stemp[j].t[end,1]-1)/Stemp[j].fs
+					e_str=string(u2d(et))[1:19]
+					# split network, station, location and channel
+					net, sta, loc, cha = split(Stemp[j].id, ".")
+					groupname = joinpath("Waveforms", join([net, sta], "."))
+					varname	  = join([net, sta, loc, cha], ".")*"__"*s_str*"__"*e_str*"__"*lowercase(cha)
+
+					# make hierarchical directory
+					dir1 = joinpath(InputDict["tmpdir"], join([net, sta, loc, cha], ".")) #ex. BP.LCCB..BP1
+					ts_year = split(split(varname, "__")[2], "-")[1]# start year
+					dir2 = joinpath(dir1, ts_year) #ex. 2014
+					# NOTE: to avoid collision in mkdir during parallelization, use try catch
+					try
+						!isdir(dir1) && mkdir(dir1)
+						!isdir(dir2) && mkdir(dir2)
+					catch
+					end
+					# dump file
+					fo_seisio_name = joinpath(dir2, varname*".seisio")
+					!ispath(fo_seisio_name) && wseis(fo_seisio_name, Stemp[j])
 				end
 			end
 

@@ -34,15 +34,26 @@ Good example: save the data chunk every day, and assemble the data into one day 
 """
 function assemble_seisdata(
     netstachan::String,
-    fileio,
+    fidir::String,
     starttime::DateTime,
     endtime::DateTime;
     data_contents_fraction::Float64 = 0.8,
 )
 
     net, sta, loc, chan = split(netstachan, ".")
-    files_all = keys(fileio[joinpath("Waveforms", join([net, sta], "."))])
-    files_station = filter(x -> occursin(netstachan, x), files_all)
+    #filtering file target
+    # files_all = readdir(fidir)
+    # NOTE: updated for hierarchical directory tree 2020.10.04
+    files_all = String[]
+    for (root, dirs, files) in ScanDir.walkdir(fidir)
+       for file in files
+           fi = joinpath(root, file)
+           (split(fi, ".")[end] == "seisio") && push!(files_all, fi)# filter if it is .seisio
+       end
+    end
+    # println(rawdata_path_all)
+
+    files_station = filter(x -> occursin(netstachan, splitdir(x)[2]), files_all)
     files_target = findall_target(files_station, starttime, endtime)
 
     if isempty(files_target)
@@ -52,8 +63,10 @@ function assemble_seisdata(
 
     # read and merge seischannel
     S1 = SeisData(); removal_fraction_all = Float64[]
-    for file in files_target
-        Stemp = fileio[joinpath("Waveforms", join([net, sta], "."), file)]
+    bt_1 = @elapsed for file in files_target
+        # Stemp = fileio[joinpath("Waveforms", join([net, sta], "."), file)]
+        # Stemp = rseis(joinpath(fidir, file))[1]
+        Stemp = rseis(file)[1]
         haskey(Stemp.misc, "removal_fraction") && push!(removal_fraction_all, Stemp.misc["removal_fraction"])
         taper!(Stemp)
         S1 += Stemp
@@ -63,10 +76,12 @@ function assemble_seisdata(
     isempty(S1) && return nothing
 
     # flatten data
-    S1 = merge(S1)
+    # S1 = merge(S1) # NOTE: to save memory use, replaced to merge!() to avoid deepcopy
+    merge!(S1)
     # println(S1.t)
     # ungap at missing few sampling point due to rounding samplingcase
-    S1 = ungap(S1)
+    # S1 = ungap(S1)
+    ungap!(S1)
     # reconvert to seischannel
 
     #+++Deprecated the notes below; now using get_noisedatafraction to find noise data contents.+++#
@@ -85,10 +100,10 @@ function assemble_seisdata(
     datafraction_total = get_noisedatafraction(S1_sync[1].x, zerosignal_minpts=100, eps_α=1e-6)
 
     if  datafraction_total < data_contents_fraction
-        println("debug: data containts $(datafraction_total) is less than data_contents_fraction.")
+        println("$(netstachan)-$(starttime)-$(endtime): data containts $(datafraction_total) is less than data_contents_fraction.")
         return nothing
     end
-
+    # println("t_assemble: $(bt_1) at $(netstachan)-$(starttime)-$(endtime)")
     return S1_sync[1]
 end
 
@@ -100,7 +115,7 @@ function findall_target(
 
     files_target = []
     for file in files_station
-        file_st, file_et = DateTime.(split(file, "__")[2:3])
+        file_st, file_et = DateTime.(split(splitdir(file)[2], "__")[2:3])
         if !(starttime >= file_et || endtime <= file_st)
             # this file has overlap with target timewindow
             push!(files_target, file)

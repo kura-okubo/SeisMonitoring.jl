@@ -1,5 +1,8 @@
 include("map_seisstack.jl")
+include("cc_channel_collection.jl")
 include("seisstack_utils.jl")
+
+const MINIMUM_EPS = 1e-20  # absolute threshold of signal amplitude used to find all zero CCF
 
 """
     seisstack(InputDict::Dict)
@@ -33,14 +36,28 @@ function seisstack(InputDict_origin::OrderedDict)
     println("Shorttime stack starttime= $(InputDict["starttime"])")
     println("Shorttime stack endtime  = $(InputDict["endtime"])")
     println("Stacking method          = $(InputDict["stack_method"])")
+    println("collect_stationpairs     = $(InputDict["collect_stationpairs"])")
     println("Compute_reference        = $(InputDict["compute_reference"])")
     println("Compute_shorttimestack   = $(InputDict["compute_shorttimestack"])")
     println("Station pairs option     = $(InputDict["stack_pairs_option"])")
     println("Stack chanpair type      = $(InputDict["chanpair_type"])")
     println("***************************************\n")
 
+    # NOTE: cc_channel_collection() to aggregate channels with diferent channel name (e.g. HHZ, SHZ)
+    t_collect = 0.0;
+    if InputDict["collect_stationpairs"]
+        println("-------START collect station pairs--------")
+        t_collect = @elapsed cc_channel_collection(InputDict["stack_absolute_RawData_dir"])
+        println("cc_channel_collection successfully done.")
+    end
+
+    # overwrite ccdata path for the following process
+    cc_collectdir = joinpath(splitdir(InputDict["stack_absolute_RawData_dir"])[1], "cc_channel_collection")
+    !ispath(cc_collectdir) && error("$(cc_collectdir) is not found. Please collect stationpairs first.")
+    InputDict["stack_absolute_RawData_dir"] = cc_collectdir
+
     # get all cc files
-    cc_paths = SeisIO.ls(InputDict["stack_absolute_RawData_dir"])
+    cc_paths = SeisIO.ls(InputDict["stack_absolute_RawData_dir"]*"/*.jld2")
 
     t_reference = 0.0; t_shorttime = 0.0;
     mean_assemble_cc_reference = 0.0; mean_assemble_cc_shorttime=0;mean_stack_reference=0; mean_stack_shorttime=0;
@@ -67,6 +84,7 @@ function seisstack(InputDict_origin::OrderedDict)
     println("seisstack has been successfully done.")
 
     printstyled("---Summary---\n"; color = :cyan, bold = true)
+    println("Total time for collect station pairs = $(t_collect)[s]")
     println("Total time for reference stack = $(t_reference)[s]")
     println("Total time for shorttime stack = $(t_shorttime)[s]")
     println("mean time for reference corrdata assemble = $(mean_assemble_cc_reference)[s]")

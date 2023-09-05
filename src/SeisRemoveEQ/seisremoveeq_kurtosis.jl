@@ -75,58 +75,58 @@ end
 centralizedabs4fun(m) = x -> abs2.(abs2.(x - m))
 centralize_sumabs4(A::AbstractArray, m) =
     mapreduce(centralizedabs4fun(m), +, A)
-centralize_sumabs4(A::AbstractArray, m, ifirst::Int, ilast::Int) =
-    Base.mapreduce_impl(centralizedabs4fun(m), +, A, ifirst, ilast)
-
-function centralize_sumabs4!(R::AbstractArray{S}, A::AbstractArray, means::AbstractArray) where S
-    # following the implementation of _mapreducedim! at base/reducedim.jl
-    lsiz = Base.check_reducedims(R,A)
-    isempty(R) || fill!(R, zero(S))
-    isempty(A) && return R
-
-    if Base.has_fast_linear_indexing(A) && lsiz > 16 && !has_offset_axes(R, means)
-        nslices = div(length(A), lsiz)
-        ibase = first(LinearIndices(A))-1
-        for i = 1:nslices
-            @inbounds R[i] = centralize_sumabs4(A, means[i], ibase+1, ibase+lsiz)
-            ibase += lsiz
-        end
-        return R
-    end
-    indsAt, indsRt = Base.safe_tail(axes(A)), Base.safe_tail(axes(R)) # handle d=1 manually
-    keep, Idefault = Broadcast.shapeindexer(indsRt)
-    if Base.reducedim1(R, A)
-        i1 = first(Base.axes1(R))
-        @inbounds for IA in CartesianIndices(indsAt)
-            IR = Broadcast.newindex(IA, keep, Idefault)
-            r = R[i1,IR]
-            m = means[i1,IR]
-            @simd for i in axes(A, 1)
-                r += abs2(abs2(A[i,IA] - m))
-            end
-            R[i1,IR] = r
-        end
-    else
-        @inbounds for IA in CartesianIndices(indsAt)
-            IR = Broadcast.newindex(IA, keep, Idefault)
-            @simd for i in axes(A, 1)
-                R[i,IR] += abs2(abs2(A[i,IA] - means[i,IR]))
-            end
-        end
-    end
-    return R
-end
-
-function fourthmoment!(R::AbstractArray{S}, A::AbstractArray, m::AbstractArray; corrected::Bool=true) where S
-    if isempty(A)
-        fill!(R, convert(S, NaN))
-    else
-        rn = div(length(A), length(R)) - Int(corrected)
-        centralize_sumabs4!(R, A, m)
-        R .= R .* (1 // rn)
-    end
-    return R
-end
+# centralize_sumabs4(A::AbstractArray, m, ifirst::Int, ilast::Int) =
+#     Base.mapreduce_impl(centralizedabs4fun(m), +, A, ifirst, ilast)
+#
+# function centralize_sumabs4!(R::AbstractArray{S}, A::AbstractArray, means::AbstractArray) where S
+#     # following the implementation of _mapreducedim! at base/reducedim.jl
+#     lsiz = Base.check_reducedims(R,A)
+#     isempty(R) || fill!(R, zero(S))
+#     isempty(A) && return R
+#
+#     if Base.has_fast_linear_indexing(A) && lsiz > 16 && !has_offset_axes(R, means)
+#         nslices = div(length(A), lsiz)
+#         ibase = first(LinearIndices(A))-1
+#         for i = 1:nslices
+#             @inbounds R[i] = centralize_sumabs4(A, means[i], ibase+1, ibase+lsiz)
+#             ibase += lsiz
+#         end
+#         return R
+#     end
+#     indsAt, indsRt = Base.safe_tail(axes(A)), Base.safe_tail(axes(R)) # handle d=1 manually
+#     keep, Idefault = Broadcast.shapeindexer(indsRt)
+#     if Base.reducedim1(R, A)
+#         i1 = first(Base.axes1(R))
+#         @inbounds for IA in CartesianIndices(indsAt)
+#             IR = Broadcast.newindex(IA, keep, Idefault)
+#             r = R[i1,IR]
+#             m = means[i1,IR]
+#             @simd for i in axes(A, 1)
+#                 r += abs2(abs2(A[i,IA] - m))
+#             end
+#             R[i1,IR] = r
+#         end
+#     else
+#         @inbounds for IA in CartesianIndices(indsAt)
+#             IR = Broadcast.newindex(IA, keep, Idefault)
+#             @simd for i in axes(A, 1)
+#                 R[i,IR] += abs2(abs2(A[i,IA] - means[i,IR]))
+#             end
+#         end
+#     end
+#     return R
+# end
+#
+# function fourthmoment!(R::AbstractArray{S}, A::AbstractArray, m::AbstractArray; corrected::Bool=true) where S
+#     if isempty(A)
+#         fill!(R, convert(S, NaN))
+#     else
+#         rn = div(length(A), length(R)) - Int(corrected)
+#         centralize_sumabs4!(R, A, m)
+#         R .= R .* (1 // rn)
+#     end
+#     return R
+# end
 
 """
     fourthmoment(v, m; dims, corrected::Bool=true)
@@ -140,10 +140,10 @@ whereas the sum is scaled with `n` if `corrected` is `false` where `n = length(v
     Use the [`skipmissing`](@ref) function to omit `missing` entries and compute the
     variance of non-missing values.
 """
-fourthmoment(A::AbstractArray, m::AbstractArray; corrected::Bool=true, dims=:) = _fourthmoment(A, m, corrected, dims)
-
-_fourthmoment(A::AbstractArray{T}, m, corrected::Bool, region) where {T} =
-    fourthmoment!(Base.reducedim_init(t -> abs2(t)/2, +, A, region), A, m; corrected=corrected)
+# fourthmoment(A::AbstractArray, m::AbstractArray; corrected::Bool=true, dims=:) = _fourthmoment(A, m, corrected, dims)
+#
+# _fourthmoment(A::AbstractArray{T}, m, corrected::Bool, region) where {T} =
+#     fourthmoment!(Base.reducedim_init(t -> abs2(t)/2, +, A, region), A, m; corrected=corrected)
 
 fourthmoment(A::AbstractArray, m; corrected::Bool=true) = _fourthmoment(A, m, corrected, :)
 
@@ -178,6 +178,10 @@ function detect_eq_kurtosis!(data::SeisChannel, InputDict::OrderedDict)
     #convert window lengths from seconds to samples
     twsize = trunc(Int, kurtosis_removewindow * data.fs)
     overlapsize = trunc(Int, kurtosis_overlap * data.fs)
+
+    if twsize == overlapsize
+        error("shortWinLength should be longer than stalta_overlap.")
+    end
 
     #calculate how much to move beginning of window each iteration
     slide = twsize-overlapsize
