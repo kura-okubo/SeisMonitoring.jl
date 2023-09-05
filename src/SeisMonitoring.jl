@@ -16,7 +16,7 @@ export
     set_parameter,
 
     # plot command
-    smplot_rawdata,
+    # smplot_rawdata,
     smplot_corrdata,
     smplot_stackcc,
     smplot_noiseavailability,
