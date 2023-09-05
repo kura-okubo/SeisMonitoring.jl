@@ -154,11 +154,11 @@ end
 
 
 
-function pmaptest_1(key_station_pair::String, FFT_Dict, InputDict::OrderedDict)
-    println(length(FFT_Dict))
-    return key_station_pair
-end
-
+# function pmaptest_1(key_station_pair::String, FFT_Dict, InputDict::OrderedDict)
+#     println(length(FFT_Dict))
+#     return key_station_pair
+# end
+#
 
 #
 #     # open FileIO of RawData
