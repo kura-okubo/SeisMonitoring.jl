@@ -1,45 +1,45 @@
-"""
-    scan_stations(finame::String))
-
-scan stations saved in SeisMointoring.jl jld2 file.
-"""
-function scan_stations(finame::String)
-
-    # fi = jldopen(finame, "r")
-    # StationDict = OrderedDict{String, Array{String, 1}}()
-    # for key in keys(fi["Waveforms"])
-	#
-    #     if !haskey(StationDict, key)
-    #         StationDict[key] = Array{String, 1}(undef, 0)
-    #     end
-	#
-    #     filenames = keys(fi[joinpath("Waveforms", key)])
-	#
-    #     for fname in filenames
-    #         netstachan = split(fname, "__")[1]
-    #         if  netstachan ∉ StationDict[key]
-    #             push!(StationDict[key], netstachan)
-    #         end
-    #     end
-    # end
-	paths = readdir(finame)
-	StationDict = OrderedDict{String, Array{String, 1}}()
-	all_stations = String[]
-
-	for path in paths
-		netstachan = split(path, "__")[1]
-		key = join(split(netstachan, ".")[1:2], ".")
-	    if !haskey(StationDict, key)
-	        StationDict[key] = Array{String, 1}(undef, 0)
-	    end
-		if  netstachan ∉ StationDict[key]
-			push!(StationDict[key], netstachan)
-			push!(all_stations, netstachan)
-		end
-	end
-
-    return StationDict, all_stations
-end
+# """
+#     scan_stations(finame::String))
+#
+# scan stations saved in SeisMointoring.jl jld2 file.
+# """
+# function scan_stations(finame::String)
+#
+#     # fi = jldopen(finame, "r")
+#     # StationDict = OrderedDict{String, Array{String, 1}}()
+#     # for key in keys(fi["Waveforms"])
+# 	#
+#     #     if !haskey(StationDict, key)
+#     #         StationDict[key] = Array{String, 1}(undef, 0)
+#     #     end
+# 	#
+#     #     filenames = keys(fi[joinpath("Waveforms", key)])
+# 	#
+#     #     for fname in filenames
+#     #         netstachan = split(fname, "__")[1]
+#     #         if  netstachan ∉ StationDict[key]
+#     #             push!(StationDict[key], netstachan)
+#     #         end
+#     #     end
+#     # end
+# 	paths = readdir(finame)
+# 	StationDict = OrderedDict{String, Array{String, 1}}()
+# 	all_stations = String[]
+#
+# 	for path in paths
+# 		netstachan = split(path, "__")[1]
+# 		key = join(split(netstachan, ".")[1:2], ".")
+# 	    if !haskey(StationDict, key)
+# 	        StationDict[key] = Array{String, 1}(undef, 0)
+# 	    end
+# 		if  netstachan ∉ StationDict[key]
+# 			push!(StationDict[key], netstachan)
+# 			push!(all_stations, netstachan)
+# 		end
+# 	end
+#
+#     return StationDict, all_stations
+# end
 
 # finame = "RawData.jld2"
 # StationDict = scan_stations(finame)
@@ -236,30 +236,30 @@ end
 # endtime = DateTime("2004-04-03T00:00:00")
 # starts, ends = get_cc_time_windows(cc_time_unit, fs, starttime, endtime)
 
-
-"""
-    get_stationchanname(StationPairList::)
-get all station channel name used in the station pair list.
-
-# Argument
-- `StationPairList::Array{String, 1}` List of stastion pairs from get_stastionpairs.jl
-
-e.g.    get_stationchanname(StationPairDict[key])
-
-# Return
-
-- `StationChan::Array{String,1}` List of stations used in StationPairList.
-"""
-function get_stationchanname(StationPairList::Array{String,1})
-
-    all_stationchan = String[]
-    for stationpair in StationPairList
-        sta1, sta2 = split(stationpair, "-")
-        sta1 ∉ all_stationchan && push!(all_stationchan, sta1)
-        sta2 ∉ all_stationchan && push!(all_stationchan, sta2)
-    end
-    return all_stationchan
-end
+#
+# """
+#     get_stationchanname(StationPairList::)
+# get all station channel name used in the station pair list.
+#
+# # Argument
+# - `StationPairList::Array{String, 1}` List of stastion pairs from get_stastionpairs.jl
+#
+# e.g.    get_stationchanname(StationPairDict[key])
+#
+# # Return
+#
+# - `StationChan::Array{String,1}` List of stations used in StationPairList.
+# """
+# function get_stationchanname(StationPairList::Array{String,1})
+#
+#     all_stationchan = String[]
+#     for stationpair in StationPairList
+#         sta1, sta2 = split(stationpair, "-")
+#         sta1 ∉ all_stationchan && push!(all_stationchan, sta1)
+#         sta2 ∉ all_stationchan && push!(all_stationchan, sta2)
+#     end
+#     return all_stationchan
+# end
 
 #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++#
 """

@@ -89,6 +89,39 @@ end
 
 end
 
+@testset "s_whiten" begin
+
+    S = rseis("./data/run_seismonitoring_test_OUTPUT/seismicdata/rawseismicdata/BP.EADB.40.SP1/2016/BP.EADB.40.SP1__2016-01-15T00:00:00__2016-01-15T00:01:00__sp1.seisio")[1]
+    SW = SeisMonitoring.s_whiten(S, 0.9, 1.2, pad=50)
+
+    ifGenerateTrueFiles && CSV.write("./data/seisdl_Sdata_whiten_true.csv", Tables.table(SW.x))
+    SWx_true = CSV.read("./data/seisdl_Sdata_whiten_true.csv", DataFrame).Column1
+    @test typeof(SW) == SeisChannel
+    @test SWx_true ≈ SW.x atol=1e-4
+
+end
+
+@testset "spectrum normalization" begin
+
+    S = rseis("./data/run_seismonitoring_test_OUTPUT/seismicdata/rawseismicdata/BP.EADB.40.SP1/2016/BP.EADB.40.SP1__2016-01-15T00:00:00__2016-01-15T00:01:00__sp1.seisio")[1]
+    R = RawData(S, 30, 5)
+    # compute fft
+    FFT1 = compute_fft(R)
+
+    FFT_coh = SeisMonitoring.spectrum_coherence(FFT1, 10, 1e-6)
+    FFT_dec = SeisMonitoring.spectrum_deconvolution(FFT1, 10, 1e-6)
+
+    # For the sake of test, we cross correlate the different noramlized methods
+    CC = correlate(FFT_coh, FFT_dec, 10, corr_type="CC")
+    stack!(CC, allstack = true)
+    abs_max!(CC)
+
+    ifGenerateTrueFiles && CSV.write("./data/seisstack_CC_true.csv", Tables.table(CC.corr))
+    CC_true = CSV.read("./data/seisstack_CC_true.csv", DataFrame).Column1
+    @test CC_true ≈ CC.corr
+
+end
+
 @testset "compute_dvvdqq" begin
     @testset "seisstack_dvvdqq" begin
 
