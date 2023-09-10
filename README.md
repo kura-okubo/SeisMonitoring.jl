@@ -4,7 +4,8 @@ A Julia package of the tools for ambient noise seismology.
 
 Documentation is available from the badge below:
 
-[![](https://img.shields.io/badge/docs-stable-blue.svg)](https://kura-okubo.github.io/SeisMonitoring.jl/dev)
+[![](https://img.shields.io/badge/docs-dev-blue.svg)](https://kura-okubo.github.io/SeisMonitoring.jl/dev)
+[![](https://img.shields.io/badge/docs-stable-blue.svg)](https://kura-okubo.github.io/SeisMonitoring.jl/stable)
 
 Other badges:
 
