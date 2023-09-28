@@ -27,6 +27,23 @@ Pkg.develop(url="https://github.com/kura-okubo/SeisDvv.jl");
 Pkg.develop(url="https://github.com/kura-okubo/SeisMonitoring.jl");
 ```
 
+# Install SeisIO to Mac M1
+Currently we have a problem when adding the `SeisIO.jl` using Mac M1 chip.
+To avoid the error,
+1. Use the Docker container following [**SeisMonitoring_Example**](https://github.com/kura-okubo/SeisMonitoring_Example).
+2. Follow (https://github.com/jpjones76/SeisIO.jl/pull/94/commits/9a8b4510636e442e89f3d0a76f63abc56f1ab054).
+We need to install the `SeisIO.jl` in develop directory:
+```
+]dev SeisIO 
+```
+Then, edit the `~/.julia/dev/SeisIO/Project.toml` such that
+```
+HDF5 = "0.12.3, 0.13, 0.14.2"
+LightXML = "0.8.1, 0.9"
+```
+You can avoid the precompile error for those packages.
+
+
 ## Tutorial
 We created the notebook of the tutorial in the different github repository, [**SeisMonitoring_Example**](https://github.com/kura-okubo/SeisMonitoring_Example). You can find how to download the data, remove the transient signals, compute cross-correlations, stack the correlation functions and measure the dv/v.
 
