@@ -15,19 +15,7 @@ Other badges:
 [![DOI](https://zenodo.org/badge/259752194.svg)](https://zenodo.org/badge/latestdoi/259752194)
 [![Github All Releases](https://img.shields.io/github/downloads/kura-okubo/SeisMonitoring.jl/total.svg)]()
 
-## Installation
-
-Type the commands below in the Julia REPL:
-
-```julia
-using Pkg; Pkg.update();
-Pkg.add(PackageSpec(name="SeisIO", version="1.2.1"));
-Pkg.add(PackageSpec(name="SeisNoise", version="0.5.3"));
-Pkg.develop(url="https://github.com/kura-okubo/SeisDvv.jl");
-Pkg.develop(url="https://github.com/kura-okubo/SeisMonitoring.jl");
-```
-
-# Install SeisIO to Mac M1
+## Install SeisIO to Mac M1
 Currently we have a problem when adding the `SeisIO.jl` using Mac M1 chip.
 To avoid the error,
 1. Use the Docker container following [**SeisMonitoring_Example**](https://github.com/kura-okubo/SeisMonitoring_Example).
@@ -43,6 +31,17 @@ LightXML = "0.8.1, 0.9"
 ```
 You can avoid the precompile error for those packages.
 
+## Installation
+
+Type the commands below in the Julia REPL:
+
+```julia
+using Pkg; Pkg.update();
+Pkg.add(PackageSpec(name="SeisIO", version="1.2.1")); # Skip if you already installed as above
+Pkg.add(PackageSpec(name="SeisNoise", version="0.5.3"));
+Pkg.develop(url="https://github.com/kura-okubo/SeisDvv.jl");
+Pkg.develop(url="https://github.com/kura-okubo/SeisMonitoring.jl");
+```
 
 ## Tutorial
 We created the notebook of the tutorial in the different github repository, [**SeisMonitoring_Example**](https://github.com/kura-okubo/SeisMonitoring_Example). You can find how to download the data, remove the transient signals, compute cross-correlations, stack the correlation functions and measure the dv/v.
