@@ -2,13 +2,29 @@
 
 This is the documentation of SeisMonitoring.jl
 
+## Install SeisIO to Mac M1
+Currently we have a problem when adding the `SeisIO.jl` using Mac M1 chip.
+To avoid the error,
+1. Use the Docker container following [**SeisMonitoring_Example**](https://github.com/kura-okubo/SeisMonitoring_Example).
+2. Follow (https://github.com/jpjones76/SeisIO.jl/pull/94/commits/9a8b4510636e442e89f3d0a76f63abc56f1ab054).
+We need to install the `SeisIO.jl` in develop directory:
+```
+]dev SeisIO 
+```
+Then, edit the `~/.julia/dev/SeisIO/Project.toml` such that
+```
+HDF5 = "0.12.3, 0.13, 0.14.2"
+LightXML = "0.8.1, 0.9"
+```
+You can avoid the precompile error for those packages.
+
 ## Installation
 
 Type the commands below in the Julia REPL:
 
 ```julia
 using Pkg; Pkg.update();
-Pkg.add(PackageSpec(name="SeisIO", version="1.2.1"));
+Pkg.add(PackageSpec(name="SeisIO", version="1.2.1")); # Skip if you already installed as above
 Pkg.add(PackageSpec(name="SeisNoise", version="0.5.3"));
 Pkg.develop(url="https://github.com/kura-okubo/SeisDvv.jl");
 Pkg.develop(url="https://github.com/kura-okubo/SeisMonitoring.jl");
