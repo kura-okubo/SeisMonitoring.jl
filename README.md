@@ -15,11 +15,19 @@ Other badges:
 [![DOI](https://zenodo.org/badge/259752194.svg)](https://zenodo.org/badge/latestdoi/259752194)
 [![Github All Releases](https://img.shields.io/github/downloads/kura-okubo/SeisMonitoring.jl/total.svg)]()
 
-## Install SeisIO to Mac M1
+## Install SeisIO.jl to Mac M1
 Currently we have a problem when adding the `SeisIO.jl` using Mac M1 chip.
-To avoid the error,
-1. Use the Docker container following [**SeisMonitoring_Example**](https://github.com/kura-okubo/SeisMonitoring_Example).
-2. Follow (https://github.com/jpjones76/SeisIO.jl/pull/94/commits/9a8b4510636e442e89f3d0a76f63abc56f1ab054).
+To avoid the error, try one of the options below:
+
+- Option 1. Use the forked version of SeisIO. Type the follwing command in the Julia REPL:
+```
+using Pkg; Pkg.add(url="https://github.com/kura-okubo/SeisIO.jl");
+```
+
+- Option 2. Use the Docker container following 
+[**SeisMonitoring_Example**](https://github.com/kura-okubo/SeisMonitoring_Example). 
+
+- Option 3.  Follow (https://github.com/jpjones76/SeisIO.jl/pull/94/commits/9a8b4510636e442e89f3d0a76f63abc56f1ab054).
 We need to install the `SeisIO.jl` in develop directory:
 ```
 ]dev SeisIO 
@@ -29,7 +37,7 @@ Then, edit the `~/.julia/dev/SeisIO/Project.toml` such that
 HDF5 = "0.12.3, 0.13, 0.14.2"
 LightXML = "0.8.1, 0.9"
 ```
-You can avoid the precompile error for those packages.
+You can avoid the precompile error for those packages. We corrected these dependencies in the forked version used in the option 1 above.
 
 ## Installation
 
@@ -37,7 +45,8 @@ Type the commands below in the Julia REPL:
 
 ```julia
 using Pkg; Pkg.update();
-Pkg.add(PackageSpec(name="SeisIO", version="1.2.1")); # Skip if you already installed as above
+# Pkg.add(PackageSpec(name="SeisIO", version="1.2.1")); 
+Pkg.add(url="https://github.com/kura-okubo/SeisIO.jl") # forked version used for the environment including Mac M1
 Pkg.add(PackageSpec(name="SeisNoise", version="0.5.3"));
 Pkg.develop(url="https://github.com/kura-okubo/SeisDvv.jl");
 Pkg.develop(url="https://github.com/kura-okubo/SeisMonitoring.jl");
