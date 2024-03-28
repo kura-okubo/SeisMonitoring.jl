@@ -39,6 +39,9 @@ LightXML = "0.8.1, 0.9"
 ```
 You can avoid the precompile error for those packages. We corrected these dependencies in the forked version used in the option 1 above.
 
+## SeisBase.jl
+We have developed this software package with `SeisIO.jl` v1.2.1, which is currently maintained as [SeisBase.jl](https://github.com/JuliaSeismo/SeisBase.jl). 
+
 ## Installation
 
 Type the commands below in the Julia REPL:
