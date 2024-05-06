@@ -76,4 +76,4 @@ or read the QR code:
 See also the repoitory of [**SeisMonitoring_Paper**](https://github.com/kura-okubo/SeisMonitoring_Paper) for the post-processing using the dv/v over 20 years at Parkfield.
 
 ## Reference
-
+Okubo, K., Delbridge, B. G., & Denolle, M. A. (2024). Monitoring velocity change over 20 years at Parkfield. Journal of Geophysical Research: Solid Earth, 129, e2023JB028084. https://doi.org/10.1029/2023JB028084
